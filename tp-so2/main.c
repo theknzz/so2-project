@@ -15,13 +15,14 @@
 #define MIN_COL 50
 #define COMM_BUF_SIZE 5
 #define MAX_TAXIS 5
+#define MAX_PASSENGERS 5
 
 // Map characters
 #define S_CHAR 'R' // Street char
 #define B_CHAR 'E' // Building char
 
 // Actions
-enum type { Street, Building, Taxi, Passenger };
+enum type { Street, Building/*, Taxi, Passenger */};
 
 // Message intentions
 enum intention { WannaWork, WannaJoin };
@@ -42,21 +43,36 @@ enum intention { WannaWork, WannaJoin };
 #define ADM_INTERVAL _T("interval")
 #define ADM_HELP _T("help")
 
+typedef struct _COORDS {
+	int x, y;
+} Coords;
+
+typedef struct _TAXI {
+	TCHAR* licensePlate;
+	Coords destination;
+} Taxi;
+
+typedef struct _Passenger {
+	TCHAR* nome;
+	Coords location;
+} Passenger;
+
 typedef struct MapCell {
 	int x, y;
 	enum type cellType;
-	// + Taxi
-	// + Passageiro
+	char display;
+	Taxi taxi;
+	Passenger passenger;
 } Cell;
 
 typedef struct MessageToCenTaxi {
 	enum intention action;			// razao da messagem
-	// Taxi taxi;				
+	Taxi taxi;
 } CentralMessage;
 
 typedef struct MessageToConTaxi {
 	enum intention action;			// razao da messagem
-	// Passenger passenger;
+	Passenger passenger;
 } TaxiMessage;
 
 typedef struct _MSG {
@@ -68,18 +84,20 @@ typedef struct _MSG_1 {
 	TaxiMessage messages[MAX_TAXIS];		// buffer de mensagens (acesso individual por taxi)
 } SHM_Con_To_Cen;
 
-typedef struct _COORDS {
-	int x, y;
-} Coords;
-
-typedef struct _TAXI {
-	TCHAR* licensePlate;
-	Coords destination;
-} TaxiWorker;
 
 void ClearScreen() {
 	Sleep(1000 * 3);
-	_tprintf(_T("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"));
+	//_tprintf(_T("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"));
+}
+
+void PrintMap(Cell* map) {
+	for (int i = 0; i < MIN_LIN; i++) {
+		for (int j = 0; j < MIN_COL; j++) {
+			char c = (map + (i*50)+j)->display;
+			_tprintf(_T("%c"), c);
+		}
+		_tprintf(_T("\n"));
+	}
 }
 
 // função-thread responsável por tratar a interação com o admin
@@ -156,33 +174,40 @@ int FindFeatureAndRun(TCHAR* command) {
 	return 0;
 }
 
+void UpdateCellPositions(Cell cell, int x, int y) {
+	if (x == MIN_LIN) {
+		x = 0;
+		y++;
+	}
+	cell.x = x++;
+	cell.y = y;
+}
 
-void LoadMapa(Cell* mapa, char* buffer) {
-	for (unsigned int y = 0; y < MIN_LIN - 1; y++) {
-		for (unsigned int x = 0; x < MIN_COL - 1; x++) {
-			int i = x + y;
-			switch (buffer[i]) {
-			case S_CHAR:
-				mapa[i].cellType = Street;
-				break;
-			case B_CHAR:
-				mapa[i].cellType = Building;
-				break;
-			//case 'T':
-			//	mapa[i].bloco = Taxi;
-			//	break;
-			//case 'P':
-			//	mapa[i].bloco = Passageiro;
-			//	break;
+void LoadMapa(Cell* map, char* buffer) {
+	int aux=0;
+	for (int i = 0; i < MIN_LIN; i++) {
+		for (int j = 0; j < MIN_COL; j++) {
+			aux = (i * MIN_COL) + j;
+			char c = buffer[aux];
+			if (c == S_CHAR) {
+				map[aux].display = '-';
+				map[aux].cellType = Street;
+				map[aux].x = j;
+				map[aux].y = i;
 			}
-			mapa[i].x = x;
-			mapa[i].y = y;
+			else if (c == B_CHAR) {
+				map[aux].display = '+';
+				map[aux].cellType = Building;
+				map[aux].x = j;
+				map[aux].y = i;
+			}
 		}
 	}
 }
 
 char* ReadFileToCharArray(TCHAR* mapName) {
-
+	_tprintf(_T("Opening '%s'.\n"), mapName);
+	
 	HANDLE file = CreateFile(mapName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (file == INVALID_HANDLE_VALUE) {
 		_tprintf(_T("Erro ao obter handle para o ficheiro (%d).\n"), GetLastError());
@@ -195,13 +220,12 @@ char* ReadFileToCharArray(TCHAR* mapName) {
 		return NULL;
 	}
 
-	char* mvof = MapViewOfFile(fmFile, FILE_MAP_READ, 0, 0, 0);
+	char* mvof = (char*) MapViewOfFile(fmFile, FILE_MAP_READ, 0, 0, 0);
 	if (!mvof) {
 		_tprintf(_T("Erro - MapViewOfFile (%d).\n"), GetLastError());
 		return NULL;
 	}
 
-	UnmapViewOfFile(mvof);
 	CloseHandle(fmFile);
 	CloseHandle(file);
 
@@ -210,8 +234,9 @@ char* ReadFileToCharArray(TCHAR* mapName) {
 
 int _tmain(int argc, TCHAR* argv[]) {
 
-	Cell mapa[MIN_LIN * MIN_COL];
+	Cell map[MIN_LIN * MIN_COL];
 	int nrMaxTaxis = MAX_TAXIS; // colocar variavel dentro de uma dll (?)
+	int nrMaxPassengers = MAX_PASSENGERS;
 	BOOL gate = FALSE;
 
 #ifdef UNICODE
@@ -219,13 +244,13 @@ int _tmain(int argc, TCHAR* argv[]) {
 	_setmode(_fileno(stdout), _O_WTEXT);
 #endif
 
-
 	HANDLE taxiCanTalkSemaphore = CreateSemaphore(NULL, 0, MAX_TAXIS, TAXI_CAN_TALK);
 	if (taxiCanTalkSemaphore == NULL) {
 		_tprintf(_T("Error creating taxiCanTalkSemaphore (%d)\n"), GetLastError());
 		_gettch();
 		exit(-1);
 	}
+
 	// Check if this mechanism is already create
 	// if GetLastError() returns ERROR_ALREADY_EXISTS
 	// this is the second instance running
@@ -242,13 +267,15 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	_tprintf(_T("Thread launched!\n"));
-	WaitForSingleObject(consoleThread, INFINITE);
-	if (argc == 2) {
+	
+	if (argc > 2) {
 		nrMaxTaxis = _ttoi(argv[1]);
+		nrMaxPassengers = _ttoi(argv[2]);
 	}
 	_tprintf(_T("Nr max de taxis: %.2d\n"), nrMaxTaxis);
+	_tprintf(_T("Nr max de passengers: %.2d\n"), nrMaxPassengers);
 
-	TaxiWorker* taxis = (TaxiWorker*)malloc(nrMaxTaxis * sizeof(TaxiWorker));
+	Taxi* taxis = (Taxi*)malloc(nrMaxTaxis * sizeof(Taxi));
 	if (taxis == NULL) {
 		_tprintf(_T("Error allocating memory (%d)\n"), GetLastError());
 		_gettch();
@@ -256,40 +283,17 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	_tprintf(_T("Memory allocated successfully.\n"));
 
-
-	// register(TAXI_CAN_TALK, 3);
-	
-	/*HANDLE hMapFile = CreateFileMapping(
-		INVALID_HANDLE_VALUE,
-		NULL,
-		PAGE_READWRITE,
-		0,
-		sizeof(Shared_Msg),
-		SHM_CENTAXI_CONTAXI);
-	if (hMapFile == NULL) {
-		_tprintf(TEXT("Erro ao mapear memória partilhada (%d).\n"),
-			GetLastError());
-		return FALSE;
+	Passenger* passengers = (Passenger*)malloc(nrMaxPassengers * sizeof(Passenger));
+	if (passengers == NULL) {
+		_tprintf(_T("Error allocating memory (%d)\n"), GetLastError());
+		_gettch();
+		exit(-1);
 	}
-	else _tprintf(TEXT("Memória partilhada mapeada.\n"));
+	_tprintf(_T("Memory allocated successfully.\n"));
 
-	HANDLE shared = (Shared_Msg*) MapViewOfFile(
-		hMapFile,
-		FILE_MAP_ALL_ACCESS,
-		0,
-		0,
-		sizeof(Shared_Msg));
-	if (shared == NULL) {
-		_tprintf(TEXT("Erro ao criar vista da memória partilhada (%d).\n"),
-			GetLastError());
-		_gettchar();
-		return FALSE;
-	}
-	else _tprintf(TEXT("Vista da Memória partilhada criada.\n"));*/
-	
 	char* fileContent = NULL;
 	// Le conteudo do ficheiro para array de chars
-	if ((fileContent = ReadFileToCharArray(_T("..\\..\\maps\\map.txt"))) == NULL) {
+	if ((fileContent = ReadFileToCharArray(_T("E:\\projects\\so2-project\\maps\\map1.txt"))) == NULL) {
 		_tprintf(_T("Error reading the file (%d)\n"), GetLastError());
 		exit(-1);
 	}
@@ -297,10 +301,20 @@ int _tmain(int argc, TCHAR* argv[]) {
 		_tprintf(_T("Map loaded to memory!\n"));
 	}
 
+	for (int i = 0; i < MIN_LIN; i++) {
+		for (int j = 0; j < MIN_COL; j++) {
+			char c = fileContent[i * 50 + j];
+			_tprintf(_T("%c"), c);
+		}
+		_tprintf(_T("\n"));
+	}
+
 	// Preenche mapa com o conteudo do ficheiro
-	LoadMapa(mapa, fileContent);
+	LoadMapa(map, fileContent);
+	PrintMap(&map);
+	//ClearScreen();
 
-
+	UnmapViewOfFile(fileContent);
 	WaitForSingleObject(consoleThread, INFINITE);
 	free(taxis);
 	return 0;

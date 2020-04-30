@@ -1,6 +1,8 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(467,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (tp-so2.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   main.c
-E:\projects\so2-project\tp-so2\main.c(93,13): warning C4477: 'wscanf_s' : format string '%99[^\n]' requires an argument of type 'unsigned int', but variadic argument 2 has type 'unsigned __int64'
-E:\projects\so2-project\tp-so2\main.c(93,13): message : this argument is used as a buffer size
-E:\projects\so2-project\tp-so2\main.c(95,20): warning C4013: 'FindFeatureAndRun' undefined; assuming extern returning int
+E:\projects\so2-project\tp-so2\main.c(111,13): warning C4477: 'wscanf_s' : format string '%99[^\n]' requires an argument of type 'unsigned int', but variadic argument 2 has type 'unsigned __int64'
+E:\projects\so2-project\tp-so2\main.c(111,13): message : this argument is used as a buffer size
+E:\projects\so2-project\tp-so2\main.c(113,20): warning C4013: 'FindFeatureAndRun' undefined; assuming extern returning int
+E:\projects\so2-project\tp-so2\main.c(314,15): warning C4047: 'function': 'Cell *' differs in levels of indirection from 'Cell (*)[2500]'
+E:\projects\so2-project\tp-so2\main.c(314,15): warning C4024: 'PrintMap': different types for formal and actual parameter 1
   tp-so2.vcxproj -> E:\projects\so2-project\x64\Debug\CenTaxi.exe
