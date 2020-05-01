@@ -1,1 +1,9 @@
-﻿
+﻿  main.c
+E:\projects\so2-project\ConTaxi\main.c(118,12): warning C4477: 'wscanf_s' : format string '%9s' requires an argument of type 'unsigned int', but variadic argument 2 has type 'unsigned __int64'
+E:\projects\so2-project\ConTaxi\main.c(118,12): message : this argument is used as a buffer size
+E:\projects\so2-project\ConTaxi\main.c(121,42): warning C4474: 'wscanf_s' : too many arguments passed for format string
+E:\projects\so2-project\ConTaxi\main.c(121,42): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
+E:\projects\so2-project\ConTaxi\main.c(123,42): warning C4474: 'wscanf_s' : too many arguments passed for format string
+E:\projects\so2-project\ConTaxi\main.c(123,42): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
+E:\projects\so2-project\ConTaxi\main.c(42,9): warning C4101: 'threads': unreferenced local variable
+  ConTaxi.vcxproj -> E:\projects\so2-project\x64\Debug\ConTaxi.exe
