@@ -33,6 +33,7 @@ enum intention { WannaWork, WannaJoin };
 // Control mechanisms
 #define TAXI_CAN_TALK _T("taxi_can_talk")
 #define CENTRAL_CAN_READ _T("central_can_read")
+#define CENTRAL_MUTEX _T("central_mutex")
 
 // Admin Commands
 #define ADM_KICK _T("kick")
@@ -174,15 +175,6 @@ int FindFeatureAndRun(TCHAR* command) {
 	return 0;
 }
 
-void UpdateCellPositions(Cell cell, int x, int y) {
-	if (x == MIN_LIN) {
-		x = 0;
-		y++;
-	}
-	cell.x = x++;
-	cell.y = y;
-}
-
 void LoadMapa(Cell* map, char* buffer) {
 	int aux=0;
 	for (int i = 0; i < MIN_LIN; i++) {
@@ -206,8 +198,6 @@ void LoadMapa(Cell* map, char* buffer) {
 }
 
 char* ReadFileToCharArray(TCHAR* mapName) {
-	_tprintf(_T("Opening '%s'.\n"), mapName);
-	
 	HANDLE file = CreateFile(mapName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (file == INVALID_HANDLE_VALUE) {
 		_tprintf(_T("Erro ao obter handle para o ficheiro (%d).\n"), GetLastError());
@@ -217,19 +207,40 @@ char* ReadFileToCharArray(TCHAR* mapName) {
 	HANDLE fmFile = CreateFileMapping(file, NULL, PAGE_READONLY, 0, 0, NULL /*FILE MAPPING NAME*/);
 	if (!fmFile) {
 		_tprintf(_T("Erro ao mapear o ficheiro (%d).\n"), GetLastError());
+		CloseHandle(file);
 		return NULL;
 	}
 
 	char* mvof = (char*) MapViewOfFile(fmFile, FILE_MAP_READ, 0, 0, 0);
 	if (!mvof) {
 		_tprintf(_T("Erro - MapViewOfFile (%d).\n"), GetLastError());
+		CloseHandle(file);
+		CloseHandle(fmFile);
 		return NULL;
 	}
 
 	CloseHandle(fmFile);
 	CloseHandle(file);
-
 	return mvof;
+}
+
+void WaitAndReleaseThreads(HANDLE* threads, int nr) {
+	for (int i = 0; i < nr; i++) {
+		WaitForSingleObject(threads + i, INFINITE);
+		CloseHandle(threads + i);
+	}
+}
+
+void CloseMyHandles(HANDLE* handles, int nr) {
+	for (int i = 0; i < nr; i++)
+		CloseHandle(handles + i);
+}
+
+void UnmapAndClose(HANDLE* views, int nr) {
+	for (int i = 0; i < nr; i++) {
+		UnmapViewOfFile(views + i);
+		CloseHandle(views + i);
+	}
 }
 
 int _tmain(int argc, TCHAR* argv[]) {
@@ -239,10 +250,17 @@ int _tmain(int argc, TCHAR* argv[]) {
 	int nrMaxPassengers = MAX_PASSENGERS;
 	BOOL gate = FALSE;
 
+	HANDLE views[50];
+	HANDLE handles[50];
+	HANDLE threads[50];
+	int viewCounter = 0, handleCounter = 0, threadCounter = 0;
+
 #ifdef UNICODE
 	_setmode(_fileno(stdin), _O_WTEXT);
 	_setmode(_fileno(stdout), _O_WTEXT);
 #endif
+
+	// ====================================================================================================
 
 	HANDLE taxiCanTalkSemaphore = CreateSemaphore(NULL, 0, MAX_TAXIS, TAXI_CAN_TALK);
 	if (taxiCanTalkSemaphore == NULL) {
@@ -250,7 +268,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 		_gettch();
 		exit(-1);
 	}
-
 	// Check if this mechanism is already create
 	// if GetLastError() returns ERROR_ALREADY_EXISTS
 	// this is the second instance running
@@ -260,14 +277,62 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 
+	handles[handleCounter++] = taxiCanTalkSemaphore;
+
+	// ====================================================================================================
+
 	HANDLE consoleThread = CreateThread(NULL, 0, TextInterface, &gate, 0, NULL);
 	if (!consoleThread) {
-		_tprintf(_T("Erro ao lançar thread %d\n"), GetLastError());
-		_gettch();
+		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
+		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
-	_tprintf(_T("Thread launched!\n"));
-	
+
+	threads[threadCounter++] = consoleThread;
+
+	HANDLE fmCenTaxiToConTaxi = CreateFileMapping(
+		INVALID_HANDLE_VALUE,
+		NULL,
+		PAGE_READWRITE,
+		0,
+		sizeof(SHM_Cen_To_Con),
+		SHM_CENTAXI_CONTAXI);
+	if (fmCenTaxiToConTaxi == NULL) {
+		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+		WaitAndReleaseThreads(threads, threadCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+
+	handles[handleCounter++] = fmCenTaxiToConTaxi;
+
+	HANDLE mfCenTaxiToConTaxi = (SHM_Cen_To_Con*) MapViewOfFile(fmCenTaxiToConTaxi,
+		FILE_MAP_ALL_ACCESS,
+		0,
+		0,
+		sizeof(SHM_Cen_To_Con));
+	if (mfCenTaxiToConTaxi == NULL) {
+		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
+		WaitAndReleaseThreads(threads, threadCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	else _tprintf(TEXT("Vista da Memória partilhada criada.\n"));
+
+	views[viewCounter++] = mfCenTaxiToConTaxi;
+
+	HANDLE mtxCenTaxiToConTaxi = CreateMutex(NULL, FALSE, CENTRAL_MUTEX);
+	if (mtxCenTaxiToConTaxi == NULL) {
+		_tprintf(TEXT("Error creating mtxCenTaxiToConTaxi mutex (%d).\n"), GetLastError());
+		WaitAndReleaseThreads(threads, threadCounter);
+		UnmapAndClose(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+
+	handles[handleCounter++] = mtxCenTaxiToConTaxi;
+
+	// #TODO é possivel configurar só um dos argumentos?
 	if (argc > 2) {
 		nrMaxTaxis = _ttoi(argv[1]);
 		nrMaxPassengers = _ttoi(argv[2]);
@@ -278,7 +343,9 @@ int _tmain(int argc, TCHAR* argv[]) {
 	Taxi* taxis = (Taxi*)malloc(nrMaxTaxis * sizeof(Taxi));
 	if (taxis == NULL) {
 		_tprintf(_T("Error allocating memory (%d)\n"), GetLastError());
-		_gettch();
+		WaitAndReleaseThreads(threads, threadCounter);
+		UnmapAndClose(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
 	_tprintf(_T("Memory allocated successfully.\n"));
@@ -286,7 +353,9 @@ int _tmain(int argc, TCHAR* argv[]) {
 	Passenger* passengers = (Passenger*)malloc(nrMaxPassengers * sizeof(Passenger));
 	if (passengers == NULL) {
 		_tprintf(_T("Error allocating memory (%d)\n"), GetLastError());
-		_gettch();
+		WaitAndReleaseThreads(threads, threadCounter);
+		UnmapAndClose(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
 	_tprintf(_T("Memory allocated successfully.\n"));
@@ -295,28 +364,25 @@ int _tmain(int argc, TCHAR* argv[]) {
 	// Le conteudo do ficheiro para array de chars
 	if ((fileContent = ReadFileToCharArray(_T("E:\\projects\\so2-project\\maps\\map1.txt"))) == NULL) {
 		_tprintf(_T("Error reading the file (%d)\n"), GetLastError());
+		WaitAndReleaseThreads(threads, threadCounter);
+		UnmapAndClose(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
 	else {
 		_tprintf(_T("Map loaded to memory!\n"));
 	}
 
-	for (int i = 0; i < MIN_LIN; i++) {
-		for (int j = 0; j < MIN_COL; j++) {
-			char c = fileContent[i * 50 + j];
-			_tprintf(_T("%c"), c);
-		}
-		_tprintf(_T("\n"));
-	}
-
 	// Preenche mapa com o conteudo do ficheiro
 	LoadMapa(map, fileContent);
-	PrintMap(&map);
-	//ClearScreen();
+	PrintMap(map);
 
-	UnmapViewOfFile(fileContent);
-	WaitForSingleObject(consoleThread, INFINITE);
+	WaitAndReleaseThreads(threads, threadCounter);
+	UnmapAndClose(views, viewCounter);
+	CloseMyHandles(handles, handleCounter);
+
 	free(taxis);
+	free(passengers);
 	return 0;
 }
 
