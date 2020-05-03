@@ -38,16 +38,30 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 		_tprintf(_T("Command: "));
 		_tscanf_s(_T(" %99[^\n]"), command, sizeof(TCHAR)*100);
 		_tprintf(_T("Executing '%s'\n"), command);
-		FindFeatureAndRun(command);
+		FindFeatureAndRun(command, cdata);
 	}
 
 	return 0;
 }
 
+void RespondToTaxi(CC_CDResponse response, Content* content, enum response_id responseId) {
+
+	WaitForSingleObject(response.mutex, INFINITE);
+	
+	response.shared->action = responseId;
+	CopyMemory(&response.shared->responseContent, content, sizeof(Content));
+
+	ReleaseMutex(response.mutex);
+
+	SetEvent(response.got_response);
+
+	_tprintf(_T("Response sent to taxi.\n"));
+}
+
 DWORD WINAPI ListenToTaxis(LPVOID ptr) {
 	CDThread* cd = (CDThread*)ptr;
-	CDTaxi cdata = cd->controlDataTaxi;
-	SHM_CEN_CON shared;
+	CC_CDRequest cdata = cd->controlDataTaxi;
+	SHM_CC_REQUEST shared;
 
 	while (1) {
 		WaitForSingleObject(cdata.write_event, INFINITE);
@@ -58,31 +72,32 @@ DWORD WINAPI ListenToTaxis(LPVOID ptr) {
 		_tprintf(_T("Got access to the mutex\n"));
 
 		// Save Request
-		CopyMemory(&shared, cdata.shared, sizeof(SHM_CEN_CON));
+		CopyMemory(&shared, cdata.shared, sizeof(SHM_CC_REQUEST));
 
 		ReleaseMutex(cdata.mutex);
-
-		// notifiquei o taxi a dizer que a mensagem foi lida
-		SetEvent(cdata.read_event);
-
+		int index = *(cd->taxiFreePosition);
 		// Process Event
 		switch (shared.action) {
 			case RegisterTaxiInCentral:
 				// insert the taxi on the taxi's array
-				CopyMemory(&cd->taxis[cd->taxiFreePosition++], &shared.messageContent.taxi, sizeof(Taxi));
+				CopyMemory(&cd->taxis[index], &shared.messageContent.taxi, sizeof(Taxi));
+				_tprintf(_T("YOOOOO %d\n"), (*cd->taxiFreePosition)++);
 				// insert the taxi on the map
 				Taxi* t = &(cd->map + shared.messageContent.taxi.location.x + (shared.messageContent.taxi.location.y * MIN_COL))->taxi;
 				(cd->map + shared.messageContent.taxi.location.x + (shared.messageContent.taxi.location.y * MIN_COL))->display = 't';
 				CopyMemory(t, &shared.messageContent.taxi, sizeof(Taxi));
-				for (int i = 0; i < cd->taxiFreePosition; i++)
-					_tprintf(_T("%s at {%.2d, %.2d}\n"), cd->taxis[i], cd->taxis[i].location.x, cd->taxis[i].location.y);
+				
+				Content content;
+				// notifiquei o taxi a dizer que a mensagem foi lida
+				//SetEvent(cdata.read_event);
+				RespondToTaxi(cd->cdResponse, &content, OK);
 				break;
 		}
 	}
 	return 0;
 }
 
-int FindFeatureAndRun(TCHAR* command) {
+int FindFeatureAndRun(TCHAR* command, TI_Controldata* cdata) {
 	TCHAR commands[6][100] = {
 		_T("\tkick x - kick taxi with x as id.\n"),
 		_T("\tclose - close the system.\n"), 
@@ -107,15 +122,18 @@ int FindFeatureAndRun(TCHAR* command) {
 	if (_tcscmp(cmd, ADM_KICK) == 0) {
 		if (argument==-1)
 			_tprintf(_T("This command requires a id.\n"));
-		else
+		else {
 			_tprintf(_T("I am kicking taxi with id %d\n"), argument);
+		}
 	}
 	else if (_tcscmp(cmd, ADM_CLOSE) == 0) {
 		// #TODO notify todas as apps
 		_tprintf(_T("System is closing.\n"));
 	}
 	else if (_tcscmp(cmd, ADM_LIST) == 0) {
-		_tprintf(_T("List all taxis\n"));
+		_tprintf(_T("Listing all taxis %d\n"), (*cdata->taxiCount));
+		for (int i = 0; i < (*cdata->taxiCount); i++)
+			_tprintf(_T("%.2d - %9s at {%.2d;%.2d}\n"), i, cdata->taxis[i].licensePlate, cdata->taxis[i].location.x, cdata->taxis[i].location.y);
 	}
 	else if (_tcscmp(cmd, ADM_PAUSE) == 0) {
 		_tprintf(_T("System pause\n"));
@@ -245,85 +263,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 	handles[handleCounter++] = taxiCanTalkSemaphore;
 
 	// ====================================================================================================
-	TI_Controldata ti_ControlData;
-	ti_ControlData.gate = FALSE;
-	ti_ControlData.map = map;
-
-	HANDLE consoleThread = CreateThread(NULL, 0, TextInterface, &ti_ControlData, 0, NULL);
-	if (!consoleThread) {
-		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
-		CloseMyHandles(handles, handleCounter);
-		exit(-1);
-	}
-
-	threads[threadCounter++] = consoleThread;
-
-	HANDLE fmCenTaxiToConTaxi = CreateFileMapping(
-		INVALID_HANDLE_VALUE,
-		NULL,
-		PAGE_READWRITE,
-		0,
-		sizeof(SHM_CEN_CON),
-		SHM_CENTAXI_CONTAXI);
-	if (fmCenTaxiToConTaxi == NULL) {
-		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
-		CloseMyHandles(handles, handleCounter);
-		exit(-1);
-	}
-
-	handles[handleCounter++] = fmCenTaxiToConTaxi;
-
-	CDTaxi controlDataTaxi;
-
-	controlDataTaxi.shared = (SHM_CEN_CON*) MapViewOfFile(fmCenTaxiToConTaxi,
-		FILE_MAP_ALL_ACCESS,
-		0,
-		0,
-		sizeof(SHM_CEN_CON));
-	if (controlDataTaxi.shared == NULL) {
-		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
-		CloseMyHandles(handles, handleCounter);
-		exit(-1);
-	}
-	else _tprintf(TEXT("Vista da Memória partilhada criada.\n"));
-
-	views[viewCounter++] = controlDataTaxi.shared;
-
-	controlDataTaxi.mutex = CreateMutex(NULL, FALSE, CENTRAL_MUTEX);
-	if (controlDataTaxi.mutex == NULL) {
-		_tprintf(TEXT("Error creating mtxCenTaxiToConTaxi mutex (%d).\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
-		UnmapAllViews(views, viewCounter);
-		CloseMyHandles(handles, handleCounter);
-		exit(-1);
-	}
-
-	handles[handleCounter++] = controlDataTaxi.mutex;
-
-	controlDataTaxi.read_event = CreateEvent(NULL, FALSE, FALSE, EVENT_READ_FROM_TAXIS);
-	controlDataTaxi.read_event = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_READ_FROM_TAXIS);
-	if (controlDataTaxi.read_event == NULL) {
-		_tprintf(_T("Error creating read event (%d)\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
-		UnmapAllViews(views, viewCounter);
-		CloseMyHandles(handles, handleCounter);
-		exit(-1);
-	}
-
-	handles[handleCounter++] = controlDataTaxi.read_event;
-
-	controlDataTaxi.write_event = CreateEvent(NULL, FALSE, FALSE, EVENT_WRITE_FROM_TAXIS);
-	controlDataTaxi.write_event = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_WRITE_FROM_TAXIS);
-	if (controlDataTaxi.write_event == NULL) {
-		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
-		UnmapAllViews(views, viewCounter);
-		CloseMyHandles(handles, handleCounter);
-		exit(-1);
-	}
-	handles[handleCounter++] = controlDataTaxi.write_event;
 
 	// #TODO é possivel configurar só um dos argumentos?
 	if (argc > 2) {
@@ -358,12 +297,141 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	_tprintf(_T("Memory allocated successfully.\n"));
 
+	TI_Controldata ti_ControlData;
+	ti_ControlData.gate = FALSE;
+	ti_ControlData.map = map;
+	ti_ControlData.taxis = taxis;
+	ti_ControlData.taxiCount = &taxiFreePosition;
+
+	HANDLE consoleThread = CreateThread(NULL, 0, TextInterface, &ti_ControlData, 0, NULL);
+	if (!consoleThread) {
+		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+
+	threads[threadCounter++] = consoleThread;
+
+	HANDLE fmCenTaxiToConTaxi = CreateFileMapping(
+		INVALID_HANDLE_VALUE,
+		NULL,
+		PAGE_READWRITE,
+		0,
+		sizeof(SHM_CC_REQUEST),
+		SHM_CC_REQUEST_NAME);
+	if (fmCenTaxiToConTaxi == NULL) {
+		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = fmCenTaxiToConTaxi;
+
+	HANDLE FM_CC_RESPONSE = CreateFileMapping(
+		INVALID_HANDLE_VALUE,
+		NULL,
+		PAGE_READWRITE,
+		0,
+		sizeof(SHM_CC_RESPONSE),
+		SHM_CC_RESPONSE_NAME);
+	if (fmCenTaxiToConTaxi == NULL) {
+		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = FM_CC_RESPONSE;
+
+	CC_CDRequest controlDataTaxi;
+	CC_CDResponse cdResponse;
+
+	controlDataTaxi.shared = (SHM_CC_REQUEST*) MapViewOfFile(fmCenTaxiToConTaxi,
+		FILE_MAP_ALL_ACCESS,
+		0,
+		0,
+		sizeof(SHM_CC_REQUEST));
+	if (controlDataTaxi.shared == NULL) {
+		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	views[viewCounter++] = controlDataTaxi.shared;
+
+	cdResponse.shared = (SHM_CC_REQUEST*)MapViewOfFile(FM_CC_RESPONSE,
+		FILE_MAP_ALL_ACCESS,
+		0,
+		0,
+		sizeof(SHM_CC_REQUEST));
+	if (cdResponse.shared == NULL) {
+		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	views[viewCounter++] = cdResponse.shared;
+
+	controlDataTaxi.mutex = CreateMutex(NULL, FALSE, CENTRAL_MUTEX);
+	if (controlDataTaxi.mutex == NULL) {
+		_tprintf(TEXT("Error creating mtxCenTaxiToConTaxi mutex (%d).\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = controlDataTaxi.mutex;
+
+	cdResponse.mutex = CreateMutex(NULL, FALSE, RESPONSE_MUTEX);
+	if (controlDataTaxi.mutex == NULL) {
+		_tprintf(TEXT("Error creating cdResponse mutex (%d).\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = cdResponse.mutex;
+
+	controlDataTaxi.read_event = CreateEvent(NULL, FALSE, FALSE, EVENT_READ_FROM_TAXIS);
+	//controlDataTaxi.read_event = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_READ_FROM_TAXIS);
+	if (controlDataTaxi.read_event == NULL) {
+		_tprintf(_T("Error creating read event (%d)\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+
+	handles[handleCounter++] = controlDataTaxi.read_event;
+
+	cdResponse.got_response = CreateEvent(NULL, FALSE, FALSE, EVENT_GOT_RESPONSE);
+	//controlDataTaxi.read_event = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_READ_FROM_TAXIS);
+	if (cdResponse.got_response == NULL) {
+		_tprintf(_T("Error creating got_response event (%d)\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+
+	handles[handleCounter++] = cdResponse.got_response;
+
+	controlDataTaxi.write_event = CreateEvent(NULL, FALSE, FALSE, EVENT_WRITE_FROM_TAXIS);
+	//controlDataTaxi.write_event = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_WRITE_FROM_TAXIS);
+	if (controlDataTaxi.write_event == NULL) {
+		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = controlDataTaxi.write_event;
 
 	CDThread cdThread;
 	cdThread.taxis = taxis;
 	cdThread.controlDataTaxi = controlDataTaxi;
-	cdThread.taxiFreePosition = taxiFreePosition;
+	cdThread.taxiFreePosition = &taxiFreePosition;
 	cdThread.map = map;
+	cdThread.cdResponse = cdResponse;
 
 	HANDLE listenThread = CreateThread(NULL, 0, ListenToTaxis, &cdThread, 0, NULL);
 	if (!listenThread) {

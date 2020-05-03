@@ -41,7 +41,7 @@ typedef struct _COORDS {
 } Coords;
 
 typedef struct _TAXI {
-	TCHAR licensePlate[100];
+	TCHAR licensePlate[10];
 	Coords location;
 } Taxi;
 
@@ -63,26 +63,41 @@ typedef struct _MSG_CONTENT {
 	Passenger passenger;
 } Content;
 
-typedef struct _MSG {
+typedef struct _MSG_TO_CENTRAL {
 	enum message_id action;
 	Content messageContent;
-} SHM_CEN_CON;
+} SHM_CC_REQUEST;
+
+typedef struct _MSG_TO_TAXI {
+	enum response_id action;
+	Content responseContent;
+} SHM_CC_RESPONSE;
 
 typedef struct txtInterfaceControlData {
 	BOOL gate;
 	Cell* map;
+	Taxi* taxis;
+	int *taxiCount;
 } TI_Controldata;
 
-typedef struct ControDataWithTaxis {
+typedef struct Control_Data_For_Request {
 	HANDLE mutex;
 	HANDLE read_event;
 	HANDLE write_event;
-	SHM_CEN_CON* shared;
-} CDTaxi;
+	SHM_CC_REQUEST* shared;
+} CC_CDRequest;
+
+typedef struct Control_Data_For_Response {
+	HANDLE mutex;
+	HANDLE got_response;
+	SHM_CC_RESPONSE* shared;
+} CC_CDResponse;
 
 typedef struct ThreadControlData {
-	int taxiFreePosition;
+	int *taxiFreePosition;
 	Cell* map;
 	Taxi* taxis;
-	CDTaxi controlDataTaxi;
+	CC_CDRequest controlDataTaxi;
+	CC_CDResponse cdResponse;
 } CDThread;
+

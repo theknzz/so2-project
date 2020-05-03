@@ -20,13 +20,21 @@ enum message_id {
 	RegisterTaxiInCentral,
 };
 
+enum response_id {
+	OK,
+	ERRO,
+};
+
 // Shared memory
-#define SHM_CENTAXI_CONTAXI _T("SHM_CenTaxi_ConTaxi")
+#define SHM_CC_REQUEST_NAME _T("SHM_CC_REQUEST")
+#define SHM_CC_RESPONSE_NAME _T("SHM_CC_RESPONSE")
 
 // Control mechanisms
 #define TAXI_CAN_TALK _T("taxi_can_talk")
 #define CENTRAL_CAN_READ _T("central_can_read")
 #define CENTRAL_MUTEX _T("central_mutex")
+#define RESPONSE_MUTEX _T("response_mutex")
+#define EVENT_GOT_RESPONSE _T("event_got_response")
 #define EVENT_READ_FROM_TAXIS _T("event_read_from_taxis")
 #define EVENT_WRITE_FROM_TAXIS _T("event_write_from_taxis")
 

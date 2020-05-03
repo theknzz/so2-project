@@ -4,7 +4,9 @@
 #include "rules.h"
 
 
-void CallCentral(CDTaxi cdata, Content content, enum message_id messageId) {
+enum response_id CallCentral(CDThread cdThread, Content content, enum message_id messageId) {
+	CC_CDRequest cdata = cdThread.controlDataTaxi;
+	CC_CDResponse cdResponse = cdThread.cdResponse;
 	WaitForSingleObject(cdata.mutex, INFINITE);
 
 	cdata.shared->action = messageId;
@@ -14,16 +16,31 @@ void CallCentral(CDTaxi cdata, Content content, enum message_id messageId) {
 	ReleaseMutex(cdata.mutex);
 	SetEvent(cdata.write_event);
 
-	WaitForSingleObject(cdata.read_event, INFINITE);
+	//WaitForSingleObject(cdata.read_event, INFINITE);
+	return ReadResponse(cdResponse);
 }
 
 
-void RegisterInCentral(CDTaxi cdata, TCHAR* licensePlate, Coords location) {
+enum response_id RegisterInCentral(CDThread cdata, TCHAR* licensePlate, Coords location) {
 	Content content;
 
-	CopyMemory(content.taxi.licensePlate, licensePlate, sizeof(TCHAR) * 9);
+	CopyMemory(&content.taxi.licensePlate, licensePlate, sizeof(TCHAR) * 10);
 	content.taxi.location.x = location.x;
 	content.taxi.location.y = location.y;
 
-	CallCentral(cdata, content, RegisterTaxiInCentral);
+	return CallCentral(cdata, content, RegisterTaxiInCentral);
+}
+
+enum responde_id ReadResponse(CC_CDResponse response) {
+	enum responde_id res;
+
+	WaitForSingleObject(response.got_response, INFINITE);
+	
+	WaitForSingleObject(response.mutex, INFINITE);
+
+	res = response.shared->action;
+
+	ReleaseMutex(response.mutex);
+
+	return res;
 }
