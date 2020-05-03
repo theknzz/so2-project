@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CenTaxi", "tp-so2\tp-so2.vc
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConTaxi", "ConTaxi\ConTaxi.vcxproj", "{3608DAE5-E6BE-4DE5-95F8-D6774AB61DDF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConTaxiComm_DLL", "ConTaxiComm_DLL\ConTaxiComm_DLL.vcxproj", "{1369159E-A63A-476D-BD8C-896663702E2B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{3608DAE5-E6BE-4DE5-95F8-D6774AB61DDF}.Release|x64.Build.0 = Release|x64
 		{3608DAE5-E6BE-4DE5-95F8-D6774AB61DDF}.Release|x86.ActiveCfg = Release|Win32
 		{3608DAE5-E6BE-4DE5-95F8-D6774AB61DDF}.Release|x86.Build.0 = Release|Win32
+		{1369159E-A63A-476D-BD8C-896663702E2B}.Debug|x64.ActiveCfg = Debug|x64
+		{1369159E-A63A-476D-BD8C-896663702E2B}.Debug|x64.Build.0 = Debug|x64
+		{1369159E-A63A-476D-BD8C-896663702E2B}.Debug|x86.ActiveCfg = Debug|Win32
+		{1369159E-A63A-476D-BD8C-896663702E2B}.Debug|x86.Build.0 = Debug|Win32
+		{1369159E-A63A-476D-BD8C-896663702E2B}.Release|x64.ActiveCfg = Release|x64
+		{1369159E-A63A-476D-BD8C-896663702E2B}.Release|x64.Build.0 = Release|x64
+		{1369159E-A63A-476D-BD8C-896663702E2B}.Release|x86.ActiveCfg = Release|Win32
+		{1369159E-A63A-476D-BD8C-896663702E2B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -82,6 +82,7 @@ typedef struct ControDataWithTaxis {
 
 typedef struct ThreadControlData {
 	int taxiFreePosition;
+	Cell* map;
 	Taxi* taxis;
 	CDTaxi controlDataTaxi;
 } CDThread;

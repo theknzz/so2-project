@@ -19,8 +19,8 @@ void ClearScreen() {
 void PrintMap(Cell* map) {
 	for (int i = 0; i < MIN_LIN; i++) {
 		for (int j = 0; j < MIN_COL; j++) {
-			char c = (map + (i*50)+j)->display;
-			_tprintf(_T("%c"), c);
+			Cell cell = *(map + (i * MIN_COL) + j);
+			_tprintf(_T("%c"), cell.display);
 		}
 		_tprintf(_T("\n"));
 	}
@@ -34,7 +34,7 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 	
 	while (1) {
 		ClearScreen();
-		//PrintMap(cdata->map);
+		PrintMap(cdata->map);
 		_tprintf(_T("Command: "));
 		_tscanf_s(_T(" %99[^\n]"), command, sizeof(TCHAR)*100);
 		_tprintf(_T("Executing '%s'\n"), command);
@@ -68,10 +68,14 @@ DWORD WINAPI ListenToTaxis(LPVOID ptr) {
 		// Process Event
 		switch (shared.action) {
 			case RegisterTaxiInCentral:
+				// insert the taxi on the taxi's array
 				CopyMemory(&cd->taxis[cd->taxiFreePosition++], &shared.messageContent.taxi, sizeof(Taxi));
-				for (int i = 0; i < cd->taxiFreePosition; i++) {
-					_tprintf(_T("Taxi %s : %d - %d\n"), cd->taxis[i].licensePlate, cd->taxis[i].location.x, cd->taxis[i].location.y);
-				}
+				// insert the taxi on the map
+				Taxi* t = &(cd->map + shared.messageContent.taxi.location.x + (shared.messageContent.taxi.location.y * MIN_COL))->taxi;
+				(cd->map + shared.messageContent.taxi.location.x + (shared.messageContent.taxi.location.y * MIN_COL))->display = 't';
+				CopyMemory(t, &shared.messageContent.taxi, sizeof(Taxi));
+				for (int i = 0; i < cd->taxiFreePosition; i++)
+					_tprintf(_T("%s at {%.2d, %.2d}\n"), cd->taxis[i], cd->taxis[i].location.x, cd->taxis[i].location.y);
 				break;
 		}
 	}
@@ -339,6 +343,11 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	_tprintf(_T("Memory allocated successfully.\n"));
 
+	for (int i = 0; i < nrMaxTaxis; i++) {
+		taxis[i].location.x = -1;
+		taxis[i].location.y = -1;
+	}
+
 	Passenger* passengers = (Passenger*)malloc(nrMaxPassengers * sizeof(Passenger));
 	if (passengers == NULL) {
 		_tprintf(_T("Error allocating memory (%d)\n"), GetLastError());
@@ -354,6 +363,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	cdThread.taxis = taxis;
 	cdThread.controlDataTaxi = controlDataTaxi;
 	cdThread.taxiFreePosition = taxiFreePosition;
+	cdThread.map = map;
 
 	HANDLE listenThread = CreateThread(NULL, 0, ListenToTaxis, &cdThread, 0, NULL);
 	if (!listenThread) {

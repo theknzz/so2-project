@@ -3,5 +3,6 @@
 E:\projects\so2-project\tp-so2\main.c(39,13): warning C4477: 'wscanf_s' : format string '%99[^\n]' requires an argument of type 'unsigned int', but variadic argument 2 has type 'unsigned __int64'
 E:\projects\so2-project\tp-so2\main.c(39,13): message : this argument is used as a buffer size
 E:\projects\so2-project\tp-so2\main.c(41,20): warning C4013: 'FindFeatureAndRun' undefined; assuming extern returning int
-E:\projects\so2-project\tp-so2\main.c(135): warning C4716: 'FindFeatureAndRun': must return a value
+E:\projects\so2-project\tp-so2\main.c(78,15): warning C4477: 'wprintf' : format string '%s' requires an argument of type 'unsigned short *', but variadic argument 1 has type 'Taxi'
+E:\projects\so2-project\tp-so2\main.c(139): warning C4716: 'FindFeatureAndRun': must return a value
   tp-so2.vcxproj -> E:\projects\so2-project\x64\Debug\CenTaxi.exe
