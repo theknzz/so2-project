@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.c" />
+    <ClCompile Include="contaxi.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\tp-so2\rules.h" />

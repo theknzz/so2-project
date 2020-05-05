@@ -139,7 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.c" />
+    <ClCompile Include="centaxi.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rules.h" />

@@ -18,6 +18,9 @@ enum type { Street, Building/*, Taxi, Passenger */ };
 // Message intentions
 enum message_id { 
 	RegisterTaxiInCentral,
+	UpdateTaxiLocation,
+	WarnPassengerCatch,
+	WarnPassengerDeliever
 };
 
 enum response_id {
@@ -28,12 +31,20 @@ enum response_id {
 // Shared memory
 #define SHM_CC_REQUEST_NAME _T("SHM_CC_REQUEST")
 #define SHM_CC_RESPONSE_NAME _T("SHM_CC_RESPONSE")
+#define SHM_LOGIN_REQUEST_NAME _T("SHM_REQUEST_LOGIN")
+#define SHM_LOGIN_RESPONSE_NAME _T("SHM_RESPONSE_LOGIN")
 
 // Control mechanisms
+
 #define TAXI_CAN_TALK _T("taxi_can_talk")
 #define CENTRAL_CAN_READ _T("central_can_read")
-#define CENTRAL_MUTEX _T("central_mutex")
+
+#define LOGIN_REQUEST_MUTEX _T("login_request_mutex")
+#define LOGIN_RESPONSE_MUTEX _T("login_response_mutex")
+#define LOGIN_TAXI_WRITE_MUTEX _T("login_write_mutex")
+#define LOGIN_TAXI_READ_MUTEX _T("login_read_mutex")
 #define RESPONSE_MUTEX _T("response_mutex")
+
 #define EVENT_GOT_RESPONSE _T("event_got_response")
 #define EVENT_READ_FROM_TAXIS _T("event_read_from_taxis")
 #define EVENT_WRITE_FROM_TAXIS _T("event_write_from_taxis")

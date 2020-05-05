@@ -1,52 +1,16 @@
 #pragma once
-//
-//typedef struct MapCell {
-//	int x, y;
-//	enum type cellType;
-//	// + Taxi
-//	// + Passageiro
-//} Cell;
-//
-//typedef struct MessageToCenTaxi {
-//	enum intention action;			// razao da messagem
-//	// Taxi taxi;				
-//} CentralMessage;
-//
-//typedef struct MessageToConTaxi {
-//	enum intention action;			// razao da messagem
-//	// Passenger passenger;
-//} TaxiMessage;
-//
-//typedef struct _MSG {
-//	int read_index, write_index;
-//	CentralMessage messages[COMM_BUF_SIZE];  // buffer circular
-//} SHM_Cen_To_Con;
-//
-//typedef struct _MSG_1 {
-//	TaxiMessage messages[MAX_TAXIS];		// buffer de mensagens (acesso individual por taxi)
-//} SHM_Con_To_Cen;
-//
-//typedef struct _COORDS {
-//	int x, y;
-//} Coords;
-//
-//typedef struct _TAXI {
-//	TCHAR* licensePlate;
-//	Coords destination;
-//} TaxiWorker;
-
 
 typedef struct _COORDS {
 	int x, y;
 } Coords;
 
 typedef struct _TAXI {
-	TCHAR licensePlate[10];
+	TCHAR licensePlate[9];
 	Coords location;
 } Taxi;
 
 typedef struct _Passenger {
-	TCHAR* nome;
+	TCHAR nome[25];
 	Coords location;
 } Passenger;
 
@@ -63,6 +27,22 @@ typedef struct _MSG_CONTENT {
 	Passenger passenger;
 } Content;
 
+typedef struct _LOGIN_RESPONSE_CONTAINER {
+	TCHAR shm_name[50];
+	TCHAR mutex_name[50];
+	TCHAR event_name[50];
+} LR_Container;
+
+typedef struct _LOGIN_MSG {
+	enum message_id action;
+	Taxi taxi;
+} SHM_LOGIN_REQUEST;
+
+typedef struct _LOGIN_MSG_R {
+	enum message_id action;
+	LR_Container container;
+} SHM_LOGIN_RESPONSE;
+
 typedef struct _MSG_TO_CENTRAL {
 	enum message_id action;
 	Content messageContent;
@@ -78,26 +58,43 @@ typedef struct txtInterfaceControlData {
 	Cell* map;
 	Taxi* taxis;
 	int *taxiCount;
+	int* WaitTimeOnTaxiRequest;
 } TI_Controldata;
 
-typedef struct Control_Data_For_Request {
-	HANDLE mutex;
-	HANDLE read_event;
-	HANDLE write_event;
-	SHM_CC_REQUEST* shared;
-} CC_CDRequest;
+//typedef struct Control_Data_For_Request {
+//	HANDLE mutex;
+//	HANDLE read_event;
+//	HANDLE write_event;
+//	SHM_CC_REQUEST* shared;
+//} CC_CDRequest;
 
-typedef struct Control_Data_For_Response {
-	HANDLE mutex;
-	HANDLE got_response;
-	SHM_CC_RESPONSE* shared;
-} CC_CDResponse;
+//typedef struct Control_Data_For_Response {
+//	HANDLE mutex;
+//	HANDLE got_response;
+//	SHM_CC_RESPONSE* shared;
+//} CC_CDResponse;
+
+typedef struct Control_Data_Login_Request {
+	HANDLE login_m;
+	HANDLE login_write_m;
+	HANDLE new_response;
+	SHM_LOGIN_REQUEST* request;
+} CDLogin_Request;
+
+typedef struct Control_Data_Login_Response {
+	HANDLE login_m;
+	//HANDLE login_read_m;
+	HANDLE new_request;
+	SHM_LOGIN_RESPONSE* response;
+} CDLogin_Response;
 
 typedef struct ThreadControlData {
 	int *taxiFreePosition;
 	Cell* map;
 	Taxi* taxis;
-	CC_CDRequest controlDataTaxi;
-	CC_CDResponse cdResponse;
+	//CC_CDRequest controlDataTaxi;
+	//CC_CDResponse cdResponse;
+	CDLogin_Request cdLogin_Request;
+	CDLogin_Response cdLogin_Response;
 } CDThread;
 
