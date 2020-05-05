@@ -57,7 +57,8 @@ LR_Container RegisterInCentral(CDThread cdata, TCHAR* licensePlate, Coords locat
 	res = ReadLoginResponse(cdResponse, cdRequest.new_response);
 
 	ReleaseMutex(cdRequest.login_write_m);
-	_tprintf(_T("[LOG] Central read my information.\nevent: '%s',\nmutex: '%s',\nshm: '%s'"), res.event_name, res.mutex_name, res.shm_name);
+	_tprintf(_T("[LOG] Central read my information.\nr_event: '%s',\nr_mutex: '%s',\nr_shm: '%s'\nevent: '%s',\nmutex: '%s',\nshm: '%s'"),
+		res.request_event_name, res.request_mutex_name, res.request_shm_name, res.response_event_name, res.response_mutex_name, res.response_shm_name);
 	return res;
 }
 

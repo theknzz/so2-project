@@ -1,1 +1,4 @@
-﻿  ConTaxiComm_DLL.vcxproj -> E:\projects\so2-project\x64\Debug\ConTaxiComm_DLL.dll
+﻿  dll.c
+E:\projects\so2-project\ConTaxiComm_DLL\dll.c(57,60): warning C4020: 'ReadLoginResponse': too many actual parameters
+E:\projects\so2-project\ConTaxiComm_DLL\dll.c(65,80): warning C4029: declared formal parameter list different from definition
+  ConTaxiComm_DLL.vcxproj -> E:\projects\so2-project\x64\Debug\ConTaxiComm_DLL.dll

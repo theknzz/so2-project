@@ -28,9 +28,13 @@ typedef struct _MSG_CONTENT {
 } Content;
 
 typedef struct _LOGIN_RESPONSE_CONTAINER {
-	TCHAR shm_name[50];
-	TCHAR mutex_name[50];
-	TCHAR event_name[50];
+	TCHAR request_shm_name[50];
+	TCHAR request_mutex_name[50];
+	TCHAR request_event_name[50];
+
+	TCHAR response_shm_name[50];
+	TCHAR response_mutex_name[50];
+	TCHAR response_event_name[50];
 } LR_Container;
 
 typedef struct _LOGIN_MSG {
@@ -61,18 +65,17 @@ typedef struct txtInterfaceControlData {
 	int* WaitTimeOnTaxiRequest;
 } TI_Controldata;
 
-//typedef struct Control_Data_For_Request {
-//	HANDLE mutex;
-//	HANDLE read_event;
-//	HANDLE write_event;
-//	SHM_CC_REQUEST* shared;
-//} CC_CDRequest;
+typedef struct Control_Data_For_Request {
+	HANDLE mutex;
+	HANDLE new_response;
+	SHM_CC_REQUEST* shared;
+} CC_CDRequest;
 
-//typedef struct Control_Data_For_Response {
-//	HANDLE mutex;
-//	HANDLE got_response;
-//	SHM_CC_RESPONSE* shared;
-//} CC_CDResponse;
+typedef struct Control_Data_For_Response {
+	HANDLE mutex;
+	HANDLE new_request;
+	SHM_CC_RESPONSE* shared;
+} CC_CDResponse;
 
 typedef struct Control_Data_Login_Request {
 	HANDLE login_m;
@@ -83,15 +86,24 @@ typedef struct Control_Data_Login_Request {
 
 typedef struct Control_Data_Login_Response {
 	HANDLE login_m;
-	//HANDLE login_read_m;
 	HANDLE new_request;
 	SHM_LOGIN_RESPONSE* response;
 } CDLogin_Response;
+
+typedef struct HANDLE_CONTAINER {
+	HANDLE* threads;
+	HANDLE* handles;
+	HANDLE* views;
+	int* handleCounter;
+	int* viewCounter;
+	int* threadCounter;
+} HContainer;
 
 typedef struct ThreadControlData {
 	int *taxiFreePosition;
 	Cell* map;
 	Taxi* taxis;
+	HContainer* hContainer;
 	//CC_CDRequest controlDataTaxi;
 	//CC_CDResponse cdResponse;
 	CDLogin_Request cdLogin_Request;

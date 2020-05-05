@@ -43,18 +43,88 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 	return 0;
 }
 
-void RespondToTaxiLogin(CDLogin_Response response, CDLogin_Request request) {
+void RespondToTaxiLogin(CDLogin_Response response, CDLogin_Request request, TCHAR* licensePlate, HContainer *container) {
 	LR_Container res;
+	CC_CDRequest request;
+	CC_CDResponse response;
 
-	CopyMemory(res.event_name, _T("a"), sizeof(TCHAR) * 2);
-	CopyMemory(res.mutex_name, _T("b"), sizeof(TCHAR) * 2);
-	CopyMemory(res.shm_name, _T("c"), sizeof(TCHAR) * 2);
+	TCHAR request_event_name[50];
+	TCHAR request_mutex_name[50];
+	TCHAR request_shm_name[50];
+	TCHAR response_event_name[50];
+	TCHAR response_mutex_name[50];
+	TCHAR response_shm_name[50];
 
 	WaitForSingleObject(response.login_m, INFINITE);
+
+	// Build the names
+	_stprintf(request_event_name, EVENT_REQUEST, licensePlate);
+	_stprintf(request_mutex_name, REQUEST_MUTEX, licensePlate);
+	_stprintf(request_shm_name, SHM_CC_REQUEST_NAME, licensePlate);
+	_stprintf(response_event_name, EVENT_RESPONSE, licensePlate);
+	_stprintf(response_mutex_name, RESPONSE_MUTEX, licensePlate);
+	_stprintf(response_shm_name, SHM_CC_RESPONSE_NAME, licensePlate);
+
+	// Transfer the names to the container
+	CopyMemory(res.request_event_name, request_event_name, sizeof(TCHAR) * 50); // 23
+	CopyMemory(res.request_mutex_name, request_mutex_name, sizeof(TCHAR) * 50); // 23
+	CopyMemory(res.request_shm_name, request_shm_name, sizeof(TCHAR) * 50); // 24
+
+	CopyMemory(res.response_event_name, response_event_name, sizeof(TCHAR) * 50); // 23
+	CopyMemory(res.response_mutex_name, response_mutex_name, sizeof(TCHAR) * 50); // 23 
+	CopyMemory(res.response_shm_name, response_shm_name, sizeof(TCHAR) * 50); // 24
 
 	CopyMemory(&response.response->container, &res, sizeof(LR_Container));
 
 	ReleaseMutex(response.login_m);
+
+	HANDLE FM = CreateFileMapping(
+		INVALID_HANDLE_VALUE,
+		NULL,
+		PAGE_READWRITE,
+		0,
+		sizeof(SHM_CC_REQUEST),
+		request_shm_name);
+	if (FM == NULL) {
+		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+		WaitAllThreads(container->threads, (*container->threadCounter));
+		CloseMyHandles(container->handles, (*container->handleCounter));
+		exit(-1);
+	}
+	container->handles[(*container->handleCounter)++] = FM;
+
+	request.request = (SHM_CC_REQUEST*)MapViewOfFile(FM,
+		FILE_MAP_ALL_ACCESS,
+		0,
+		0,
+		sizeof(SHM_CC_REQUEST));
+	if (request.request == NULL) {
+		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
+		WaitAllThreads(container->threads, (*container->threadCounter));
+		CloseMyHandles(container->handles, (*container->handleCounter));
+		exit(-1);
+	}
+	container->views[(*container->viewCounter)++] = request.request;
+
+	request.mutex = CreateMutex(NULL, FALSE, request_mutex_name);
+	if (request.mutex == NULL) {
+		_tprintf(TEXT("Error creating cdLogin mutex mutex (%d).\n"), GetLastError());
+		WaitAllThreads(container->threads, (*container->threadCounter));
+		UnmapAllViews(container->views, (*container->viewCounter));
+		CloseMyHandles(container->handles, (*container->handleCounter));
+		exit(-1);
+	}
+	container->handles[(*container->handleCounter)++] = request.mutex;
+
+	request.new_response  = CreateEvent(NULL, FALSE, FALSE, request_event_name);
+	if (request.new_response == NULL) {
+		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
+		WaitAllThreads(container->threads, (*container->threadCounter));
+		UnmapAllViews(container->views, (*container->viewCounter));
+		CloseMyHandles(container->handles, (*container->handleCounter));
+		exit(-1);
+	}
+	container->handles[(*container->handleCounter)++] = request.new_response;
 
 	SetEvent(request.new_response);
 	_tprintf(_T("[LOG] Sent response to the taxi's registration request.\n"));
@@ -115,7 +185,7 @@ DWORD WINAPI ListenToTaxis(LPVOID ptr) {
 			Content content;
 			// notifiquei o taxi a dizer que a mensagem foi lida
 			//RespondToTaxi(cd->cdResponse, &content, OK);
-			RespondToTaxiLogin(cdResponse, cdata);
+			RespondToTaxiLogin(cdResponse, cdata, shared.messageContent.taxi.licensePlate, cd->hContainer);
 
 		}
 		//switch (shared.action) {
@@ -367,35 +437,35 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	threads[threadCounter++] = consoleThread;
 
-	HANDLE fmCenTaxiToConTaxi = CreateFileMapping(
-		INVALID_HANDLE_VALUE,
-		NULL,
-		PAGE_READWRITE,
-		0,
-		sizeof(SHM_CC_REQUEST),
-		SHM_CC_REQUEST_NAME);
-	if (fmCenTaxiToConTaxi == NULL) {
-		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
-		CloseMyHandles(handles, handleCounter);
-		exit(-1);
-	}
-	handles[handleCounter++] = fmCenTaxiToConTaxi;
+	//HANDLE fmCenTaxiToConTaxi = CreateFileMapping(
+	//	INVALID_HANDLE_VALUE,
+	//	NULL,
+	//	PAGE_READWRITE,
+	//	0,
+	//	sizeof(SHM_CC_REQUEST),
+	//	SHM_CC_REQUEST_NAME);
+	//if (fmCenTaxiToConTaxi == NULL) {
+	//	_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+	//	WaitAllThreads(threads, threadCounter);
+	//	CloseMyHandles(handles, handleCounter);
+	//	exit(-1);
+	//}
+	//handles[handleCounter++] = fmCenTaxiToConTaxi;
 
-	HANDLE FM_CC_RESPONSE = CreateFileMapping(
-		INVALID_HANDLE_VALUE,
-		NULL,
-		PAGE_READWRITE,
-		0,
-		sizeof(SHM_CC_RESPONSE),
-		SHM_CC_RESPONSE_NAME);
-	if (fmCenTaxiToConTaxi == NULL) {
-		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
-		CloseMyHandles(handles, handleCounter);
-		exit(-1);
-	}
-	handles[handleCounter++] = FM_CC_RESPONSE;
+	//HANDLE FM_CC_RESPONSE = CreateFileMapping(
+	//	INVALID_HANDLE_VALUE,
+	//	NULL,
+	//	PAGE_READWRITE,
+	//	0,
+	//	sizeof(SHM_CC_RESPONSE),
+	//	SHM_CC_RESPONSE_NAME);
+	//if (fmCenTaxiToConTaxi == NULL) {
+	//	_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+	//	WaitAllThreads(threads, threadCounter);
+	//	CloseMyHandles(handles, handleCounter);
+	//	exit(-1);
+	//}
+	//handles[handleCounter++] = FM_CC_RESPONSE;
 
 	HANDLE FM_CC_LOGIN_REQUEST = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
@@ -582,6 +652,14 @@ int _tmain(int argc, TCHAR* argv[]) {
 	//cdThread.cdResponse = cdResponse;
 	cdThread.cdLogin_Response = CDLogin_Response;
 	cdThread.cdLogin_Request = CDLogin_Request;
+	HContainer container;
+	container.threads = threads;
+	container.views = views;
+	container.handles = handles;
+	container.threadCounter = &threadCounter;
+	container.viewCounter = &viewCounter;
+	container.handleCounter = &handleCounter;
+	cdThread.hContainer = &container;
 
 	HANDLE listenThread = CreateThread(NULL, 0, ListenToTaxis, &cdThread, 0, NULL);
 	if (!listenThread) {
