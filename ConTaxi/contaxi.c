@@ -46,31 +46,31 @@ int _tmain(int argc, TCHAR* argv[]) {
 	_setmode(_fileno(stdout), _O_WTEXT);
 #endif
 	
-	HANDLE fmCenTaxiToConTaxi = CreateFileMapping(
-		INVALID_HANDLE_VALUE,
-		NULL,
-		PAGE_READWRITE,
-		0,
-		sizeof(SHM_CC_REQUEST),
-		SHM_CC_REQUEST_NAME);
-	if (fmCenTaxiToConTaxi == NULL) {
-		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
-		exit(-1);
-	}
-	handles[handleCounter++] = fmCenTaxiToConTaxi;
+	//HANDLE fmCenTaxiToConTaxi = CreateFileMapping(
+	//	INVALID_HANDLE_VALUE,
+	//	NULL,
+	//	PAGE_READWRITE,
+	//	0,
+	//	sizeof(SHM_CC_REQUEST),
+	//	SHM_CC_REQUEST_NAME);
+	//if (fmCenTaxiToConTaxi == NULL) {
+	//	_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+	//	exit(-1);
+	//}
+	//handles[handleCounter++] = fmCenTaxiToConTaxi;
 
-	HANDLE FM_CC_RESPONSE = CreateFileMapping(
-		INVALID_HANDLE_VALUE,
-		NULL,
-		PAGE_READWRITE,
-		0,
-		sizeof(SHM_CC_RESPONSE),
-		SHM_CC_RESPONSE_NAME);
-	if (fmCenTaxiToConTaxi == NULL) {
-		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
-		exit(-1);
-	}
-	handles[handleCounter++] = FM_CC_RESPONSE;
+	//HANDLE FM_CC_RESPONSE = CreateFileMapping(
+	//	INVALID_HANDLE_VALUE,
+	//	NULL,
+	//	PAGE_READWRITE,
+	//	0,
+	//	sizeof(SHM_CC_RESPONSE),
+	//	SHM_CC_RESPONSE_NAME);
+	//if (FM_CC_RESPONSE == NULL) {
+	//	_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+	//	exit(-1);
+	//}
+	//handles[handleCounter++] = FM_CC_RESPONSE;
 
 	HANDLE FM_LOGIN_REQUEST = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
@@ -142,11 +142,11 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	views[viewCounter++] = cdLogin_Request.request;
 
-	cdLogin_Response.response = (SHM_LOGIN_REQUEST*)MapViewOfFile(FM_LOGIN_RESPONSE,
+	cdLogin_Response.response = (SHM_LOGIN_RESPONSE*)MapViewOfFile(FM_LOGIN_RESPONSE,
 		FILE_MAP_ALL_ACCESS,
 		0,
 		0,
-		sizeof(SHM_LOGIN_REQUEST));
+		sizeof(SHM_LOGIN_RESPONSE));
 	if (cdLogin_Response.response == NULL) {
 		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
 		//WaitAllThreads(threads, threadCounter);
@@ -233,6 +233,117 @@ int _tmain(int argc, TCHAR* argv[]) {
 	cdThread.cdLogin_Response = cdLogin_Response;
 
 	LR_Container res = RegisterInCentral(cdThread, licensePlate, coords);
+	//TCHAR request_shm_name[50];
+	//TCHAR request_mutex_name[50];
+	//TCHAR request_event_name[50];
+
+	//TCHAR response_shm_name[50];
+	//TCHAR response_mutex_name[50];
+	//TCHAR response_event_name[50];
+
+	CC_Comm comm;
+
+	HANDLE FM_REQUEST = CreateFileMapping(
+		INVALID_HANDLE_VALUE,
+		NULL,
+		PAGE_READWRITE,
+		0,
+		sizeof(SHM_CC_REQUEST),
+		res.request_shm_name);
+	if (FM_REQUEST == NULL) {
+		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+		exit(-1);
+	}
+	handles[handleCounter++] = FM_REQUEST;
+	
+	comm.request.shared = (SHM_CC_REQUEST*)MapViewOfFile(FM_REQUEST,
+		FILE_MAP_ALL_ACCESS,
+		0,
+		0,
+		sizeof(SHM_CC_REQUEST));
+	if (comm.request.shared == NULL) {
+		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
+		//WaitAllThreads(threads, threadCounter);
+		//CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	views[viewCounter++] = comm.request.shared;
+
+	comm.request.mutex = OpenMutex(SYNCHRONIZE, FALSE, res.request_mutex_name);
+	if (comm.request.mutex == NULL) {
+		_tprintf(TEXT("Error creating mtxCenTaxiToConTaxi mutex (%d).\n"), GetLastError());
+		//WaitAllThreads(threads, threadCounter);
+		//UnmapAllViews(views, viewCounter);
+		//CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = comm.request.mutex;
+
+	comm.request.new_response = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, res.request_event_name);
+	if (comm.request.new_response == NULL) {
+		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
+		//WaitAllThreads(threads, threadCounter);
+		//UnmapAllViews(views, viewCounter);
+		//CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = comm.request.new_response;
+
+	HANDLE FM_RESPONSE = CreateFileMapping(
+		INVALID_HANDLE_VALUE,
+		NULL,
+		PAGE_READWRITE,
+		0,
+		sizeof(SHM_CC_REQUEST),
+		res.response_shm_name);
+	if (FM_RESPONSE == NULL) {
+		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+		exit(-1);
+	}
+	handles[handleCounter++] = FM_RESPONSE;
+
+	comm.response.shared = (SHM_CC_RESPONSE*)MapViewOfFile(FM_RESPONSE,
+		FILE_MAP_ALL_ACCESS,
+		0,
+		0,
+		sizeof(SHM_CC_RESPONSE));
+	if (comm.response.shared == NULL) {
+		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
+		//WaitAllThreads(threads, threadCounter);
+		//CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	views[viewCounter++] = comm.response.shared;
+
+	comm.response.mutex = OpenMutex(SYNCHRONIZE, FALSE, res.response_mutex_name);
+	if (comm.response.mutex == NULL) {
+		_tprintf(TEXT("Error creating mtxCenTaxiToConTaxi mutex (%d).\n"), GetLastError());
+		//WaitAllThreads(threads, threadCounter);
+		//UnmapAllViews(views, viewCounter);
+		//CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = comm.response.mutex;
+
+	comm.response.new_request = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, res.response_event_name);
+	if (comm.response.new_request == NULL) {
+		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
+		//WaitAllThreads(threads, threadCounter);
+		//UnmapAllViews(views, viewCounter);
+		//CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = comm.response.new_request;
+
+	HANDLE thread = CreateThread(NULL, 0, ListenToLoginRequests, &cdThread, 0, NULL);
+	if (!thread) {
+		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	threads[threadCounter++] = thread;
 
 	/*coords.x++;
 	coords.y++;

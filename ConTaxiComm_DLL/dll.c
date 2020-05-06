@@ -76,6 +76,11 @@ LR_Container ReadLoginResponse(CDLogin_Response response, HANDLE new_response) {
 	return res;
 }
 
+DWORD WINAPI TalkToCentral(LPVOID ptr) {
+	CC_Comm* coom = (CC_Comm*)ptr;
+
+}
+
 //enum response_id ReadResponse(CC_CDResponse response) {
 //	enum response_id res;
 //

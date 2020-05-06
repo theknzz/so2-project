@@ -54,7 +54,7 @@ typedef struct _MSG_TO_CENTRAL {
 
 typedef struct _MSG_TO_TAXI {
 	enum response_id action;
-	Content responseContent;
+	//Content responseContent;
 } SHM_CC_RESPONSE;
 
 typedef struct txtInterfaceControlData {
@@ -99,6 +99,12 @@ typedef struct HANDLE_CONTAINER {
 	int* threadCounter;
 } HContainer;
 
+typedef struct _CC_COMMUNICATION_CONTAINER {
+	CC_CDRequest request;
+	CC_CDResponse response;
+	LR_Container container;
+} CC_Comm;
+
 typedef struct ThreadControlData {
 	int *taxiFreePosition;
 	Cell* map;
@@ -106,6 +112,7 @@ typedef struct ThreadControlData {
 	HContainer* hContainer;
 	//CC_CDRequest controlDataTaxi;
 	//CC_CDResponse cdResponse;
+	CC_Comm comm;
 	CDLogin_Request cdLogin_Request;
 	CDLogin_Response cdLogin_Response;
 } CDThread;

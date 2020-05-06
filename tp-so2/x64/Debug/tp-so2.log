@@ -1,2 +1,13 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(467,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (tp-so2.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  centaxi.c
+E:\projects\so2-project\tp-so2\centaxi.c(60,13): warning C4477: 'wscanf_s' : format string '%99[^\n]' requires an argument of type 'unsigned int', but variadic argument 2 has type 'unsigned __int64'
+E:\projects\so2-project\tp-so2\centaxi.c(60,13): message : this argument is used as a buffer size
+E:\projects\so2-project\tp-so2\centaxi.c(61,20): warning C4013: 'FindFeatureAndRun' undefined; assuming extern returning int
+E:\projects\so2-project\tp-so2\centaxi.c(73,26): warning C4013: 'FindTaxiIndex' undefined; assuming extern returning int
+E:\projects\so2-project\tp-so2\centaxi.c(215,27): warning C4133: '=': incompatible types - from 'SHM_CC_REQUEST *' to 'SHM_CC_RESPONSE *'
+E:\projects\so2-project\tp-so2\centaxi.c(250,113): warning C4047: '=': 'HANDLE' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(278,29): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(316,12): warning C4101: 'content': unreferenced local variable
+E:\projects\so2-project\tp-so2\centaxi.c(109): warning C4716: 'TalkToTaxi': must return a value
+E:\projects\so2-project\tp-so2\centaxi.c(385): warning C4716: 'FindFeatureAndRun': must return a value
   tp-so2.vcxproj -> E:\projects\so2-project\x64\Debug\CenTaxi.exe
