@@ -1,6 +1,5 @@
 #pragma once
 
-
 // rules
 #define MIN_LIN 50
 #define MIN_COL 50
@@ -62,3 +61,13 @@ enum response_id {
 #define ADM_RESUME _T("resume")
 #define ADM_INTERVAL _T("interval")
 #define ADM_HELP _T("help")
+
+// Taxi Commands
+//#define TXI_NEW _T("new") 
+// new licensePlate x y
+#define TXI_TRANSPORT _T("transport") // transport
+#define TXI_SPEED_UP _T("speed") // speed
+#define TXI_SLOW_DOWN _T("slow") // slow
+#define TXI_NQ_DEFINE _T("nq") // nq x
+#define TXI_AUTOPILOT _T("autopilot") // autopilot
+#define TXI_HELP _T("help") // help

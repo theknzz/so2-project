@@ -12,27 +12,96 @@
 #include "structs.h"
 #include "dll.h"
 
-
 // Wait for all the threads to stop
-void WaitAllThreads(HANDLE* threads, int nr) {
-	for (int i = 0; i < nr; i++) {
+void WaitAllThreads(HANDLE* threads, int* nr) {
+	for (int i = 0; i < *(nr); i++) {
 		WaitForSingleObject(threads[i], INFINITE);
 	}
+	*(nr) = 0;
 }
 
 // Close all open handles
-void CloseMyHandles(HANDLE* handles, int nr) {
-	for (int i = 0; i < nr; i++)
+void CloseMyHandles(HANDLE* handles, int* nr) {
+	for (int i = 0; i < *(nr); i++)
 		CloseHandle(handles[i]);
+	*(nr) = 0;
 }
 
 // Unmaps all views
-void UnmapAllViews(HANDLE* views, int nr) {
-	for (int i = 0; i < nr; i++) {
+void UnmapAllViews(HANDLE* views, int* nr) {
+	for (int i = 0; i < *(nr); i++) {
 		UnmapViewOfFile(views[i]);
+	}
+	*(nr) = 0;
+}
+
+TCHAR** ParseCommand(TCHAR* cmd) {
+	TCHAR command[4][100];
+	TCHAR* delimiter = _T(" ");
+	int counter = 0;
+
+	TCHAR* aux = _tcstok(cmd, delimiter);
+	CopyMemory(command[counter++], aux, sizeof(TCHAR) * 100);
+
+	while ((aux = _tcstok(NULL, delimiter)) != NULL) {
+		CopyMemory(command[counter++], aux, sizeof(TCHAR) * 100);
+		if (counter == 4) break;
+	}
+	while (counter < 4) {
+		CopyMemory(command[counter++], _T("NULL"), sizeof(TCHAR) * 100);
+	}
+	return command;
+}
+
+void FindFeatureAndRun(TCHAR* command, TI_Controldata* cdata) {
+	TCHAR commands[6][100] = {
+		_T("\tkick x - kick taxi with x as id.\n"),
+		_T("\tclose - close the system.\n"),
+		_T("\tlist - list all the taxis in the system.\n"),
+		_T("\tpause - pauses taxis acceptance in the system.\n"),
+		_T("\tresume - resumes taxis acceptance in the system.\n"),
+		_T("\tinteval x - changes the time central waits for the taxis to ask for work.\n") };
+
+	TCHAR cmd[4][100];
+	CopyMemory(cmd, ParseCommand(command), sizeof(TCHAR) * 4 * 100);
+	int argc = 0;
+	for (int i = 0; i < 4; i++)
+		if (_tcscmp(cmd[i], _T("NULL")) != 0) argc++;
+
+	if (_tcscmp(cmd[0], TXI_TRANSPORT) == 0) {
+	}
+	else if (_tcscmp(cmd[0], TXI_SPEED_UP) == 0) {
+	}
+	else if (_tcscmp(cmd[0], TXI_SLOW_DOWN) == 0) {
+		_tprintf(_T("System pause\n"));
+	}
+	else if (_tcscmp(cmd[0], TXI_NQ_DEFINE) == 0) {
+		_tprintf(_T("System resume\n"));
+	}
+	else if (_tcscmp(cmd[0], TXI_AUTOPILOT) == 0) {
+	}
+	else if (_tcscmp(cmd[0], TXI_HELP) == 0) {
+		for (int i = 0; i < 6; i++)
+			_tprintf(_T("%s"), commands[i]);
+	}
+	else {
+		_tprintf(_T("System doesn't recognize the command, type 'help' to view all the commands.\n"));
 	}
 }
 
+DWORD WINAPI TextInterface(LPVOID ptr) {
+	TI_Controldata* cdata = (TI_Controldata*)ptr;
+	TCHAR command[100];
+
+	while (1) {
+		//ClearScreen();
+		//PrintMap(cdata->map);
+		_tprintf(_T("Command: "));
+		_tscanf_s(_T(" %99[^\n]"), command, sizeof(TCHAR) * 100);
+		FindFeatureAndRun(command, cdata);
+	}
+	return 0;
+}
 
 int _tmain(int argc, TCHAR* argv[]) {
 
@@ -45,32 +114,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 	_setmode(_fileno(stdin), _O_WTEXT);
 	_setmode(_fileno(stdout), _O_WTEXT);
 #endif
-	
-	//HANDLE fmCenTaxiToConTaxi = CreateFileMapping(
-	//	INVALID_HANDLE_VALUE,
-	//	NULL,
-	//	PAGE_READWRITE,
-	//	0,
-	//	sizeof(SHM_CC_REQUEST),
-	//	SHM_CC_REQUEST_NAME);
-	//if (fmCenTaxiToConTaxi == NULL) {
-	//	_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
-	//	exit(-1);
-	//}
-	//handles[handleCounter++] = fmCenTaxiToConTaxi;
-
-	//HANDLE FM_CC_RESPONSE = CreateFileMapping(
-	//	INVALID_HANDLE_VALUE,
-	//	NULL,
-	//	PAGE_READWRITE,
-	//	0,
-	//	sizeof(SHM_CC_RESPONSE),
-	//	SHM_CC_RESPONSE_NAME);
-	//if (FM_CC_RESPONSE == NULL) {
-	//	_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
-	//	exit(-1);
-	//}
-	//handles[handleCounter++] = FM_CC_RESPONSE;
 
 	HANDLE FM_LOGIN_REQUEST = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
@@ -98,36 +141,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	handles[handleCounter++] = FM_LOGIN_RESPONSE;
 
-	//CC_CDRequest controlDataTaxi;
-	//CC_CDResponse cdResponse;
 	CDLogin_Request cdLogin_Request;
 	CDLogin_Response cdLogin_Response;
-
-	//controlDataTaxi.shared = (SHM_CC_REQUEST*)MapViewOfFile(fmCenTaxiToConTaxi,
-	//	FILE_MAP_ALL_ACCESS,
-	//	0,
-	//	0,
-	//	sizeof(SHM_CC_REQUEST));
-	//if (controlDataTaxi.shared == NULL) {
-	//	_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
-	//	//WaitAllThreads(threads, threadCounter);
-	//	//CloseMyHandles(handles, handleCounter);
-	//	exit(-1);
-	//}
-	//views[viewCounter++] = controlDataTaxi.shared;
-
-	//cdResponse.shared = (SHM_CC_RESPONSE*)MapViewOfFile(FM_CC_RESPONSE,
-	//	FILE_MAP_ALL_ACCESS,
-	//	0,
-	//	0,
-	//	sizeof(SHM_CC_RESPONSE));
-	//if (cdResponse.shared == NULL) {
-	//	_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
-	//	//WaitAllThreads(threads, threadCounter);
-	//	//CloseMyHandles(handles, handleCounter);
-	//	exit(-1);
-	//}
-	//views[viewCounter++] = cdResponse.shared;
 
 	cdLogin_Request.request = (SHM_LOGIN_REQUEST*)MapViewOfFile(FM_LOGIN_REQUEST,
 		FILE_MAP_ALL_ACCESS,
@@ -175,16 +190,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	handles[handleCounter++] = cdLogin_Response.login_m;
 
-	//controlDataTaxi.read_event = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_READ_FROM_TAXIS);
-	//if (controlDataTaxi.read_event == NULL) {
-	//	_tprintf(_T("Error creating read event (%d)\n"), GetLastError());
-	//	//WaitAllThreads(threads, threadCounter);
-	//	//UnmapAllViews(views, viewCounter);
-	//	//CloseMyHandles(handles, handleCounter);
-	//	exit(-1);
-	//}
-	//handles[handleCounter++] = controlDataTaxi.read_event;
-
 	cdLogin_Request.new_response = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_WRITE_FROM_TAXIS);
 	if (cdLogin_Request.new_response == NULL) {
 		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
@@ -205,43 +210,44 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	handles[handleCounter++] = cdLogin_Response.new_request;
 
-	//cdResponse.got_response = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_GOT_RESPONSE);
-	//if (cdResponse.got_response == NULL) {
-	//	_tprintf(_T("Error creating got_response event (%d)\n"), GetLastError());
-	//	//WaitAllThreads(threads, threadCounter);
-	//	//UnmapAllViews(views, viewCounter);
-	//	//CloseMyHandles(handles, handleCounter);
-	//	exit(-1);
-	//}
-	//handles[handleCounter++] = cdResponse.got_response;
-
-	TCHAR licensePlate[9];/* = (TCHAR*) malloc (sizeof(TCHAR) * 10);*/
+	TCHAR licensePlate[9];
 	Coords coords;
-	
-	_tprintf(_T("Insert your license plate: "));
-	_tscanf_s(TEXT(" %9s"), licensePlate, 9 * sizeof(TCHAR));
-	
-	_tprintf(_T("Where are you located?\nx: "));
-	_tscanf_s(TEXT(" %d"), &coords.x, sizeof(coords.x));
-	_tprintf(_T("y: "));
-	_tscanf_s(TEXT(" %d"), &coords.y, sizeof(coords.y));
 
+	//TextInterface(NULL);
+
+	while (1) {
+		_tprintf(_T("Insert your license plate: "));
+		_tscanf_s(TEXT(" %9s"), licensePlate, 9 * sizeof(TCHAR));
+		if (_tcslen(licensePlate) < 8 || _tcslen(licensePlate) > 8)
+		{
+			_tprintf(_T("Insert a valid license plate. Example: xx-xx-xx\n"));
+			continue;
+		}
+		_tprintf(_T("Where are you located?\nx: "));
+		_tscanf_s(TEXT(" %d"), &coords.x, sizeof(coords.x));
+		if (coords.x < 0 && coords.x > MIN_COL) {
+			_tprintf(_T("Insert valid x location\n"));
+			continue;
+		}
+		_tprintf(_T("y: "));
+		_tscanf_s(TEXT(" %d"), &coords.y, sizeof(coords.y));
+		if (coords.y > MIN_LIN && coords.y < 0) {
+			_tprintf(_T("Insert valid y location\n"));
+			continue;
+		}
+		break;
+	}
 	CDThread cdThread;
-	//cdThread.controlDataTaxi = controlDataTaxi;
-	//cdThread.cdResponse = cdResponse;
 	cdThread.cdLogin_Request = cdLogin_Request;
 	cdThread.cdLogin_Response = cdLogin_Response;
 
 	LR_Container res = RegisterInCentral(cdThread, licensePlate, coords);
-	//TCHAR request_shm_name[50];
-	//TCHAR request_mutex_name[50];
-	//TCHAR request_event_name[50];
 
-	//TCHAR response_shm_name[50];
-	//TCHAR response_mutex_name[50];
-	//TCHAR response_event_name[50];
+	CloseMyHandles(handles, &handleCounter);
+	UnmapAllViews(views, &viewCounter);
 
-	CC_Comm comm;
+	CC_CDRequest request;
+	CC_CDResponse response;
 
 	HANDLE FM_REQUEST = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
@@ -256,38 +262,38 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	handles[handleCounter++] = FM_REQUEST;
 	
-	comm.request.shared = (SHM_CC_REQUEST*)MapViewOfFile(FM_REQUEST,
+	request.shared = (SHM_CC_REQUEST*)MapViewOfFile(FM_REQUEST,
 		FILE_MAP_ALL_ACCESS,
 		0,
 		0,
 		sizeof(SHM_CC_REQUEST));
-	if (comm.request.shared == NULL) {
+	if (request.shared == NULL) {
 		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
 		//WaitAllThreads(threads, threadCounter);
 		//CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
-	views[viewCounter++] = comm.request.shared;
+	views[viewCounter++] = request.shared;
 
-	comm.request.mutex = OpenMutex(SYNCHRONIZE, FALSE, res.request_mutex_name);
-	if (comm.request.mutex == NULL) {
+	request.mutex = OpenMutex(SYNCHRONIZE, FALSE, res.request_mutex_name);
+	if (request.mutex == NULL) {
 		_tprintf(TEXT("Error creating mtxCenTaxiToConTaxi mutex (%d).\n"), GetLastError());
 		//WaitAllThreads(threads, threadCounter);
 		//UnmapAllViews(views, viewCounter);
 		//CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
-	handles[handleCounter++] = comm.request.mutex;
+	handles[handleCounter++] = request.mutex;
 
-	comm.request.new_response = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, res.request_event_name);
-	if (comm.request.new_response == NULL) {
+	request.new_response = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, res.response_event_name);
+	if (request.new_response == NULL) {
 		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
 		//WaitAllThreads(threads, threadCounter);
 		//UnmapAllViews(views, viewCounter);
 		//CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
-	handles[handleCounter++] = comm.request.new_response;
+	handles[handleCounter++] = request.new_response;
 
 	HANDLE FM_RESPONSE = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
@@ -302,56 +308,47 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	handles[handleCounter++] = FM_RESPONSE;
 
-	comm.response.shared = (SHM_CC_RESPONSE*)MapViewOfFile(FM_RESPONSE,
+	response.shared = (SHM_CC_RESPONSE*)MapViewOfFile(FM_RESPONSE,
 		FILE_MAP_ALL_ACCESS,
 		0,
 		0,
 		sizeof(SHM_CC_RESPONSE));
-	if (comm.response.shared == NULL) {
+	if (response.shared == NULL) {
 		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
 		//WaitAllThreads(threads, threadCounter);
 		//CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
-	views[viewCounter++] = comm.response.shared;
-
-	comm.response.mutex = OpenMutex(SYNCHRONIZE, FALSE, res.response_mutex_name);
-	if (comm.response.mutex == NULL) {
+	views[viewCounter++] = response.shared;
+	
+	response.mutex = OpenMutex(SYNCHRONIZE, FALSE, res.response_mutex_name);
+	if (response.mutex == NULL) {
 		_tprintf(TEXT("Error creating mtxCenTaxiToConTaxi mutex (%d).\n"), GetLastError());
 		//WaitAllThreads(threads, threadCounter);
 		//UnmapAllViews(views, viewCounter);
 		//CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
-	handles[handleCounter++] = comm.response.mutex;
+	handles[handleCounter++] = response.mutex;
 
-	comm.response.new_request = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, res.response_event_name);
-	if (comm.response.new_request == NULL) {
+	response.new_request = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, res.request_event_name);
+	if (response.new_request == NULL) {
 		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
 		//WaitAllThreads(threads, threadCounter);
 		//UnmapAllViews(views, viewCounter);
 		//CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
-	handles[handleCounter++] = comm.response.new_request;
+	handles[handleCounter++] = response.new_request;
 
-	HANDLE thread = CreateThread(NULL, 0, ListenToLoginRequests, &cdThread, 0, NULL);
-	if (!thread) {
-		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
-		UnmapAllViews(views, viewCounter);
-		CloseMyHandles(handles, handleCounter);
-		exit(-1);
-	}
-	threads[threadCounter++] = thread;
-
-	/*coords.x++;
+	enum response_id ret;
+	coords.x++;
 	coords.y++;
-	res = UpdateMyLocation(cdThread, licensePlate, coords);
-	if (res == OK)
+	ret = UpdateMyLocation(&request, &response, licensePlate, coords);
+	if (ret == OK)
 		_tprintf(_T("My position was updated to {%.2d;%.2d}.\n"), coords.x, coords.y);
 	else
-		_tprintf(_T("Error got me... lol\n"));*/
+		_tprintf(_T("Error got me... lol\n"));
 
 	WaitAllThreads(threads, threadCounter);
 	UnmapAllViews(views, viewCounter);

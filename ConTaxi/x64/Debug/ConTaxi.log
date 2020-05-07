@@ -1,10 +1,18 @@
 ﻿  contaxi.c
-E:\projects\so2-project\ConTaxi\contaxi.c(149,29): warning C4133: '=': incompatible types - from 'SHM_LOGIN_REQUEST *' to 'SHM_LOGIN_RESPONSE *'
-E:\projects\so2-project\ConTaxi\contaxi.c(222,12): warning C4477: 'wscanf_s' : format string '%9s' requires an argument of type 'unsigned int', but variadic argument 2 has type 'unsigned __int64'
-E:\projects\so2-project\ConTaxi\contaxi.c(222,12): message : this argument is used as a buffer size
-E:\projects\so2-project\ConTaxi\contaxi.c(225,42): warning C4474: 'wscanf_s' : too many arguments passed for format string
-E:\projects\so2-project\ConTaxi\contaxi.c(225,42): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
-E:\projects\so2-project\ConTaxi\contaxi.c(227,42): warning C4474: 'wscanf_s' : too many arguments passed for format string
-E:\projects\so2-project\ConTaxi\contaxi.c(227,42): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
-E:\projects\so2-project\ConTaxi\contaxi.c(235,15): warning C4101: 'res': unreferenced local variable
+E:\projects\so2-project\ConTaxi\contaxi.c(53,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [4][100]'
+E:\projects\so2-project\ConTaxi\contaxi.c(100,13): warning C4477: 'wscanf_s' : format string '%99[^\n]' requires an argument of type 'unsigned int', but variadic argument 2 has type 'unsigned __int64'
+E:\projects\so2-project\ConTaxi\contaxi.c(100,13): message : this argument is used as a buffer size
+E:\projects\so2-project\ConTaxi\contaxi.c(220,13): warning C4477: 'wscanf_s' : format string '%9s' requires an argument of type 'unsigned int', but variadic argument 2 has type 'unsigned __int64'
+E:\projects\so2-project\ConTaxi\contaxi.c(220,13): message : this argument is used as a buffer size
+E:\projects\so2-project\ConTaxi\contaxi.c(227,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
+E:\projects\so2-project\ConTaxi\contaxi.c(227,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
+E:\projects\so2-project\ConTaxi\contaxi.c(233,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
+E:\projects\so2-project\ConTaxi\contaxi.c(233,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
+E:\projects\so2-project\ConTaxi\contaxi.c(353,39): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\ConTaxi\contaxi.c(353,39): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\ConTaxi\contaxi.c(354,34): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\ConTaxi\contaxi.c(354,34): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\ConTaxi\contaxi.c(355,39): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\ConTaxi\contaxi.c(355,39): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\ConTaxi\contaxi.c(53): warning C4172: returning address of local variable or temporary: command
   ConTaxi.vcxproj -> E:\projects\so2-project\x64\Debug\ConTaxi.exe

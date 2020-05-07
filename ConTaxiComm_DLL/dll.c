@@ -57,7 +57,7 @@ LR_Container RegisterInCentral(CDThread cdata, TCHAR* licensePlate, Coords locat
 	res = ReadLoginResponse(cdResponse, cdRequest.new_response);
 
 	ReleaseMutex(cdRequest.login_write_m);
-	_tprintf(_T("[LOG] Central read my information.\nr_event: '%s',\nr_mutex: '%s',\nr_shm: '%s'\nevent: '%s',\nmutex: '%s',\nshm: '%s'"),
+	_tprintf(_T("[LOG] Central read my information.\nr_event: '%s',\nr_mutex: '%s',\nr_shm: '%s'\nevent: '%s',\nmutex: '%s',\nshm: '%s'\n"),
 		res.request_event_name, res.request_mutex_name, res.request_shm_name, res.response_event_name, res.response_mutex_name, res.response_shm_name);
 	return res;
 }
@@ -72,13 +72,34 @@ LR_Container ReadLoginResponse(CDLogin_Response response, HANDLE new_response) {
 	CopyMemory(&res, &response.response->container, sizeof(LR_Container));
 
 	ReleaseMutex(response.login_m);
-
 	return res;
 }
 
-DWORD WINAPI TalkToCentral(LPVOID ptr) {
-	CC_Comm* coom = (CC_Comm*)ptr;
+void RequestAction(CC_CDRequest* request, CC_CDResponse* response, enum Content content) {
 
+	WaitForSingleObject(request->mutex, INFINITE);
+
+	CopyMemory(request->shared, &content, sizeof(Content));
+
+	ReleaseMutex(request->mutex);
+
+	SetEvent(response->new_request);
+	_tprintf(_T("[LOG] Request done.\n"));
+}
+
+enum response_id GetCentralResponse(CC_CDResponse* response, CC_CDRequest* request) {
+	enum response_id res;
+
+	WaitForSingleObject(request->new_response, INFINITE);
+
+	WaitForSingleObject(response->mutex, INFINITE);
+	
+	res = response->shared->action;
+
+	ReleaseMutex(response->mutex);
+
+	_tprintf(_T("[LOG] Got response.\n"));
+	return res;
 }
 
 //enum response_id ReadResponse(CC_CDResponse response) {
@@ -95,12 +116,14 @@ DWORD WINAPI TalkToCentral(LPVOID ptr) {
 //	return res;
 //}
 
-//enum response_id UpdateMyLocation(CDThread cdata, TCHAR* licensePlate, Coords location) {
-//	Content content;
-//
-//	CopyMemory(&content.taxi.licensePlate, licensePlate, sizeof(TCHAR) * 9);
-//	content.taxi.location.x = location.x;
-//	content.taxi.location.y = location.y;
-//
-//	return CallCentral(cdata, content, UpdateTaxiLocation);
-//}
+enum response_id UpdateMyLocation(CC_CDRequest* request, CC_CDResponse* response, TCHAR* licensePlate, Coords location) {
+	Content content;
+
+	CopyMemory(&content.taxi.licensePlate, licensePlate, sizeof(TCHAR) * 9);
+	content.taxi.location.x = location.x;
+	content.taxi.location.y = location.y;
+
+	RequestAction(request, response, UpdateTaxiLocation);
+
+	return GetCentralResponse(response, request);
+}

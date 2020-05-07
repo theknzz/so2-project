@@ -78,15 +78,15 @@ typedef struct Control_Data_For_Response {
 } CC_CDResponse;
 
 typedef struct Control_Data_Login_Request {
-	HANDLE login_m;
-	HANDLE login_write_m;
-	HANDLE new_response;
+	HANDLE login_m; // mutex_x
+	HANDLE login_write_m; // mutex_y
+	HANDLE new_response; // event
 	SHM_LOGIN_REQUEST* request;
 } CDLogin_Request;
 
 typedef struct Control_Data_Login_Response {
-	HANDLE login_m;
-	HANDLE new_request;
+	HANDLE login_m; // mutex_x
+	HANDLE new_request; // event
 	SHM_LOGIN_RESPONSE* response;
 } CDLogin_Response;
 
@@ -100,9 +100,9 @@ typedef struct HANDLE_CONTAINER {
 } HContainer;
 
 typedef struct _CC_COMMUNICATION_CONTAINER {
-	CC_CDRequest request;
-	CC_CDResponse response;
-	LR_Container container;
+	CC_CDRequest* request;
+	CC_CDResponse* response;
+	LR_Container* container;
 } CC_Comm;
 
 typedef struct ThreadControlData {
@@ -110,10 +110,14 @@ typedef struct ThreadControlData {
 	Cell* map;
 	Taxi* taxis;
 	HContainer* hContainer;
-	//CC_CDRequest controlDataTaxi;
-	//CC_CDResponse cdResponse;
-	CC_Comm comm;
+	CC_Comm* comm;
 	CDLogin_Request cdLogin_Request;
 	CDLogin_Response cdLogin_Response;
 } CDThread;
 
+typedef struct _CMD_STRUCT {
+	TCHAR* command;
+	TCHAR* license;
+	int x;
+	int y;
+} CMD;
