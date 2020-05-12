@@ -56,7 +56,7 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 	
 	while (1) {
 		//ClearScreen();
-		//PrintMap(cdata->map);
+		PrintMap(cdata->map);
 		_tprintf(_T("Command: "));
 		_tscanf_s(_T(" %99[^\n]"), command, sizeof(TCHAR)*100);
 		FindFeatureAndRun(command, cdata);
@@ -69,6 +69,7 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 	SHM_CC_RESPONSE response;
 	response.action = ERRO;
 	int index;
+	_tprintf(_T("Action request: %d\n"), action);
 	switch (action) {
 			case UpdateTaxiLocation:
 				index = FindTaxiIndex(cd->taxis, *(cd->taxiFreePosition), content.taxi);
@@ -80,6 +81,11 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 			case WarnPassengerCatch:
 				break;
 			case WarnPassengerDeliever:
+				break;
+			case GetCityMap:
+				CopyMemory(response.map, cd->charMap, sizeof(cd->charMap));
+				_tprintf(_T("Got a map request...\n"));
+				response.action = OK;
 				break;
 	}
 	return response;
@@ -96,15 +102,16 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 	WaitForSingleObject(request->mutex, INFINITE);
 
 	// Guardar o conteudo da mensagem
-	CopyMemory(&shm_request, &request->shared, sizeof(SHM_CC_REQUEST));
+	CopyMemory(&shm_request.messageContent, &request->shared, sizeof(Content));
+	shm_request.action = request->shared->action;
 	ReleaseMutex(request->mutex);
 
 	// Tratar mensagem
 	shm_response = ParseAndExecuteOperation(cd, shm_request.action, shm_request.messageContent);
 
 	WaitForSingleObject(response->mutex, INFINITE);
-	CopyMemory(&response->shared, &shm_response, sizeof(SHM_CC_RESPONSE));
-	//response.shared->action = shm_response.action;
+	CopyMemory(&response->shared->map, &shm_response.map, sizeof(char)*MIN_LIN*MIN_COL);
+	response->shared->action = shm_response.action;
 
 	ReleaseMutex(response->mutex);
 	SetEvent(request->new_response);
@@ -112,8 +119,8 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 
 void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* container) {
 	LR_Container res;
-	CDLogin_Request request = cdThread->cdLogin_Request;
-	CDLogin_Response response = cdThread->cdLogin_Response;
+	CDLogin_Request* request = cdThread->cdLogin_Request;
+	CDLogin_Response* response = cdThread->cdLogin_Response;
 	CC_CDRequest cdRequest;
 	CC_CDResponse cdResponse;
 
@@ -124,7 +131,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 	TCHAR response_mutex_name[50];
 	TCHAR response_shm_name[50];
 
-	WaitForSingleObject(response.login_m, INFINITE);
+	WaitForSingleObject(response->login_m, INFINITE);
 
 	// Build the names
 	_stprintf(request_event_name, EVENT_REQUEST, licensePlate);
@@ -143,9 +150,9 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 	CopyMemory(res.response_mutex_name, response_mutex_name, sizeof(TCHAR) * 50); // 23 
 	CopyMemory(res.response_shm_name, response_shm_name, sizeof(TCHAR) * 50); // 24
 
-	CopyMemory(&response.response->container, &res, sizeof(LR_Container));
+	CopyMemory(&response->response->container, &res, sizeof(LR_Container));
 
-	ReleaseMutex(response.login_m);
+	ReleaseMutex(response->login_m);
 
 	HANDLE FM_REQUEST = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
@@ -186,7 +193,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 	container->handles[(*container->handleCounter)++] = cdRequest.mutex;
 
 	cdRequest.new_response  = CreateEvent(NULL, FALSE, FALSE, response_event_name);
-	if (request.new_response == NULL) {
+	if (request->new_response == NULL) {
 		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
 		WaitAllThreads(container->threads, (*container->threadCounter));
 		UnmapAllViews(container->views, (*container->viewCounter));
@@ -257,7 +264,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 		exit(-1);
 	}
 
-	SetEvent(request.new_response);
+	SetEvent(request->new_response);
 
 	_tprintf(_T("[LOG] Sent response to the taxi's registration request.\n"));
 }
@@ -284,22 +291,22 @@ int FindTaxiIndex(Taxi* taxis, int size, Taxi target) {
 
 DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 	CDThread* cd = (CDThread*)ptr;
-	CDLogin_Request cdata = cd->cdLogin_Request;
-	CDLogin_Response cdResponse = cd->cdLogin_Response;
+	CDLogin_Request* cdata = cd->cdLogin_Request;
+	CDLogin_Response* cdResponse = cd->cdLogin_Response;
 	SHM_LOGIN_REQUEST shared;
 
 	while (1) {
-		WaitForSingleObject(cdResponse.new_request, INFINITE);
+		WaitForSingleObject(cdResponse->new_request, INFINITE);
 		//_tprintf(_T("Got something written to me\n"));
 		
 		//_tprintf(_T("Waiting for access to the mutex\n"));
-		WaitForSingleObject(cdata.login_m, INFINITE);
+		WaitForSingleObject(cdata->login_m, INFINITE);
 		//_tprintf(_T("Got access to the mutex\n"));
 
 		// Save Request
-		CopyMemory(&shared, cdata.request, sizeof(SHM_LOGIN_REQUEST));
+		CopyMemory(&shared, cdata->request, sizeof(SHM_LOGIN_REQUEST));
 
-		ReleaseMutex(cdata.login_m);
+		ReleaseMutex(cdata->login_m);
 		int index = *(cd->taxiFreePosition);
 
 		// Process Event
@@ -393,7 +400,7 @@ void LoadMapa(Cell* map, char* buffer, int nrTaxis, int nrPassangers) {
 			if (c == S_CHAR) {
 				map[aux].taxis = malloc(nrTaxis * sizeof(Taxi));
 				map[aux].passengers = malloc(nrPassangers * sizeof(Passenger));
-				map[aux].display = '-';
+				map[aux].display = S_DISPLAY;
 				map[aux].cellType = Street;
 				map[aux].x = j;
 				map[aux].y = i;
@@ -401,7 +408,7 @@ void LoadMapa(Cell* map, char* buffer, int nrTaxis, int nrPassangers) {
 			else if (c == B_CHAR) {
 				map[aux].taxis = malloc(nrTaxis * sizeof(Taxi));
 				map[aux].passengers = malloc(nrPassangers * sizeof(Passenger));
-				map[aux].display = '+';
+				map[aux].display = B_DISPLAY;
 				map[aux].cellType = Building;
 				map[aux].x = j;
 				map[aux].y = i;
@@ -435,6 +442,20 @@ char* ReadFileToCharArray(TCHAR* mapName) {
 	CloseHandle(fmFile);
 	CloseHandle(file);
 	return mvof;
+}
+
+char** ConvertMapIntoCharMap(Cell* map) {
+	char charMap[MIN_LIN][MIN_COL];
+
+	for (unsigned int i = 0; i < MIN_LIN; i++)
+		for (unsigned int j = 0; j < MIN_COL; j++){
+			char aux = (*(map + (j + i * MIN_COL))).display;
+			if (aux == B_DISPLAY)
+				charMap[i][j] = B_DISPLAY;
+			else if (aux == S_DISPLAY)
+				charMap[i][j] = S_DISPLAY;
+		}
+	return charMap;
 }
 
 int _tmain(int argc, TCHAR* argv[]) {
@@ -508,6 +529,23 @@ int _tmain(int argc, TCHAR* argv[]) {
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
+
+	char* fileContent = NULL;
+
+	// Le conteudo do ficheiro para array de chars
+	if ((fileContent = ReadFileToCharArray(_T("E:\\projects\\so2-project\\maps\\map1.txt"))) == NULL) {
+		_tprintf(_T("Error reading the file (%d)\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	else {
+		_tprintf(_T("Map loaded to memory!\n"));
+	}
+
+	// Preenche mapa com o conteudo do ficheiro
+	LoadMapa(map, fileContent, nrMaxTaxis, nrMaxPassengers);
 
 	TI_Controldata ti_ControlData;
 	ti_ControlData.gate = FALSE;
@@ -633,12 +671,14 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	handles[handleCounter++] = CDLogin_Response.new_request;
 
+
 	CDThread cdThread;
 	cdThread.taxis = taxis;
 	cdThread.taxiFreePosition = &taxiFreePosition;
 	cdThread.map = map;
-	cdThread.cdLogin_Response = CDLogin_Response;
-	cdThread.cdLogin_Request = CDLogin_Request;
+	cdThread.cdLogin_Response = &CDLogin_Response;
+	cdThread.cdLogin_Request = &CDLogin_Request;
+	CopyMemory(cdThread.charMap, ConvertMapIntoCharMap(map), sizeof(char)*MIN_LIN*MIN_COL);
 
 	HContainer container;
 	container.threads = threads;
@@ -659,22 +699,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	threads[threadCounter++] = listenThread;
 
-	char* fileContent = NULL;
-
-	// Le conteudo do ficheiro para array de chars
-	if ((fileContent = ReadFileToCharArray(_T("E:\\projects\\so2-project\\maps\\map1.txt"))) == NULL) {
-		_tprintf(_T("Error reading the file (%d)\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
-		UnmapAllViews(views, viewCounter);
-		CloseMyHandles(handles, handleCounter);
-		exit(-1);
-	}
-	else {
-		_tprintf(_T("Map loaded to memory!\n"));
-	}
-
-	// Preenche mapa com o conteudo do ficheiro
-	LoadMapa(map, fileContent, nrMaxTaxis, nrMaxPassengers);
 
 	WaitAllThreads(threads, threadCounter);
 	UnmapAllViews(views, viewCounter);

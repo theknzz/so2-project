@@ -11,6 +11,8 @@
 #define S_CHAR 'R' // Street char
 #define B_CHAR 'E' // Building char
 #define T_CHAR 'T' // Taxi char
+#define S_DISPLAY '-'
+#define B_DISPLAY '+'
 
 // Type of Map Cells
 enum type { Street, Building/*, Taxi, Passenger */ };
@@ -20,7 +22,8 @@ enum message_id {
 	RegisterTaxiInCentral,
 	UpdateTaxiLocation,
 	WarnPassengerCatch,
-	WarnPassengerDeliever
+	WarnPassengerDeliever,
+	GetCityMap
 };
 
 enum response_id {

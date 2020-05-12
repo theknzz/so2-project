@@ -318,8 +318,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 		break;
 	}
 	CDThread cdThread;
-	cdThread.cdLogin_Request = cdLogin_Request;
-	cdThread.cdLogin_Response = cdLogin_Response;
+	cdThread.cdLogin_Request = &cdLogin_Request;
+	cdThread.cdLogin_Response = &cdLogin_Response;
 
 	LR_Container res = RegisterInCentral(cdThread, licensePlate, coords);
 
@@ -422,6 +422,20 @@ int _tmain(int argc, TCHAR* argv[]) {
 	handles[handleCounter++] = response.new_request;
 
 	enum response_id ret;
+	char map[MIN_LIN][MIN_COL];
+	ret = GetMap(map, &request, &response);
+	if (ret == OK) {
+		_tprintf(_T("\n"));
+		for (unsigned int i = 0; i < MIN_LIN; i++) {
+			for (unsigned int j = 0; j < MIN_COL; j++)
+				_tprintf(_T("%c"), map[i][j]);
+			_tprintf(_T("\n"));
+		}
+	}
+	else
+		_tprintf(_T("rip.\n"));
+
+
 	coords.x++;
 	coords.y++;
 	ret = UpdateMyLocation(&request, &response, licensePlate, coords);

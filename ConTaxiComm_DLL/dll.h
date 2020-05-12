@@ -10,12 +10,16 @@ enum responde_id DLL_EXPORT CallCentral(CDThread cdata, Content content, enum me
 
 LR_Container DLL_EXPORT RegisterInCentral(CDThread cdata, TCHAR* licensePlate, Coords location);
 
-LR_Container DLL_EXPORT ReadLoginResponse(CDLogin_Response response);
+LR_Container DLL_EXPORT ReadLoginResponse(CDLogin_Response* response);
 
 enum response_id DLL_EXPORT GetCentralResponse(CC_CDResponse* response, CC_CDRequest* request);
 
-void DLL_EXPORT RequestAction(CC_CDRequest* request, CC_CDResponse* response, enum Content content);
+void DLL_EXPORT RequestAction(CC_CDRequest* request, CC_CDResponse* response, SHM_CC_REQUEST message);
 
 //enum responde_id DLL_EXPORT ReadResponse(CC_CDResponse response);
 
 enum response_id DLL_EXPORT UpdateMyLocation(CC_CDRequest* request, CC_CDResponse* response, TCHAR* licensePlate, Coords location);
+
+enum response_id DLL_EXPORT GetMap(char* * map, CC_CDRequest* request, CC_CDResponse* response);
+
+char** GetMapFromCentral(CC_CDResponse* response, CC_CDRequest* request);

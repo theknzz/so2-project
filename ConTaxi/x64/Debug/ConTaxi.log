@@ -8,11 +8,13 @@ E:\projects\so2-project\ConTaxi\contaxi.c(307,43): warning C4474: 'wscanf_s' : t
 E:\projects\so2-project\ConTaxi\contaxi.c(307,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
 E:\projects\so2-project\ConTaxi\contaxi.c(313,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
 E:\projects\so2-project\ConTaxi\contaxi.c(313,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
-E:\projects\so2-project\ConTaxi\contaxi.c(433,39): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\ConTaxi\contaxi.c(433,39): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\ConTaxi\contaxi.c(434,34): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\ConTaxi\contaxi.c(434,34): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\ConTaxi\contaxi.c(435,39): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\ConTaxi\contaxi.c(435,39): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\ConTaxi\contaxi.c(426,18): warning C4047: 'function': 'char **' differs in levels of indirection from 'char [50][50]'
+E:\projects\so2-project\ConTaxi\contaxi.c(426,18): warning C4024: 'GetMap': different types for formal and actual parameter 1
+E:\projects\so2-project\ConTaxi\contaxi.c(447,39): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\ConTaxi\contaxi.c(447,39): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\ConTaxi\contaxi.c(448,34): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\ConTaxi\contaxi.c(448,34): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\ConTaxi\contaxi.c(449,39): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\ConTaxi\contaxi.c(449,39): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
 E:\projects\so2-project\ConTaxi\contaxi.c(133): warning C4172: returning address of local variable or temporary: command
   ConTaxi.vcxproj -> E:\projects\so2-project\x64\Debug\ConTaxi.exe

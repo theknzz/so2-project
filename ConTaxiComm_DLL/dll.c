@@ -31,8 +31,8 @@
 //}
 
 LR_Container RegisterInCentral(CDThread cdata, TCHAR* licensePlate, Coords location) {
-	CDLogin_Request cdRequest = cdata.cdLogin_Request;
-	CDLogin_Response cdResponse = cdata.cdLogin_Response;
+	CDLogin_Request* cdRequest = cdata.cdLogin_Request;
+	CDLogin_Response* cdResponse = cdata.cdLogin_Response;
 
 	// Preencer o conteudo da mensagem
 	Taxi taxi;
@@ -41,45 +41,45 @@ LR_Container RegisterInCentral(CDThread cdata, TCHAR* licensePlate, Coords locat
 	taxi.location.y = location.y;
 
 	// Preciso de um mutex para bloquear o login multiplo ??
-	WaitForSingleObject(cdRequest.login_write_m, INFINITE);
-	WaitForSingleObject(cdRequest.login_m, INFINITE);
+	WaitForSingleObject(cdRequest->login_write_m, INFINITE);
+	WaitForSingleObject(cdRequest->login_m, INFINITE);
 
-	cdRequest.request->action = RegisterTaxiInCentral;
-	CopyMemory(&cdRequest.request->taxi, &taxi, sizeof(Taxi));
+	cdRequest->request->action = RegisterTaxiInCentral;
+	CopyMemory(&cdRequest->request->taxi, &taxi, sizeof(Taxi));
 
-	ReleaseMutex(cdRequest.login_m);
+	ReleaseMutex(cdRequest->login_m);
 
-	SetEvent(cdResponse.new_request);
+	SetEvent(cdResponse->new_request);
 	_tprintf(_T("[LOG] Sent my information to the central.\n"));
 
 	// wait read
 	LR_Container res;
-	res = ReadLoginResponse(cdResponse, cdRequest.new_response);
+	res = ReadLoginResponse(cdResponse, cdRequest->new_response);
 
-	ReleaseMutex(cdRequest.login_write_m);
+	ReleaseMutex(cdRequest->login_write_m);
 	_tprintf(_T("[LOG] Central read my information.\nr_event: '%s',\nr_mutex: '%s',\nr_shm: '%s'\nevent: '%s',\nmutex: '%s',\nshm: '%s'\n"),
 		res.request_event_name, res.request_mutex_name, res.request_shm_name, res.response_event_name, res.response_mutex_name, res.response_shm_name);
 	return res;
 }
 
-LR_Container ReadLoginResponse(CDLogin_Response response, HANDLE new_response) {
+LR_Container ReadLoginResponse(CDLogin_Response* response, HANDLE new_response) {
 	LR_Container res;
 
 	WaitForSingleObject(new_response, INFINITE);
 
-	WaitForSingleObject(response.login_m, INFINITE);
+	WaitForSingleObject(response->login_m, INFINITE);
 
-	CopyMemory(&res, &response.response->container, sizeof(LR_Container));
+	CopyMemory(&res, &response->response->container, sizeof(LR_Container));
 
-	ReleaseMutex(response.login_m);
+	ReleaseMutex(response->login_m);
 	return res;
 }
 
-void RequestAction(CC_CDRequest* request, CC_CDResponse* response, enum Content content) {
+void RequestAction(CC_CDRequest* request, CC_CDResponse* response, SHM_CC_REQUEST message) {
 
 	WaitForSingleObject(request->mutex, INFINITE);
 
-	CopyMemory(request->shared, &content, sizeof(Content));
+	CopyMemory(request->shared, &message, sizeof(SHM_CC_REQUEST));
 
 	ReleaseMutex(request->mutex);
 
@@ -102,6 +102,21 @@ enum response_id GetCentralResponse(CC_CDResponse* response, CC_CDRequest* reque
 	return res;
 }
 
+char** GetMapFromCentral(CC_CDResponse* response, CC_CDRequest* request) {
+	char map[MIN_LIN][MIN_COL];
+
+	WaitForSingleObject(request->new_response, INFINITE);
+
+	WaitForSingleObject(response->mutex, INFINITE);
+
+	CopyMemory(map, response->shared->map, sizeof(response->shared->map));
+
+	ReleaseMutex(response->mutex);
+
+	_tprintf(_T("[LOG] Got map.\n"));
+	return map;
+}
+
 //enum response_id ReadResponse(CC_CDResponse response) {
 //	enum response_id res;
 //
@@ -117,13 +132,29 @@ enum response_id GetCentralResponse(CC_CDResponse* response, CC_CDRequest* reque
 //}
 
 enum response_id UpdateMyLocation(CC_CDRequest* request, CC_CDResponse* response, TCHAR* licensePlate, Coords location) {
+	SHM_CC_REQUEST r;
 	Content content;
 
 	CopyMemory(&content.taxi.licensePlate, licensePlate, sizeof(TCHAR) * 9);
 	content.taxi.location.x = location.x;
 	content.taxi.location.y = location.y;
+	
+	CopyMemory(&r.messageContent, &content, sizeof(Content));
+	r.action = UpdateTaxiLocation;
 
-	RequestAction(request, response, UpdateTaxiLocation);
+	RequestAction(request, response, r);
 
 	return GetCentralResponse(response, request);
+}
+
+enum response_id GetMap(char** map, CC_CDRequest* request, CC_CDResponse* response) {
+	SHM_CC_REQUEST r;
+	r.action = GetCityMap;
+
+	RequestAction(request, response, r);
+	
+	CopyMemory(map, GetMapFromCentral(response, request), sizeof(char)*MIN_LIN*MIN_COL);
+
+	if (map == NULL) return ERRO;
+	return OK;
 }

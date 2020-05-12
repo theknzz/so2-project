@@ -1,4 +1,5 @@
 #pragma once
+#include "rules.h"
 
 typedef struct _COORDS {
 	int x, y;
@@ -56,6 +57,7 @@ typedef struct _MSG_TO_CENTRAL {
 
 typedef struct _MSG_TO_TAXI {
 	enum response_id action;
+	char map[MIN_COL][MIN_LIN];
 	//Content responseContent;
 } SHM_CC_RESPONSE;
 
@@ -113,8 +115,9 @@ typedef struct ThreadControlData {
 	Taxi* taxis;
 	HContainer* hContainer;
 	CC_Comm* comm;
-	CDLogin_Request cdLogin_Request;
-	CDLogin_Response cdLogin_Response;
+	CDLogin_Request* cdLogin_Request;
+	CDLogin_Response* cdLogin_Response;
+	char charMap[MIN_COL][MIN_LIN];
 } CDThread;
 
 typedef struct _CMD_STRUCT {
