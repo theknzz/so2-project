@@ -7,6 +7,8 @@ typedef struct _COORDS {
 typedef struct _TAXI {
 	TCHAR licensePlate[9];
 	Coords location;
+	BOOL autopilot;
+	float velocity;
 } Taxi;
 
 typedef struct _Passenger {
@@ -18,8 +20,8 @@ typedef struct MapCell {
 	int x, y;
 	enum type cellType;
 	char display;
-	Taxi taxi;
-	Passenger passenger;
+	Taxi* taxis;
+	Passenger* passengers;
 } Cell;
 
 typedef struct _MSG_CONTENT {

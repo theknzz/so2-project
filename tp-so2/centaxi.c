@@ -307,10 +307,10 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 		if (shared.action == RegisterTaxiInCentral) {
 			// insert the taxi on the taxi's array
 			CopyMemory(&cd->taxis[index], &shared.taxi, sizeof(Taxi));
+			Taxi* t = &(cd->map + shared.taxi.location.x + (shared.taxi.location.y * MIN_COL))->taxis[(*cd->taxiFreePosition)];
 			// insert the taxi on the map
 			(*cd->taxiFreePosition)++;
-			Taxi* t = &(cd->map + shared.taxi.location.x + (shared.taxi.location.y * MIN_COL))->taxi;
-			(cd->map + shared.taxi.location.x + (shared.taxi.location.y * MIN_COL))->display = 't';
+			(cd->map + shared.taxi.location.x + (shared.taxi.location.y * MIN_COL))->display = T_CHAR;
 			CopyMemory(t, &shared.taxi, sizeof(Taxi));
 
 			_tprintf(_T("Got a registration request from '%s'\n"), shared.taxi.licensePlate);
@@ -384,19 +384,23 @@ int FindFeatureAndRun(TCHAR* command, TI_Controldata* cdata) {
 	}
 }
 
-void LoadMapa(Cell* map, char* buffer) {
+void LoadMapa(Cell* map, char* buffer, int nrTaxis, int nrPassangers) {
 	int aux=0;
 	for (int i = 0; i < MIN_LIN; i++) {
 		for (int j = 0; j < MIN_COL; j++) {
 			aux = (i * MIN_COL) + j;
 			char c = buffer[aux];
 			if (c == S_CHAR) {
+				map[aux].taxis = malloc(nrTaxis * sizeof(Taxi));
+				map[aux].passengers = malloc(nrPassangers * sizeof(Passenger));
 				map[aux].display = '-';
 				map[aux].cellType = Street;
 				map[aux].x = j;
 				map[aux].y = i;
 			}
 			else if (c == B_CHAR) {
+				map[aux].taxis = malloc(nrTaxis * sizeof(Taxi));
+				map[aux].passengers = malloc(nrPassangers * sizeof(Passenger));
 				map[aux].display = '+';
 				map[aux].cellType = Building;
 				map[aux].x = j;
@@ -670,12 +674,17 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 
 	// Preenche mapa com o conteudo do ficheiro
-	LoadMapa(map, fileContent);
+	LoadMapa(map, fileContent, nrMaxTaxis, nrMaxPassengers);
 
 	WaitAllThreads(threads, threadCounter);
 	UnmapAllViews(views, viewCounter);
 	CloseMyHandles(handles, handleCounter);
 
+	// dar free da memoria dos taxis em todas as celulas
+	for (unsigned int i = 0; i < MIN_LIN * MIN_COL; i++) {
+		free(map[i].taxis);
+		free(map[i].passengers);
+	}
 	free(taxis);
 	free(passengers);
 	return 0;

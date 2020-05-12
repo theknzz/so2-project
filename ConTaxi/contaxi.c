@@ -12,6 +12,86 @@
 #include "structs.h"
 #include "dll.h"
 
+int CalculateDistanceTo(Coords org, Coords dest) {
+	int y_dist, x_dist;
+
+	y_dist = dest.y - org.y;
+	x_dist = dest.x - org.x;
+
+	return (int)sqrt(pow(y_dist, 2) + pow(x_dist, 2));
+}
+
+void MoveMeToOptimalPosition(Coords org, Coords dest, Cell* map) {
+	// bottom, left, top, right
+	int positions[4];
+	Coords coords[4];
+
+	// bottom
+	coords[0].x = org.x;
+	coords[0].y = org.y + 1;
+	// se nesta posição estiver uma celula de edificio ou um taxi, ou desqualificou-a do algoritmo
+	if ((*(map + ((coords[0].x) + coords[0].y * MIN_LIN))).cellType == B_CHAR ||
+		(*(map + ((coords[0].x) + coords[0].y * MIN_LIN))).cellType == T_CHAR) {
+		positions[0] = INT_MAX;
+	}
+	else {
+		positions[0] = CalculateDistanceTo(coords[0], dest);
+	}
+
+	// left
+	coords[1].x = org.x - 1;
+	coords[1].y = org.y;
+	if ((*(map + ((coords[1].x) + coords[1].y * MIN_LIN))).cellType == B_CHAR ||
+		(*(map + ((coords[1].x) + coords[1].y * MIN_LIN))).cellType == T_CHAR) {
+		positions[1] = INT_MAX;
+	}
+	else {
+		positions[1] = CalculateDistanceTo(coords[1], dest);
+	}
+
+	// top
+	coords[2].x = org.x;
+	coords[2].y = org.y - 1;
+	if ((*(map + ((coords[2].x) + coords[2].y * MIN_LIN))).cellType == B_CHAR ||
+		(*(map + ((coords[2].x) + coords[2].y * MIN_LIN))).cellType == T_CHAR) {
+		positions[2] = INT_MAX;
+	}
+	else {
+		positions[2] = CalculateDistanceTo(coords[2], dest);
+	}
+
+	// right
+	coords[3].x = org.x + 1;
+	coords[3].y = org.y;
+	if ((*(map + ((coords[2].x) + coords[2].y * MIN_LIN))).cellType == B_CHAR ||
+		(*(map + ((coords[2].x) + coords[2].y * MIN_LIN))).cellType == T_CHAR) {
+		positions[3] = INT_MAX;
+	}
+	else {
+		positions[3] = CalculateDistanceTo(coords[3], dest);
+	}
+
+	// select the best position (less distance)
+	int optimal = positions[0];
+	int i;
+	for (i = 1; i < 4; i++) {
+		if (positions[i] < optimal)
+			optimal = positions[i];
+	}
+
+	// atualizar a nova celula
+
+	//CopyMemory(&(*(map + ((coords[i].x + coords[i].y * MIN_LIN)))).taxi, &(*(map + ((org.x + org.y * MIN_LIN)))).taxi, sizeof(Taxi));
+	//(*(map + ((coords[i].x + coords[i].y * MIN_LIN)))).cellType = T_CHAR;
+
+	// atualizar a celula antiga
+
+	//ZeroMemory(&(*(map + ((org.x + org.y * MIN_LIN)))).taxi, sizeof(Taxi));
+	//(*(map + ((org.x + org.y * MIN_LIN)))).cellType = S_CHAR;
+
+	_tprintf(_T("My new positions is: {%.2d; %.2d}\n"), coords[i].x, coords[i].y);
+}
+
 // Wait for all the threads to stop
 void WaitAllThreads(HANDLE* threads, int* nr) {
 	for (int i = 0; i < *(nr); i++) {

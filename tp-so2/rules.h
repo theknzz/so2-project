@@ -10,6 +10,7 @@
 // Map characters
 #define S_CHAR 'R' // Street char
 #define B_CHAR 'E' // Building char
+#define T_CHAR 'T' // Taxi char
 
 // Type of Map Cells
 enum type { Street, Building/*, Taxi, Passenger */ };
