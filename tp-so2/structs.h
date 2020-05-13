@@ -110,7 +110,6 @@ typedef struct _CC_COMMUNICATION_CONTAINER {
 } CC_Comm;
 
 typedef struct ThreadControlData {
-	int *taxiFreePosition;
 	int nrMaxTaxis;
 	Cell* map;
 	Taxi* taxis;

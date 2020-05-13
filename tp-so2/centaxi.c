@@ -82,13 +82,11 @@ enum respond_id InsertTaxiIntoMapCell(Cell* cell, Taxi taxi, int size) {
 }
 
 void RemoveTaxiFromMapCell(Cell* cell, TCHAR* lcPlate, int size) {
-	Taxi aux;
 	for (unsigned int i = 0; i < size; i++) {
-		aux = (cell + i)->taxis[i];
-		if (_tcscmp(aux.licensePlate, lcPlate) == 0) {
-			ZeroMemory(&aux.licensePlate, sizeof(aux.licensePlate));
-			aux.location.x = -1;
-			aux.location.y = -1;
+		if (_tcscmp((cell + i)->taxis[i].licensePlate, lcPlate) == 0) {
+			ZeroMemory(&(cell + i)->taxis[i].licensePlate, sizeof((cell + i)->taxis[i].licensePlate));
+			(cell + i)->taxis[i].location.x = -1;
+			(cell + i)->taxis[i].location.y = -1;
 		}
 	}
 }
@@ -107,9 +105,10 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 				// mudar display da celula da nova posição do taxi
 
 				// encontrar o taxi na tabela de taxis ativos
-				index = FindTaxiIndex(cd->taxis, *(cd->taxiFreePosition), content.taxi);
+				index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
 				// se nao encontrar devolve erro
-				if (index == -1) break;
+				if (index == -1)
+					break;
 				// guarda a posição atual no mapa em variaveis auxiliares
 				x = (*(cd->taxis + index)).location.x;
 				y = (*(cd->taxis + index)).location.y;
@@ -157,7 +156,7 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 		WaitForSingleObject(request->mutex, INFINITE);
 
 		// Guardar o conteudo da mensagem
-		CopyMemory(&shm_request.messageContent, &request->shared, sizeof(Content));
+		CopyMemory(&shm_request.messageContent, &request->shared->messageContent, sizeof(Content));
 		shm_request.action = request->shared->action;
 		ReleaseMutex(request->mutex);
 
@@ -350,6 +349,14 @@ int FindTaxiIndex(Taxi* taxis, int size, Taxi target) {
 	return -1;
 }
 
+int FindFirstFreeTaxiIndex(Taxi* taxis, int size) {
+	for (unsigned int i = 0; i < size; i++) {
+		if (taxis[i].location.x == -1)
+			return i;
+	}
+	return -1;
+}
+
 DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 	CDThread* cd = (CDThread*)ptr;
 	CDLogin_Request* cdata = cd->cdLogin_Request;
@@ -368,9 +375,11 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 		CopyMemory(&shared, cdata->request, sizeof(SHM_LOGIN_REQUEST));
 
 		ReleaseMutex(cdata->login_m);
-		int index = *(cd->taxiFreePosition);
-
-		// Process Event
+		
+		int index = FindFirstFreeTaxiIndex(cd->taxis, cd->nrMaxTaxis);
+		if (index == -1)
+			RespondToTaxiLogin(cd, shared.taxi.licensePlate, cd->hContainer, ERRO);
+		
 
 		if (shared.action == RegisterTaxiInCentral) {
 			_tprintf(_T("Got a registration request from '%s'\n"), shared.taxi.licensePlate);
@@ -603,6 +612,13 @@ int _tmain(int argc, TCHAR* argv[]) {
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
+	for (unsigned int i = 0; i < nrMaxTaxis; i++) {
+		ZeroMemory(taxis[i].licensePlate, sizeof(taxis[i].licensePlate));
+		taxis[i].location.x = -1;
+		taxis[i].location.y = -1;
+		taxis[i].velocity = -1;
+		taxis[i].autopilot = FALSE;
+	}
 
 	Passenger* passengers = (Passenger*)malloc(nrMaxPassengers * sizeof(Passenger));
 	if (passengers == NULL) {
@@ -611,6 +627,11 @@ int _tmain(int argc, TCHAR* argv[]) {
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
+	}
+	for (unsigned int i = 0; i < nrMaxPassengers; i++) {
+		ZeroMemory(passengers[i].nome, sizeof(passengers[i].nome));
+		passengers[i].location.x = -1;
+		passengers[i].location.y = -1;
 	}
 
 	char* fileContent = NULL;
@@ -757,7 +778,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 
 	CDThread cdThread;
 	cdThread.taxis = taxis;
-	cdThread.taxiFreePosition = &taxiFreePosition;
 	cdThread.map = map;
 	cdThread.cdLogin_Response = &CDLogin_Response;
 	cdThread.cdLogin_Request = &CDLogin_Request;

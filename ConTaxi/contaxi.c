@@ -87,7 +87,7 @@ enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* r
 
 	// select the best position (less distance)
 	int optimal = positions[0];
-	int nr;
+	int nr=1;
 	for (unsigned int i = 1; i < 4; i++) {
 		if (positions[i] < optimal) {
 			optimal = positions[i];
@@ -187,6 +187,69 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 		FindFeatureAndRun(command, cdata);
 	}
 	return 0;
+}
+
+Coords MoveMeToOptimalPosition_DEBUG(Coords org, Coords dest, char map[MIN_LIN][MIN_COL]) {
+	// bottom, left, top, right
+	int positions[4];
+	Coords coords[4];
+
+	// bottom
+	coords[0].x = org.x;
+	coords[0].y = org.y + 1;
+
+	// left
+	coords[1].x = org.x - 1;
+	coords[1].y = org.y;
+
+	// top
+	coords[2].x = org.x;
+	coords[2].y = org.y - 1;
+
+	// right
+	coords[3].x = org.x + 1;
+	coords[3].y = org.y;
+
+	// se nesta posição estiver uma celula de edificio ou um taxi, ou desqualificou-a do algoritmo
+	if (coords[0].y > MIN_LIN || map[coords[0].x][coords[0].y] == B_DISPLAY) {
+		positions[0] = INT_MAX;
+	}
+	else {
+		positions[0] = CalculateDistanceTo(coords[0], dest);
+	}
+
+	if (coords[1].x < 0 || map[coords[1].x][coords[1].y] == B_DISPLAY) {
+		positions[1] = INT_MAX;
+	}
+	else {
+		positions[1] = CalculateDistanceTo(coords[1], dest);
+	}
+
+	if (coords[2].y < 0 || map[coords[2].x][coords[2].y] == B_DISPLAY) {
+		positions[2] = INT_MAX;
+	}
+	else {
+		positions[2] = CalculateDistanceTo(coords[2], dest);
+	}
+
+	if (coords[3].y > MIN_COL || map[coords[3].x][coords[3].y] == B_DISPLAY) {
+		positions[3] = INT_MAX;
+	}
+	else {
+		positions[3] = CalculateDistanceTo(coords[3], dest);
+	}
+
+	// select the best position (less distance)
+	int optimal = positions[0];
+	int nr = 0;
+	for (unsigned int i = 1; i < 4; i++) {
+		if (positions[i] < optimal) {
+			optimal = positions[i];
+			nr = i;
+		}
+	}
+
+	return coords[nr];
 }
 
 int _tmain(int argc, TCHAR* argv[]) {
@@ -443,17 +506,33 @@ int _tmain(int argc, TCHAR* argv[]) {
 		CloseMyHandles(handles, handleCounter);
 	}
 	Coords dest;
-	dest.x = 5;
-	dest.y = 0;
+	dest.x = 2;
+	dest.y = 5;
 
-	ret = MoveMeToOptimalPosition(&request, &response, licensePlate, coords, dest, &map);
-	if (ret != OK) {
-		PrintError(ret);
-	}
-	else
-		_tprintf(_T("Taxi moved to optimal position!\n"));
+	//ret = MoveMeToOptimalPosition(&request, &response, licensePlate, coords, dest, &map);
+	//if (ret != OK) {
+	//	PrintError(ret);
+	//}
+	//else
+	//	_tprintf(_T("Taxi moved to optimal position!\n"));
+
+	// andar para baixo : 2,1 - erro 1,0
+	Coords c = MoveMeToOptimalPosition_DEBUG(coords, dest, &map);
+	// andar para a esquerda : 9,5 - top
+	coords.x = 10;
+	coords.y = 5;
+	c = MoveMeToOptimalPosition_DEBUG(coords, dest, &map);
+	// andar para cima : 2,9 - top
+	coords.x = 2;
+	coords.y = 10;
+	c = MoveMeToOptimalPosition_DEBUG(coords, dest, &map);
+	// andar para a direita : 1,5 - top
+	coords.x = 0;
+	coords.y = 5;
+	c = MoveMeToOptimalPosition_DEBUG(coords, dest, &map);
 
 	WaitAllThreads(threads, threadCounter);
 	UnmapAllViews(views, viewCounter);
 	CloseMyHandles(handles, handleCounter);
 }
+
