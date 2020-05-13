@@ -65,7 +65,7 @@ typedef struct txtInterfaceControlData {
 	BOOL gate;
 	Cell* map;
 	Taxi* taxis;
-	int *taxiCount;
+	int taxiCount;
 	int* WaitTimeOnTaxiRequest;
 } TI_Controldata;
 
@@ -111,6 +111,7 @@ typedef struct _CC_COMMUNICATION_CONTAINER {
 
 typedef struct ThreadControlData {
 	int *taxiFreePosition;
+	int nrMaxTaxis;
 	Cell* map;
 	Taxi* taxis;
 	HContainer* hContainer;

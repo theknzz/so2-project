@@ -12,6 +12,20 @@
 #include "structs.h"
 #include "dll.h"
 
+void PrintError(enum response_id resp) {
+	switch (resp) {
+	case INVALID_REGISTRATION_TAXI_POSITION:
+		_tprintf(_T("Taxi can't be place in a building cell!\n"));
+		break;
+	case ERRO:
+		_tprintf(_T("Some error occured!\n"));
+		break;
+	case OUTOFBOUNDS_TAXI_POSITION:
+		_tprintf(_T("You choose coordinates from another city!\n"));
+		break;
+	}
+}
+
 int CalculateDistanceTo(Coords org, Coords dest) {
 	int y_dist, x_dist;
 
@@ -21,7 +35,7 @@ int CalculateDistanceTo(Coords org, Coords dest) {
 	return (int)sqrt(pow(y_dist, 2) + pow(x_dist, 2));
 }
 
-void MoveMeToOptimalPosition(Coords org, Coords dest, Cell* map) {
+enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* response, TCHAR* lPlate, Coords org, Coords dest, char map[MIN_LIN][MIN_COL]) {
 	// bottom, left, top, right
 	int positions[4];
 	Coords coords[4];
@@ -29,42 +43,42 @@ void MoveMeToOptimalPosition(Coords org, Coords dest, Cell* map) {
 	// bottom
 	coords[0].x = org.x;
 	coords[0].y = org.y + 1;
+
+	// left
+	coords[1].x = org.x - 1;
+	coords[1].y = org.y;
+
+	// top
+	coords[2].x = org.x;
+	coords[2].y = org.y - 1;
+
+	// right
+	coords[3].x = org.x + 1;
+	coords[3].y = org.y;
+
 	// se nesta posição estiver uma celula de edificio ou um taxi, ou desqualificou-a do algoritmo
-	if ((*(map + ((coords[0].x) + coords[0].y * MIN_LIN))).cellType == B_CHAR ||
-		(*(map + ((coords[0].x) + coords[0].y * MIN_LIN))).cellType == T_CHAR) {
+	if (coords[0].y > MIN_LIN || map[coords[0].x][coords[0].y]== B_DISPLAY) {
 		positions[0] = INT_MAX;
 	}
 	else {
 		positions[0] = CalculateDistanceTo(coords[0], dest);
 	}
 
-	// left
-	coords[1].x = org.x - 1;
-	coords[1].y = org.y;
-	if ((*(map + ((coords[1].x) + coords[1].y * MIN_LIN))).cellType == B_CHAR ||
-		(*(map + ((coords[1].x) + coords[1].y * MIN_LIN))).cellType == T_CHAR) {
+	if (coords[1].x < 0 || map[coords[1].x][coords[1].y] == B_DISPLAY) {
 		positions[1] = INT_MAX;
 	}
 	else {
 		positions[1] = CalculateDistanceTo(coords[1], dest);
 	}
 
-	// top
-	coords[2].x = org.x;
-	coords[2].y = org.y - 1;
-	if ((*(map + ((coords[2].x) + coords[2].y * MIN_LIN))).cellType == B_CHAR ||
-		(*(map + ((coords[2].x) + coords[2].y * MIN_LIN))).cellType == T_CHAR) {
+	if (coords[2].y < 0 || map[coords[2].x][coords[2].y] == B_DISPLAY) {
 		positions[2] = INT_MAX;
 	}
 	else {
 		positions[2] = CalculateDistanceTo(coords[2], dest);
 	}
 
-	// right
-	coords[3].x = org.x + 1;
-	coords[3].y = org.y;
-	if ((*(map + ((coords[2].x) + coords[2].y * MIN_LIN))).cellType == B_CHAR ||
-		(*(map + ((coords[2].x) + coords[2].y * MIN_LIN))).cellType == T_CHAR) {
+	if (coords[3].y > MIN_COL || map[coords[3].x][coords[3].y] == B_DISPLAY) {
 		positions[3] = INT_MAX;
 	}
 	else {
@@ -73,23 +87,15 @@ void MoveMeToOptimalPosition(Coords org, Coords dest, Cell* map) {
 
 	// select the best position (less distance)
 	int optimal = positions[0];
-	int i;
-	for (i = 1; i < 4; i++) {
-		if (positions[i] < optimal)
+	int nr;
+	for (unsigned int i = 1; i < 4; i++) {
+		if (positions[i] < optimal) {
 			optimal = positions[i];
+			nr = i;
+		}
 	}
 
-	// atualizar a nova celula
-
-	//CopyMemory(&(*(map + ((coords[i].x + coords[i].y * MIN_LIN)))).taxi, &(*(map + ((org.x + org.y * MIN_LIN)))).taxi, sizeof(Taxi));
-	//(*(map + ((coords[i].x + coords[i].y * MIN_LIN)))).cellType = T_CHAR;
-
-	// atualizar a celula antiga
-
-	//ZeroMemory(&(*(map + ((org.x + org.y * MIN_LIN)))).taxi, sizeof(Taxi));
-	//(*(map + ((org.x + org.y * MIN_LIN)))).cellType = S_CHAR;
-
-	_tprintf(_T("My new positions is: {%.2d; %.2d}\n"), coords[i].x, coords[i].y);
+	return UpdateMyLocation(request, response, lPlate, coords[nr]);
 }
 
 // Wait for all the threads to stop
@@ -293,8 +299,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 	TCHAR licensePlate[9];
 	Coords coords;
 
-	//TextInterface(NULL);
-
 	while (1) {
 		_tprintf(_T("Insert your license plate: "));
 		_tscanf_s(TEXT(" %9s"), licensePlate, 9 * sizeof(TCHAR));
@@ -321,8 +325,16 @@ int _tmain(int argc, TCHAR* argv[]) {
 	cdThread.cdLogin_Request = &cdLogin_Request;
 	cdThread.cdLogin_Response = &cdLogin_Response;
 
-	LR_Container res = RegisterInCentral(cdThread, licensePlate, coords);
-
+	LR_Container res;
+	enum responde_id resp = RegisterInCentral(&res, cdThread, licensePlate, coords);
+	if (resp != OK)
+	{
+		CloseMyHandles(handles, &handleCounter);
+		UnmapAllViews(views, &viewCounter);
+		PrintError(resp);
+		Sleep(5000);
+		exit(-1);
+	}
 	CloseMyHandles(handles, &handleCounter);
 	UnmapAllViews(views, &viewCounter);
 
@@ -341,7 +353,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	handles[handleCounter++] = FM_REQUEST;
-	
+
 	request.shared = (SHM_CC_REQUEST*)MapViewOfFile(FM_REQUEST,
 		FILE_MAP_ALL_ACCESS,
 		0,
@@ -400,7 +412,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	views[viewCounter++] = response.shared;
-	
+
 	response.mutex = OpenMutex(SYNCHRONIZE, FALSE, res.response_mutex_name);
 	if (response.mutex == NULL) {
 		_tprintf(TEXT("Error creating mtxCenTaxiToConTaxi mutex (%d).\n"), GetLastError());
@@ -424,25 +436,22 @@ int _tmain(int argc, TCHAR* argv[]) {
 	enum response_id ret;
 	char map[MIN_LIN][MIN_COL];
 	ret = GetMap(map, &request, &response);
-	if (ret == OK) {
-		_tprintf(_T("\n"));
-		for (unsigned int i = 0; i < MIN_LIN; i++) {
-			for (unsigned int j = 0; j < MIN_COL; j++)
-				_tprintf(_T("%c"), map[i][j]);
-			_tprintf(_T("\n"));
-		}
+	if (ret != OK) {
+		PrintError(ret);
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+	}
+	Coords dest;
+	dest.x = 5;
+	dest.y = 0;
+
+	ret = MoveMeToOptimalPosition(&request, &response, licensePlate, coords, dest, &map);
+	if (ret != OK) {
+		PrintError(ret);
 	}
 	else
-		_tprintf(_T("rip.\n"));
-
-
-	coords.x++;
-	coords.y++;
-	ret = UpdateMyLocation(&request, &response, licensePlate, coords);
-	if (ret == OK)
-		_tprintf(_T("My position was updated to {%.2d;%.2d}.\n"), coords.x, coords.y);
-	else
-		_tprintf(_T("Error got me... lol\n"));
+		_tprintf(_T("Taxi moved to optimal position!\n"));
 
 	WaitAllThreads(threads, threadCounter);
 	UnmapAllViews(views, viewCounter);

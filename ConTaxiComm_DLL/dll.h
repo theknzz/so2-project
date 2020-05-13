@@ -8,9 +8,9 @@
 
 enum responde_id DLL_EXPORT CallCentral(CDThread cdata, Content content, enum message_id messageId);
 
-LR_Container DLL_EXPORT RegisterInCentral(CDThread cdata, TCHAR* licensePlate, Coords location);
+enum response_id DLL_EXPORT RegisterInCentral(LR_Container* res, CDThread cdata, TCHAR* licensePlate, Coords location);
 
-LR_Container DLL_EXPORT ReadLoginResponse(CDLogin_Response* response);
+enum response_id DLL_EXPORT ReadLoginResponse(LR_Container* res, CDLogin_Response* response, HANDLE new_response);
 
 enum response_id DLL_EXPORT GetCentralResponse(CC_CDResponse* response, CC_CDRequest* request);
 

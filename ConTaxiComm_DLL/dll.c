@@ -30,7 +30,7 @@
 //	return ReadResponse(cdResponse);
 //}
 
-LR_Container RegisterInCentral(CDThread cdata, TCHAR* licensePlate, Coords location) {
+enum response_id RegisterInCentral(LR_Container* res, CDThread cdata, TCHAR* licensePlate, Coords location) {
 	CDLogin_Request* cdRequest = cdata.cdLogin_Request;
 	CDLogin_Response* cdResponse = cdata.cdLogin_Response;
 
@@ -53,26 +53,29 @@ LR_Container RegisterInCentral(CDThread cdata, TCHAR* licensePlate, Coords locat
 	_tprintf(_T("[LOG] Sent my information to the central.\n"));
 
 	// wait read
-	LR_Container res;
-	res = ReadLoginResponse(cdResponse, cdRequest->new_response);
+	enum response_id r = ReadLoginResponse(res, cdResponse, cdRequest->new_response);
 
 	ReleaseMutex(cdRequest->login_write_m);
-	_tprintf(_T("[LOG] Central read my information.\nr_event: '%s',\nr_mutex: '%s',\nr_shm: '%s'\nevent: '%s',\nmutex: '%s',\nshm: '%s'\n"),
-		res.request_event_name, res.request_mutex_name, res.request_shm_name, res.response_event_name, res.response_mutex_name, res.response_shm_name);
-	return res;
+
+	if (r == OK)
+		_tprintf(_T("[LOG] Central read my information.\nr_event: '%s',\nr_mutex: '%s',\nr_shm: '%s'\nevent: '%s',\nmutex: '%s',\nshm: '%s'\n"),
+			res->request_event_name, res->request_mutex_name, res->request_shm_name, res->response_event_name, res->response_mutex_name, res->response_shm_name);
+	return r;
 }
 
-LR_Container ReadLoginResponse(CDLogin_Response* response, HANDLE new_response) {
-	LR_Container res;
+enum response_id ReadLoginResponse(LR_Container* res, CDLogin_Response* response, HANDLE new_response) {
+	enum responde_id r;
 
 	WaitForSingleObject(new_response, INFINITE);
 
 	WaitForSingleObject(response->login_m, INFINITE);
 
-	CopyMemory(&res, &response->response->container, sizeof(LR_Container));
+	CopyMemory(res, &response->response->container, sizeof(LR_Container));
+	r = response->response->action;
 
 	ReleaseMutex(response->login_m);
-	return res;
+
+	return r;
 }
 
 void RequestAction(CC_CDRequest* request, CC_CDResponse* response, SHM_CC_REQUEST message) {
@@ -98,7 +101,6 @@ enum response_id GetCentralResponse(CC_CDResponse* response, CC_CDRequest* reque
 
 	ReleaseMutex(response->mutex);
 
-	_tprintf(_T("[LOG] Got response.\n"));
 	return res;
 }
 

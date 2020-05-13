@@ -13,6 +13,7 @@
 #define T_CHAR 'T' // Taxi char
 #define S_DISPLAY '-'
 #define B_DISPLAY '+'
+#define T_DISPLAY 't'
 
 // Type of Map Cells
 enum type { Street, Building/*, Taxi, Passenger */ };
@@ -29,6 +30,8 @@ enum message_id {
 enum response_id {
 	OK,
 	ERRO,
+	INVALID_REGISTRATION_TAXI_POSITION,
+	OUTOFBOUNDS_TAXI_POSITION,
 };
 
 // Shared memory
