@@ -24,7 +24,8 @@ enum message_id {
 	UpdateTaxiLocation,
 	WarnPassengerCatch,
 	WarnPassengerDeliever,
-	GetCityMap
+	GetCityMap,
+	RequestPassenger,
 };
 
 enum response_id {
@@ -32,6 +33,12 @@ enum response_id {
 	ERRO,
 	INVALID_REGISTRATION_TAXI_POSITION,
 	OUTOFBOUNDS_TAXI_POSITION,
+};
+
+enum passanger_state {
+	Waiting,
+	OnDrive,
+	Done
 };
 
 // Shared memory
@@ -63,18 +70,24 @@ enum response_id {
 // Admin Commands
 #define ADM_KICK _T("kick")
 #define ADM_CLOSE _T("close")
-#define ADM_LIST _T("list")
+#define ADM_LIST_TAXIS _T("list_taxis")
+#define ADM_LIST_PASSENGERS _T("list_passengers")
 #define ADM_PAUSE _T("pause")
 #define ADM_RESUME _T("resume")
 #define ADM_INTERVAL _T("interval")
 #define ADM_HELP _T("help")
 
 // Taxi Commands
-//#define TXI_NEW _T("new") 
-// new licensePlate x y
 #define TXI_TRANSPORT _T("transport") // transport
 #define TXI_SPEED_UP _T("speed") // speed
 #define TXI_SLOW_DOWN _T("slow") // slow
 #define TXI_NQ_DEFINE _T("nq") // nq x
 #define TXI_AUTOPILOT _T("autopilot") // autopilot
 #define TXI_HELP _T("help") // help
+#define TXI_UP _T("up")
+#define TXI_LEFT _T("left")
+#define TXI_DOWN _T("down")
+#define TXI_RIGHT _T("right")
+
+// Debug Commands
+#define DBG_ADD_PASSENGER _T("add") // add passenger_name x y dest_x dest_y

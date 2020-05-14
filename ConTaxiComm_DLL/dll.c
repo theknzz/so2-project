@@ -119,20 +119,6 @@ char** GetMapFromCentral(CC_CDResponse* response, CC_CDRequest* request) {
 	return map;
 }
 
-//enum response_id ReadResponse(CC_CDResponse response) {
-//	enum response_id res;
-//
-//	WaitForSingleObject(response.got_response, INFINITE);
-//	
-//	WaitForSingleObject(response.mutex, INFINITE);
-//
-//	res = response.shared->action;
-//
-//	ReleaseMutex(response.mutex);
-//
-//	return res;
-//}
-
 enum response_id UpdateMyLocation(CC_CDRequest* request, CC_CDResponse* response, TCHAR* licensePlate, Coords location) {
 	SHM_CC_REQUEST r;
 	Content content;
@@ -159,4 +145,26 @@ enum response_id GetMap(char** map, CC_CDRequest* request, CC_CDResponse* respon
 
 	if (map == NULL) return ERRO;
 	return OK;
+}
+
+enum response_id GetPassengerFromCentral(CC_CDResponse* response, CC_CDRequest* request, Passenger* passenger) {
+	WaitForSingleObject(request->new_response, INFINITE);
+
+	WaitForSingleObject(response->mutex, INFINITE);
+
+	CopyMemory(passenger, &response->shared->passenger, sizeof(response->shared->passenger));
+
+	ReleaseMutex(response->mutex);
+
+	_tprintf(_T("[LOG] Got passenger request.\n"));
+	return response->shared->action;
+}
+
+enum response_id RequestPassengerTransport(CC_CDRequest* request, CC_CDResponse* response, Passenger* passenger) {
+	SHM_CC_REQUEST r;
+	r.action = RequestPassenger;
+
+	RequestAction(request, response, r);
+
+	return GetPassengerFromCentral(response, request, passenger);
 }

@@ -90,6 +90,17 @@ void RemoveTaxiFromMapCell(Cell* cell, TCHAR* lcPlate, int size) {
 		}
 	}
 }
+
+int GetLastPassengerIndex(Passenger* passengers, int size) {
+	int aux = -1;
+	for (unsigned int i = 0; i < size; i++) {
+		if (passengers[i].location.x == -1) return aux;
+		aux = i;
+	}
+	return aux;
+}
+
+
 SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, Content content) {
 	SHM_CC_RESPONSE response;
 	response.action = ERRO;
@@ -140,6 +151,19 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 				_tprintf(_T("Got a map request...\n"));
 				response.action = OK;
 				break;
+			case RequestPassenger:
+				index = GetLastPassengerIndex(cd->passengers, cd->nrMaxPassengers);
+				if (index == -1) break;
+				CopyMemory(response.passenger.nome, cd->passengers[index].nome, sizeof(TCHAR)*25);
+				// atualizar o estado do passageiro na lista de passageiros
+				cd->passengers[index].state = OnDrive;
+				response.passenger.location.x = cd->passengers[index].location.x;
+				response.passenger.location.y = cd->passengers[index].location.y;
+				response.passenger.destination.x = cd->passengers[index].destination.x;
+				response.passenger.destination.y = cd->passengers[index].destination.y;
+				response.passenger.state = OnDrive;
+				response.action = OK;
+				break;
 	}
 	return response;
 }
@@ -164,7 +188,13 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 		shm_response = ParseAndExecuteOperation(cd, shm_request.action, shm_request.messageContent);
 
 		WaitForSingleObject(response->mutex, INFINITE);
-		CopyMemory(&response->shared->map, &shm_response.map, sizeof(char) * MIN_LIN * MIN_COL);
+
+		if (shm_request.action == GetCityMap) {
+			CopyMemory(&response->shared->map, &shm_response.map, sizeof(char) * MIN_LIN * MIN_COL);
+		}
+		else if (shm_request.action == RequestPassenger) {
+			CopyMemory(&response->shared->passenger, &shm_response.passenger, sizeof(Passenger));
+		}
 		response->shared->action = shm_response.action;
 
 		ReleaseMutex(response->mutex);
@@ -405,63 +435,100 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 	return 0;
 }
 
+TCHAR** ParseCommand(TCHAR* cmd) {
+	TCHAR command[6][100];
+	TCHAR* delimiter = _T(" ");
+	int counter = 0;
+
+	TCHAR* aux = _tcstok(cmd, delimiter);
+	CopyMemory(command[counter++], aux, sizeof(TCHAR) * 100);
+
+	while ((aux = _tcstok(NULL, delimiter)) != NULL) {
+		CopyMemory(command[counter++], aux, sizeof(TCHAR) * 100);
+		if (counter == 6) break;
+	}
+	while (counter < 6) {
+		CopyMemory(command[counter++], _T("NULL"), sizeof(TCHAR) * 100);
+	}
+	return command;
+}
+
 int FindFeatureAndRun(TCHAR* command, TI_Controldata* cdata) {
-	TCHAR commands[6][100] = {
+	TCHAR commands[7][100] = {
 		_T("\tkick x - kick taxi with x as id.\n"),
 		_T("\tclose - close the system.\n"), 
-		_T("\tlist - list all the taxis in the system.\n"), 
+		_T("\tlist_taxis - list all the taxis in the system.\n"), 
+		_T("\tlist_passengers - list all the passengers in the system.\n"), 
 		_T("\tpause - pauses taxis acceptance in the system.\n"), 
 		_T("\tresume - resumes taxis acceptance in the system.\n"), 
-		_T("\tinteval x - changes the time central waits for the taxis to ask for work.\n") };
-	int argument=-1;
-	TCHAR* delimiter = _T(" ");
+		_T("\tinteval x - changes the time central waits for the taxis to ask for work.\n") 
+	};
+	
+	TCHAR cmd[6][100];
+	CopyMemory(cmd, ParseCommand(command), sizeof(TCHAR) * 5 * 100);
+	int argc = 0;
 
-	TCHAR* cmd = _tcstok(command, delimiter);
+	for (int i = 0; i < 6; i++)
+		if (_tcscmp(cmd[i], _T("NULL")) != 0) argc++;
 
-	if (cmd != NULL) {
-		TCHAR* aux = _tcstok(NULL, delimiter);
-		if (aux!=NULL)
-			argument = _ttoi(aux);
-	}
-
-	// Garantir que cobre todas as situacoes
-	cmd = _tcslwr(cmd);
-
-	if (_tcscmp(cmd, ADM_KICK) == 0) {
-		if (argument==-1)
+	if (_tcscmp(cmd[0], ADM_KICK) == 0) {
+		if (argc<2)
 			_tprintf(_T("This command requires a id.\n"));
 		else {
-			_tprintf(_T("I am kicking taxi with id %d\n"), argument);
+			_tprintf(_T("I am kicking taxi with id %d\n"), _ttoi(cmd[1]));
 		}
 	}
-	else if (_tcscmp(cmd, ADM_CLOSE) == 0) {
+	else if (_tcscmp(cmd[0], ADM_CLOSE) == 0) {
 		// @TODO notify todas as apps
 		_tprintf(_T("System is closing.\n"));
 	}
-	else if (_tcscmp(cmd, ADM_LIST) == 0) {
+	else if (_tcscmp(cmd[0], ADM_LIST_TAXIS) == 0) {
 		for (unsigned int i = 0; i < cdata->taxiCount; i++) {
 			if (cdata->taxis[i].location.x > 0)
 				_tprintf(_T("%.2d - %9s at {%.2d;%.2d}\n"), i, cdata->taxis[i].licensePlate, cdata->taxis[i].location.x, cdata->taxis[i].location.y);
 		}
 
 	}
-	else if (_tcscmp(cmd, ADM_PAUSE) == 0) {
+	else if (_tcscmp(cmd[0], ADM_PAUSE) == 0) {
 		_tprintf(_T("System pause\n"));
 	}
-	else if (_tcscmp(cmd, ADM_RESUME) == 0) {
+	else if (_tcscmp(cmd[0], ADM_RESUME) == 0) {
 		_tprintf(_T("System resume\n"));
 	}
-	else if (_tcscmp(cmd, ADM_INTERVAL) == 0) {
-		if (argument == -1)
+	else if (_tcscmp(cmd[0], ADM_INTERVAL) == 0) {
+		if (argc < 2)
 			_tprintf(_T("This command requires a id.\n"));
 		else {
-			_tprintf(_T("System changing the wait time of a taxi request to %d\n"), argument);
-			(*cdata->WaitTimeOnTaxiRequest) = argument;
+			_tprintf(_T("System changing the wait time of a taxi request to %d\n"), _ttoi(cmd[1]));
+			(*cdata->WaitTimeOnTaxiRequest) = _ttoi(cmd[1]);
 		}
 	}
-	else if (_tcscmp(cmd, ADM_HELP) == 0) {
-		for (int i = 0; i < 6; i++)
+	else if (_tcscmp(cmd[0], ADM_HELP) == 0) {
+		for (int i = 0; i < 7; i++)
 			_tprintf(_T("%s"), commands[i]);
+	}
+	else if (_tcscmp(cmd[0], DBG_ADD_PASSENGER) == 0) {
+		if (argc < 6)
+			_tprintf(_T("To few arguments!\n"));
+		else {
+			int index = GetLastPassengerIndex(cdata->passengers, cdata->passengerCount);
+			CopyMemory(cdata->passengers[index + 1].nome, cmd[1], sizeof(TCHAR) * 25);
+			int x = _ttoi(cmd[2]);
+			int y = _ttoi(cmd[3]);
+			int dest_x = _ttoi(cmd[4]);
+			int dest_y = _ttoi(cmd[5]);
+			cdata->passengers[index + 1].location.x = x;
+			cdata->passengers[index + 1].location.y = y;
+			cdata->passengers[index + 1].state = Waiting;
+
+			index = GetLastPassengerIndex(cdata->map[x + y * MIN_COL].passengers, cdata->passengerCount);
+			CopyMemory(cdata->map[x + y * MIN_COL].passengers[index + 1].nome, cmd[1], sizeof(TCHAR) * 25);
+			cdata->map[x + y * MIN_COL].passengers[index + 1].location.x = x;
+			cdata->map[x + y * MIN_COL].passengers[index + 1].location.y = y;
+			cdata->map[x + y * MIN_COL].passengers[index + 1].destination.x = dest_x;
+			cdata->map[x + y * MIN_COL].passengers[index + 1].destination.y = dest_y;
+			cdata->map[x + y * MIN_COL].passengers[index + 1].state = Waiting;
+		}
 	}
 	else {
 		_tprintf(_T("System doesn't recognize the command, type 'help' to view all the commands.\n"));
@@ -655,6 +722,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 	ti_ControlData.gate = FALSE;
 	ti_ControlData.map = map;
 	ti_ControlData.taxis = taxis;
+	ti_ControlData.passengers = passengers;
+	ti_ControlData.passengerCount = nrMaxPassengers;
 	ti_ControlData.taxiCount = nrMaxTaxis;
 	ti_ControlData.WaitTimeOnTaxiRequest = &WaitTimeOnTaxiRequest;
 
@@ -775,13 +844,14 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	handles[handleCounter++] = CDLogin_Response.new_request;
 
-
 	CDThread cdThread;
 	cdThread.taxis = taxis;
 	cdThread.map = map;
 	cdThread.cdLogin_Response = &CDLogin_Response;
 	cdThread.cdLogin_Request = &CDLogin_Request;
 	cdThread.nrMaxTaxis = nrMaxTaxis;
+	cdThread.nrMaxPassengers = nrMaxPassengers;
+	cdThread.passengers = passengers;
 	CopyMemory(cdThread.charMap, ConvertMapIntoCharMap(map), sizeof(char)*MIN_LIN*MIN_COL);
 
 	HContainer container;

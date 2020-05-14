@@ -23,3 +23,5 @@ enum response_id DLL_EXPORT UpdateMyLocation(CC_CDRequest* request, CC_CDRespons
 enum response_id DLL_EXPORT GetMap(char* * map, CC_CDRequest* request, CC_CDResponse* response);
 
 char** GetMapFromCentral(CC_CDResponse* response, CC_CDRequest* request);
+
+enum response_id DLL_EXPORT RequestPassengerTransport(CC_CDRequest* request, CC_CDResponse* response, Passenger* passenger);

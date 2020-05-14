@@ -8,13 +8,15 @@ typedef struct _COORDS {
 typedef struct _TAXI {
 	TCHAR licensePlate[9];
 	Coords location;
-	BOOL autopilot;
+	int autopilot; // 0 - false, 1- true
 	float velocity;
 } Taxi;
 
 typedef struct _Passenger {
+	enum passanger_state state;
 	TCHAR nome[25];
 	Coords location;
+	Coords destination;
 } Passenger;
 
 typedef struct MapCell {
@@ -58,6 +60,7 @@ typedef struct _MSG_TO_CENTRAL {
 typedef struct _MSG_TO_TAXI {
 	enum response_id action;
 	char map[MIN_COL][MIN_LIN];
+	Passenger passenger;
 	//Content responseContent;
 } SHM_CC_RESPONSE;
 
@@ -65,7 +68,9 @@ typedef struct txtInterfaceControlData {
 	BOOL gate;
 	Cell* map;
 	Taxi* taxis;
+	Passenger* passengers;
 	int taxiCount;
+	int passengerCount;
 	int* WaitTimeOnTaxiRequest;
 } TI_Controldata;
 
@@ -109,10 +114,17 @@ typedef struct _CC_COMMUNICATION_CONTAINER {
 	LR_Container* container;
 } CC_Comm;
 
+typedef struct _CONTROL_DATA_TAXI_THREAD{
+	CC_Comm* comm;
+	Taxi* taxi;
+} CD_TAXI_Thread;
+
 typedef struct ThreadControlData {
 	int nrMaxTaxis;
+	int nrMaxPassengers;
 	Cell* map;
 	Taxi* taxis;
+	Passenger* passengers;
 	HContainer* hContainer;
 	CC_Comm* comm;
 	CDLogin_Request* cdLogin_Request;
