@@ -10,7 +10,7 @@ E:\projects\so2-project\ConTaxi\contaxi.c(396,43): warning C4474: 'wscanf_s' : t
 E:\projects\so2-project\ConTaxi\contaxi.c(396,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
 E:\projects\so2-project\ConTaxi\contaxi.c(402,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
 E:\projects\so2-project\ConTaxi\contaxi.c(402,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
-E:\projects\so2-project\ConTaxi\contaxi.c(545,18): warning C4047: 'function': 'char **' differs in levels of indirection from 'char [50][50]'
-E:\projects\so2-project\ConTaxi\contaxi.c(545,18): warning C4024: 'GetMap': different types for formal and actual parameter 1
+E:\projects\so2-project\ConTaxi\contaxi.c(547,18): warning C4047: 'function': 'char **' differs in levels of indirection from 'char [50][50]'
+E:\projects\so2-project\ConTaxi\contaxi.c(547,18): warning C4024: 'GetMap': different types for formal and actual parameter 1
 E:\projects\so2-project\ConTaxi\contaxi.c(139): warning C4172: returning address of local variable or temporary: command
   ConTaxi.vcxproj -> E:\projects\so2-project\x64\Debug\ConTaxi.exe

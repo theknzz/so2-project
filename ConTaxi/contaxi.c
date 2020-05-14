@@ -139,7 +139,7 @@ TCHAR** ParseCommand(TCHAR* cmd) {
 	return command;
 }
 
-void FindFeatureAndRun(TCHAR* command, CC_Comm* cdata) {
+void FindFeatureAndRun(TCHAR* command, CD_TAXI_Thread* cdata) {
 	Passenger passenger;
 	TCHAR commands[9][100] = {
 		_T("\ttransport - request a passanger transport.\n"),
@@ -162,7 +162,7 @@ void FindFeatureAndRun(TCHAR* command, CC_Comm* cdata) {
 	if (_tcscmp(cmd[0], TXI_TRANSPORT) == 0) {
 		_tprintf(_T("transport\n"));
 		enum response_id res;
-		if ((res = RequestPassengerTransport(cdata->request, cdata->response, &passenger)) != OK)
+		if ((res = RequestPassengerTransport(cdata->comm->request, cdata->comm->response, &passenger)) != OK)
 			PrintError(res);
 		//else
 		//	_tprintf(_tprintf(_T("Got new passenger!\n")));
@@ -201,7 +201,7 @@ void FindFeatureAndRun(TCHAR* command, CC_Comm* cdata) {
 }
 
 DWORD WINAPI TextInterface(LPVOID ptr) {
-	CC_Comm* cdata = (CC_Comm*)ptr;
+	CD_TAXI_Thread* cdata = (CD_TAXI_Thread*)ptr;
 	TCHAR command[100];
 
 	while (1) {
@@ -524,15 +524,17 @@ int _tmain(int argc, TCHAR* argv[]) {
 	cc_comm.response = &response;
 	cc_comm.container = &res;
 
-	//CD_TAXI_Thread cd;
-	//cd.comm = &cc_comm;
-	//CopyMemory(cd.taxi->licensePlate, licensePlate, sizeof(TCHAR) * 9);
-	//cd.taxi->autopilot = 0;
-	//cd.taxi->location.x = coords.x;
-	//cd.taxi->location.y = coords.y;
-	//cd.taxi->velocity = 1;
+	CD_TAXI_Thread cd;
+	Taxi me;
+	cd.comm = &cc_comm;
+	CopyMemory(me.licensePlate, licensePlate, sizeof(TCHAR) * 9);
+	me.autopilot = 0;
+	me.location.x = coords.x;
+	me.location.y = coords.y;
+	me.velocity = 1;
+	cd.taxi = &me;
 
-	if ((threads[threadCounter++] = CreateThread(NULL, 0, TextInterface, &cc_comm, 0, NULL)) == NULL) {
+	if ((threads[threadCounter++] = CreateThread(NULL, 0, TextInterface, &cd, 0, NULL)) == NULL) {
 		_tprintf(_T("Error launching comm thread (%d)\n"), GetLastError());
 		WaitAllThreads(threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
