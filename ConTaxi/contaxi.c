@@ -306,7 +306,17 @@ int _tmain(int argc, TCHAR* argv[]) {
 	_setmode(_fileno(stdout), _O_WTEXT);
 #endif
 
-	// ## TODO Create thread
+	HANDLE taxiGate;
+	if ((taxiGate = OpenSemaphore(SYNCHRONIZE | SEMAPHORE_MODIFY_STATE, FALSE, TAXI_GATEWAY)) == NULL) {
+		_tprintf(_T("Error %d opening the gateway semaphore!\n"));
+		Sleep(1000 * 2);
+		exit(-1);
+	}
+	_tprintf(_T("Waiting on the taxi gate!\n"));
+	WaitForSingleObject(taxiGate, INFINITE);
+	_tprintf(_T("Got throw the taxi gate!\n"));
+
+	handles[handleCounter++] = taxiGate;
 
 	HANDLE FM_BROADCAST = CreateFileMapping(
 		INVALID_HANDLE_VALUE,

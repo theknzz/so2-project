@@ -53,7 +53,7 @@ enum passanger_state {
 #define SHM_BROADCAST_PASSENGER_ARRIVE _T("SHM_BROADCAST_PASSENGER_ARRIVE")
 
 // Control mechanisms
-#define TAXI_CAN_TALK _T("taxi_can_talk")
+#define TAXI_GATEWAY _T("taxi_can_talk")
 #define CENTRAL_CAN_READ _T("central_can_read")
 
 #define LOGIN_REQUEST_MUTEX _T("login_request_mutex")

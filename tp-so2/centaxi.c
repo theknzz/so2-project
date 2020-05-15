@@ -655,11 +655,26 @@ int _tmain(int argc, TCHAR* argv[]) {
 	_setmode(_fileno(stdin), _O_WTEXT);
 	_setmode(_fileno(stdout), _O_WTEXT);
 #endif
+	if (argc >= 2) {
+
+		if (_tcscmp(argv[1], _T("-t")) == 0)
+			nrMaxTaxis = _ttoi(argv[2]);
+		else if (_tcscmp(argv[1], _T("-p")) == 0)
+			nrMaxPassengers = _ttoi(argv[2]);
+
+		if (argc > 3) {
+			if (_tcscmp(argv[3], _T("-t")) == 0)
+				nrMaxTaxis = _ttoi(argv[4]);
+			else if (_tcscmp(argv[3], _T("-p")) == 0)
+				nrMaxPassengers = _ttoi(argv[4]);
+		}
+	}
+	_tprintf(_T("Nr max de taxis: %.2d\n"), nrMaxTaxis);
+	_tprintf(_T("Nr max de passengers: %.2d\n"), nrMaxPassengers);
 
 	// ====================================================================================================
-	// #TODO - needs review
-	HANDLE taxiCanTalkSemaphore = CreateSemaphore(NULL, 0, MAX_TAXIS, TAXI_CAN_TALK);
-	if (taxiCanTalkSemaphore == NULL) {
+	HANDLE taxiGate = CreateSemaphore(NULL, nrMaxTaxis, nrMaxTaxis, TAXI_GATEWAY);
+	if (taxiGate == NULL) {
 		_tprintf(_T("Error creating taxiCanTalkSemaphore (%d)\n"), GetLastError());
 		_gettch();
 		exit(-1);
@@ -672,25 +687,9 @@ int _tmain(int argc, TCHAR* argv[]) {
 		_gettch();
 		exit(-1);
 	}
-	handles[handleCounter++] = taxiCanTalkSemaphore;
+	handles[handleCounter++] = taxiGate;
 
 	// ====================================================================================================
-
-	// #TODO é possivel configurar só um dos argumentos?
-	if (argc >= 2) {
-
-		if (_tcscmp(argv[1], _T("-t"))==0)
-			nrMaxTaxis = _ttoi(argv[2]);
-		else if (_tcscmp(argv[1], _T("-p"))==0)
-			nrMaxPassengers = _ttoi(argv[2]);
-
-		if (_tcscmp(argv[3], _T("-t"))==0)
-			nrMaxTaxis = _ttoi(argv[4]);
-		else if (_tcscmp(argv[3], _T("-p"))==0)
-			nrMaxPassengers = _ttoi(argv[4]);
-	}
-	_tprintf(_T("Nr max de taxis: %.2d\n"), nrMaxTaxis);
-	_tprintf(_T("Nr max de passengers: %.2d\n"), nrMaxPassengers);
 
 	Taxi* taxis = (Taxi*)malloc(nrMaxTaxis * sizeof(Taxi));
 	if (taxis == NULL) {
