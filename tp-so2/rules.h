@@ -33,10 +33,12 @@ enum response_id {
 	ERRO,
 	INVALID_REGISTRATION_TAXI_POSITION,
 	OUTOFBOUNDS_TAXI_POSITION,
+	HAS_NO_AVAILABLE_PASSENGER,
 };
 
 enum passanger_state {
 	Waiting,
+	Taken,
 	OnDrive,
 	Done
 };
@@ -47,6 +49,8 @@ enum passanger_state {
 
 #define SHM_LOGIN_REQUEST_NAME _T("SHM_REQUEST_LOGIN")
 #define SHM_LOGIN_RESPONSE_NAME _T("SHM_RESPONSE_LOGIN")
+
+#define SHM_BROADCAST_PASSENGER_ARRIVE _T("SHM_BROADCAST_PASSENGER_ARRIVE")
 
 // Control mechanisms
 #define TAXI_CAN_TALK _T("taxi_can_talk")
@@ -60,12 +64,16 @@ enum passanger_state {
 #define RESPONSE_MUTEX _T("response_mutex_%s")
 #define REQUEST_MUTEX _T("request_mutex_%s")
 
+#define BROADCAST_MUTEX _T("broadcast_mutex")
+
 #define EVENT_GOT_RESPONSE _T("event_got_response")
 #define EVENT_READ_FROM_TAXIS _T("event_read_from_taxis")
 #define EVENT_WRITE_FROM_TAXIS _T("event_write_from_taxis")
 
 #define EVENT_RESPONSE _T("event_response_%s")
 #define EVENT_REQUEST _T("event_request_%s")
+
+#define EVENT_NEW_PASSENGER _T("event_new_passenger")
 
 // Admin Commands
 #define ADM_KICK _T("kick")

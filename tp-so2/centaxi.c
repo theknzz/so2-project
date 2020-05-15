@@ -48,20 +48,28 @@ void PrintMap(Cell* map) {
 	}
 }
 
+void SendBroadCastMessage(CC_Broadcast* broadcast, Passenger newPassenger) {
+
+	WaitForSingleObject(broadcast->mutex, INFINITE);
+	broadcast->shared->dbg = 420;
+	CopyMemory(&broadcast->shared->passenger, &newPassenger, sizeof(Passenger));
+
+	ReleaseMutex(broadcast->mutex);
+
+	SetEvent(broadcast->new_passenger);
+}
+
 // função-thread responsável por tratar a interação com o admin
 DWORD WINAPI TextInterface(LPVOID ptr) {
-
 	TI_Controldata* cdata = (TI_Controldata*)ptr;
 	TCHAR command[100];
 	
 	while (1) {
-		//ClearScreen();
 		PrintMap(cdata->map);
 		_tprintf(_T("Command: "));
 		_tscanf_s(_T(" %99[^\n]"), command, sizeof(TCHAR)*100);
 		FindFeatureAndRun(command, cdata);
 	}
-
 	return 0;
 }
 
@@ -98,6 +106,12 @@ int GetLastPassengerIndex(Passenger* passengers, int size) {
 		aux = i;
 	}
 	return aux;
+}
+
+int GetIndexFromPassengerWithoutTransport(Passenger* passengers, int size) {
+	for (unsigned int i = 0; i < size; i++)
+		if (passengers[i].state == Waiting) return i;
+	return -1;
 }
 
 
@@ -152,16 +166,20 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 				response.action = OK;
 				break;
 			case RequestPassenger:
-				index = GetLastPassengerIndex(cd->passengers, cd->nrMaxPassengers);
-				if (index == -1) break;
+				index = GetIndexFromPassengerWithoutTransport(cd->passengers, cd->nrMaxPassengers);
+				if (index == -1) {
+					response.action = HAS_NO_AVAILABLE_PASSENGER;
+					break;
+				}
+
 				CopyMemory(response.passenger.nome, cd->passengers[index].nome, sizeof(TCHAR)*25);
 				// atualizar o estado do passageiro na lista de passageiros
-				cd->passengers[index].state = OnDrive;
+				cd->passengers[index].state = Taken;
 				response.passenger.location.x = cd->passengers[index].location.x;
 				response.passenger.location.y = cd->passengers[index].location.y;
 				response.passenger.destination.x = cd->passengers[index].destination.x;
 				response.passenger.destination.y = cd->passengers[index].destination.y;
-				response.passenger.state = OnDrive;
+				response.passenger.state = Waiting;
 				response.action = OK;
 				break;
 	}
@@ -465,7 +483,7 @@ int FindFeatureAndRun(TCHAR* command, TI_Controldata* cdata) {
 	};
 	
 	TCHAR cmd[6][100];
-	CopyMemory(cmd, ParseCommand(command), sizeof(TCHAR) * 5 * 100);
+	CopyMemory(cmd, ParseCommand(command), sizeof(TCHAR) * 6 * 100);
 	int argc = 0;
 
 	for (int i = 0; i < 6; i++)
@@ -519,6 +537,8 @@ int FindFeatureAndRun(TCHAR* command, TI_Controldata* cdata) {
 			int dest_y = _ttoi(cmd[5]);
 			cdata->passengers[index + 1].location.x = x;
 			cdata->passengers[index + 1].location.y = y;
+			cdata->passengers[index + 1].destination.x = dest_x;
+			cdata->passengers[index + 1].destination.y = dest_y;
 			cdata->passengers[index + 1].state = Waiting;
 
 			index = GetLastPassengerIndex(cdata->map[x + y * MIN_COL].passengers, cdata->passengerCount);
@@ -528,6 +548,7 @@ int FindFeatureAndRun(TCHAR* command, TI_Controldata* cdata) {
 			cdata->map[x + y * MIN_COL].passengers[index + 1].destination.x = dest_x;
 			cdata->map[x + y * MIN_COL].passengers[index + 1].destination.y = dest_y;
 			cdata->map[x + y * MIN_COL].passengers[index + 1].state = Waiting;
+			SendBroadCastMessage(cdata->broadcast, cdata->passengers[index+1]);
 		}
 	}
 	else {
@@ -701,8 +722,53 @@ int _tmain(int argc, TCHAR* argv[]) {
 		passengers[i].location.y = -1;
 	}
 
-	char* fileContent = NULL;
+	HANDLE FM_BROADCAST = CreateFileMapping(
+		INVALID_HANDLE_VALUE,
+		NULL,
+		PAGE_READWRITE,
+		0,
+		sizeof(SHM_BROADCAST),
+		SHM_BROADCAST_PASSENGER_ARRIVE);
+	if (FM_BROADCAST == NULL) {
+		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = FM_BROADCAST;
 
+	CC_Broadcast broadcast;
+
+	broadcast.shared = (SHM_BROADCAST*)MapViewOfFile(FM_BROADCAST,
+		FILE_MAP_ALL_ACCESS,
+		0,
+		0,
+		sizeof(SHM_BROADCAST));
+	if (broadcast.shared == NULL) {
+		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	views[viewCounter++] = broadcast.shared;
+
+	broadcast.mutex = CreateMutex(NULL, FALSE, BROADCAST_MUTEX);
+	if (broadcast.mutex == NULL) {
+		_tprintf(TEXT("Error creating cdLogin mutex mutex (%d).\n"), GetLastError());
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = broadcast.mutex;
+
+	broadcast.new_passenger = CreateEvent(NULL, FALSE, FALSE, EVENT_NEW_PASSENGER);
+	if (broadcast.new_passenger  == NULL) {
+		_tprintf(_T("Error creating new passenger event (%d)\n"), GetLastError());
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = broadcast.new_passenger;
+
+	char* fileContent = NULL;
 	// Le conteudo do ficheiro para array de chars
 	if ((fileContent = ReadFileToCharArray(_T("E:\\projects\\so2-project\\maps\\map1.txt"))) == NULL) {
 		_tprintf(_T("Error reading the file (%d)\n"), GetLastError());
@@ -726,6 +792,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	ti_ControlData.passengerCount = nrMaxPassengers;
 	ti_ControlData.taxiCount = nrMaxTaxis;
 	ti_ControlData.WaitTimeOnTaxiRequest = &WaitTimeOnTaxiRequest;
+	ti_ControlData.broadcast = &broadcast;
 
 	HANDLE consoleThread = CreateThread(NULL, 0, TextInterface, &ti_ControlData, 0, NULL);
 	if (!consoleThread) {

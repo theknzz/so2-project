@@ -5,19 +5,20 @@ typedef struct _COORDS {
 	int x, y;
 } Coords;
 
-typedef struct _TAXI {
-	TCHAR licensePlate[9];
-	Coords location;
-	int autopilot; // 0 - false, 1- true
-	float velocity;
-} Taxi;
-
 typedef struct _Passenger {
 	enum passanger_state state;
 	TCHAR nome[25];
 	Coords location;
 	Coords destination;
 } Passenger;
+
+typedef struct _TAXI {
+	TCHAR licensePlate[9];
+	Coords location;
+	int autopilot; // 0 - false, 1- true
+	float velocity;
+	Passenger client;
+} Taxi;
 
 typedef struct MapCell {
 	int x, y;
@@ -57,12 +58,23 @@ typedef struct _MSG_TO_CENTRAL {
 	Content messageContent;
 } SHM_CC_REQUEST;
 
+typedef struct _BROADCAST_MSG {
+	int dbg;
+	Passenger passenger;
+} SHM_BROADCAST;
+
 typedef struct _MSG_TO_TAXI {
 	enum response_id action;
 	char map[MIN_COL][MIN_LIN];
 	Passenger passenger;
 	//Content responseContent;
 } SHM_CC_RESPONSE;
+
+typedef struct Control_Data_Broadcast {
+	HANDLE mutex;
+	HANDLE new_passenger;
+	SHM_BROADCAST* shared;
+} CC_Broadcast;
 
 typedef struct txtInterfaceControlData {
 	BOOL gate;
@@ -72,6 +84,7 @@ typedef struct txtInterfaceControlData {
 	int taxiCount;
 	int passengerCount;
 	int* WaitTimeOnTaxiRequest;
+	CC_Broadcast* broadcast;
 } TI_Controldata;
 
 typedef struct Control_Data_For_Request {
@@ -98,6 +111,7 @@ typedef struct Control_Data_Login_Response {
 	HANDLE new_request; // event
 	SHM_LOGIN_RESPONSE* response;
 } CDLogin_Response;
+
 
 typedef struct HANDLE_CONTAINER {
 	HANDLE* threads;

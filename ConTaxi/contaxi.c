@@ -23,6 +23,9 @@ void PrintError(enum response_id resp) {
 	case OUTOFBOUNDS_TAXI_POSITION:
 		_tprintf(_T("You choose coordinates from another city!\n"));
 		break;
+	case HAS_NO_AVAILABLE_PASSENGER:
+		_tprintf(_T("Central has no available passenger at the moment!\n"));
+		break;
 	}
 }
 
@@ -140,7 +143,6 @@ TCHAR** ParseCommand(TCHAR* cmd) {
 }
 
 void FindFeatureAndRun(TCHAR* command, CD_TAXI_Thread* cdata) {
-	Passenger passenger;
 	TCHAR commands[9][100] = {
 		_T("\ttransport - request a passanger transport.\n"),
 		_T("\tspeed - increase the speed in 0.5 cells/s.\n"),
@@ -162,10 +164,11 @@ void FindFeatureAndRun(TCHAR* command, CD_TAXI_Thread* cdata) {
 	if (_tcscmp(cmd[0], TXI_TRANSPORT) == 0) {
 		_tprintf(_T("transport\n"));
 		enum response_id res;
-		if ((res = RequestPassengerTransport(cdata->comm->request, cdata->comm->response, &passenger)) != OK)
+		if ((res = RequestPassengerTransport(cdata->comm->request, cdata->comm->response, &cdata->taxi->client)) != OK)
 			PrintError(res);
-		//else
-		//	_tprintf(_tprintf(_T("Got new passenger!\n")));
+		else
+			_tprintf(_T("Got '%s' as a passenger in {%.2d,%.2d} with the destination {%.2d,%.2d}.\n"), cdata->taxi->client.nome,
+				cdata->taxi->client.location.x, cdata->taxi->client.location.y, cdata->taxi->client.destination.x, cdata->taxi->client.destination.y);
 	}
 	else if (_tcscmp(cmd[0], TXI_SPEED_UP) == 0) {
 		_tprintf(_T("speed\n"));
@@ -197,6 +200,23 @@ void FindFeatureAndRun(TCHAR* command, CD_TAXI_Thread* cdata) {
 	}
 	else {
 		_tprintf(_T("System doesn't recognize the command, type 'help' to view all the commands.\n"));
+	}
+}
+
+DWORD WINAPI ReceiveBroadcastMessage(LPVOID ptr) {
+	CC_Broadcast* broadcast = (CC_Broadcast*)ptr;
+
+	while (1) {
+		WaitForSingleObject(broadcast->new_passenger, INFINITE);
+
+		WaitForSingleObject(broadcast->mutex, INFINITE);
+		
+		_tprintf(_T("New passenger joined central: '%s' at {%.2d;%.2d}\n"), broadcast->shared->passenger.nome,
+			broadcast->shared->passenger.location.x, broadcast->shared->passenger.location.y);
+
+		ReleaseMutex(broadcast->mutex, INFINITE);
+		// O evento desbloqueia todos os taxis ao mesmo tempo?
+		// SetEvent(broadcast->new_passenger);
 	}
 }
 
@@ -285,6 +305,62 @@ int _tmain(int argc, TCHAR* argv[]) {
 	_setmode(_fileno(stdin), _O_WTEXT);
 	_setmode(_fileno(stdout), _O_WTEXT);
 #endif
+
+	// ## TODO Create thread
+
+	HANDLE FM_BROADCAST = CreateFileMapping(
+		INVALID_HANDLE_VALUE,
+		NULL,
+		PAGE_READWRITE,
+		0,
+		sizeof(SHM_BROADCAST),
+		SHM_BROADCAST_PASSENGER_ARRIVE);
+	if (FM_BROADCAST == NULL) {
+		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+		exit(-1);
+	}
+	handles[handleCounter++] = FM_BROADCAST;
+
+	CC_Broadcast broadcast;
+	broadcast.shared = (SHM_BROADCAST*)MapViewOfFile(FM_BROADCAST,
+		FILE_MAP_ALL_ACCESS,
+		0,
+		0,
+		sizeof(SHM_BROADCAST));
+	if (broadcast.shared == NULL) {
+		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
+		//WaitAllThreads(threads, threadCounter);
+		//CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	views[viewCounter++] = broadcast.shared;
+
+	broadcast.mutex = OpenMutex(SYNCHRONIZE, FALSE, BROADCAST_MUTEX);
+	if (broadcast.mutex == NULL) {
+		_tprintf(TEXT("Error creating mtxCenTaxiToConTaxi mutex (%d).\n"), GetLastError());
+		//WaitAllThreads(threads, threadCounter);
+		//UnmapAllViews(views, viewCounter);
+		//CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = broadcast.mutex;
+
+	broadcast.new_passenger = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_NEW_PASSENGER);
+	if (broadcast.new_passenger  == NULL) {
+		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
+		//WaitAllThreads(threads, threadCounter);
+		//UnmapAllViews(views, viewCounter);
+		//CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = broadcast.new_passenger;
+
+	if ((threads[threadCounter++] = CreateThread(NULL, 0, ReceiveBroadcastMessage, &broadcast, 0, NULL)) == NULL) {
+		_tprintf(_T("Error launching comm thread (%d)\n"), GetLastError());
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
 
 	HANDLE FM_LOGIN_REQUEST = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
