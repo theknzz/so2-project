@@ -96,6 +96,7 @@ enum passanger_state {
 #define TXI_LEFT _T("left")
 #define TXI_DOWN _T("down")
 #define TXI_RIGHT _T("right")
+#define TXI_CLOSE _T("close")
 
 // Debug Commands
 #define DBG_ADD_PASSENGER _T("add") // add passenger_name x y dest_x dest_y

@@ -142,7 +142,7 @@ TCHAR** ParseCommand(TCHAR* cmd) {
 	return command;
 }
 
-void FindFeatureAndRun(TCHAR* command, CD_TAXI_Thread* cdata) {
+int FindFeatureAndRun(TCHAR* command, CD_TAXI_Thread* cdata) {
 	TCHAR commands[9][100] = {
 		_T("\ttransport - request a passanger transport.\n"),
 		_T("\tspeed - increase the speed in 0.5 cells/s.\n"),
@@ -198,9 +198,16 @@ void FindFeatureAndRun(TCHAR* command, CD_TAXI_Thread* cdata) {
 		for (int i = 0; i < 9; i++)
 			_tprintf(_T("%s"), commands[i]);
 	}
+	else if (_tcscmp(cmd[0], TXI_CLOSE) == 0) {
+		_tprintf(_T("Closing taxi client\n"));
+		// ## TODO tratar o close properly
+		ReleaseSemaphore(cdata->taxiGate, 1, NULL);
+		return -1;
+	}
 	else {
 		_tprintf(_T("System doesn't recognize the command, type 'help' to view all the commands.\n"));
 	}
+	return 0;
 }
 
 DWORD WINAPI ReceiveBroadcastMessage(LPVOID ptr) {
@@ -227,7 +234,7 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 	while (1) {
 		_tprintf(_T("Command: "));
 		_tscanf_s(_T(" %99[^\n]"), command, sizeof(TCHAR) * 100);
-		FindFeatureAndRun(command, cdata);
+		if (FindFeatureAndRun(command, cdata) == -1) break;
 	}
 	return 0;
 }
@@ -507,8 +514,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 
-	CloseMyHandles(handles, handleCounter);
-	UnmapAllViews(views, viewCounter);
+	//CloseMyHandles(handles, handleCounter);
+	//UnmapAllViews(views, viewCounter);
 
 	CC_CDRequest request;
 	CC_CDResponse response;
@@ -619,6 +626,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	me.location.y = coords.y;
 	me.velocity = 1;
 	cd.taxi = &me;
+	cd.taxiGate = taxiGate;
 
 	if ((threads[threadCounter++] = CreateThread(NULL, 0, TextInterface, &cd, 0, NULL)) == NULL) {
 		_tprintf(_T("Error launching comm thread (%d)\n"), GetLastError());

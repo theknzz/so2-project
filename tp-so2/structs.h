@@ -131,6 +131,7 @@ typedef struct _CC_COMMUNICATION_CONTAINER {
 typedef struct _CONTROL_DATA_TAXI_THREAD{
 	CC_Comm* comm;
 	Taxi* taxi;
+	HANDLE taxiGate;
 } CD_TAXI_Thread;
 
 typedef struct ThreadControlData {
