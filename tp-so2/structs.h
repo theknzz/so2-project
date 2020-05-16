@@ -18,6 +18,7 @@ typedef struct _TAXI {
 	int autopilot; // 0 - false, 1- true
 	float velocity;
 	Passenger client;
+	int nq;
 } Taxi;
 
 typedef struct MapCell {
@@ -132,6 +133,7 @@ typedef struct _CONTROL_DATA_TAXI_THREAD{
 	CC_Comm* comm;
 	Taxi* taxi;
 	HANDLE taxiGate;
+	char charMap[MIN_COL][MIN_LIN];
 } CD_TAXI_Thread;
 
 typedef struct ThreadControlData {

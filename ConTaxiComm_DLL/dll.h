@@ -6,7 +6,7 @@
 # define DLL_EXPORT __declspec(dllexport)  __cdecl
 # define DLL_IMPORT __declspec(dllimport)
 
-enum responde_id DLL_EXPORT CallCentral(CDThread cdata, Content content, enum message_id messageId);
+//enum responde_id DLL_EXPORT CallCentral(CDThread cdata, Content content, enum message_id messageId);
 
 enum response_id DLL_EXPORT RegisterInCentral(LR_Container* res, CDThread cdata, TCHAR* licensePlate, Coords location);
 
@@ -16,12 +16,16 @@ enum response_id DLL_EXPORT GetCentralResponse(CC_CDResponse* response, CC_CDReq
 
 void DLL_EXPORT RequestAction(CC_CDRequest* request, CC_CDResponse* response, SHM_CC_REQUEST message);
 
-//enum responde_id DLL_EXPORT ReadResponse(CC_CDResponse response);
-
 enum response_id DLL_EXPORT UpdateMyLocation(CC_CDRequest* request, CC_CDResponse* response, TCHAR* licensePlate, Coords location);
 
 enum response_id DLL_EXPORT GetMap(char* * map, CC_CDRequest* request, CC_CDResponse* response);
 
 char** GetMapFromCentral(CC_CDResponse* response, CC_CDRequest* request);
 
-enum response_id DLL_EXPORT RequestPassengerTransport(CC_CDRequest* request, CC_CDResponse* response, Passenger* passenger);
+enum response_id DLL_EXPORT RequestPassengerTransport(CC_CDRequest* request, CC_CDResponse* response, Passenger* passenger, TCHAR* passengerName);
+
+enum response_id DLL_EXPORT NotifyVelocityChange(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi);
+
+enum response_id DLL_EXPORT NotifyCentralNQChange(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi);
+
+enum response_id DLL_EXPORT NotifyCentralTaxiLeaving(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi);

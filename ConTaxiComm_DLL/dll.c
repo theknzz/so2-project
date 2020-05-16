@@ -87,7 +87,6 @@ void RequestAction(CC_CDRequest* request, CC_CDResponse* response, SHM_CC_REQUES
 	ReleaseMutex(request->mutex);
 
 	SetEvent(response->new_request);
-	_tprintf(_T("[LOG] Request done.\n"));
 }
 
 enum response_id GetCentralResponse(CC_CDResponse* response, CC_CDRequest* request) {
@@ -114,8 +113,6 @@ char** GetMapFromCentral(CC_CDResponse* response, CC_CDRequest* request) {
 	CopyMemory(map, response->shared->map, sizeof(response->shared->map));
 
 	ReleaseMutex(response->mutex);
-
-	_tprintf(_T("[LOG] Got map.\n"));
 	return map;
 }
 
@@ -155,17 +152,47 @@ enum response_id GetPassengerFromCentral(CC_CDResponse* response, CC_CDRequest* 
 	CopyMemory(passenger, &response->shared->passenger, sizeof(response->shared->passenger));
 
 	ReleaseMutex(response->mutex);
-
-	_tprintf(_T("[LOG] Got passenger request.\n"));
 	return response->shared->action;
 }
 
-enum response_id RequestPassengerTransport(CC_CDRequest* request, CC_CDResponse* response, Passenger* passenger) {
+enum response_id RequestPassengerTransport(CC_CDRequest* request, CC_CDResponse* response, Passenger* passenger, TCHAR passengerName[25]) {
 	SHM_CC_REQUEST r;
 	r.action = RequestPassenger;
+	//_tcscpy(r.messageContent.passenger.nome, passengerName);
+	CopyMemory(r.messageContent.passenger.nome, passengerName, sizeof(TCHAR)*25);
 
 	RequestAction(request, response, r);
 
 	return GetPassengerFromCentral(response, request, passenger);
+}
+
+enum response_id NotifyVelocityChange(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi) {
+	SHM_CC_REQUEST r;
+	r.action = NotifySpeedChange; 
+	CopyMemory(&r.messageContent.taxi, &taxi, sizeof(Taxi));
+
+	RequestAction(request, response, r);
+
+	return GetCentralResponse(response, request);
+}
+
+enum response_id NotifyCentralNQChange(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi) {
+	SHM_CC_REQUEST r;
+	r.action = NotifyNQChange;
+	CopyMemory(&r.messageContent.taxi, &taxi, sizeof(Taxi));
+
+	RequestAction(request, response, r);
+
+	return GetCentralResponse(response, request);
+}
+
+enum response_id NotifyCentralTaxiLeaving(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi) {
+	SHM_CC_REQUEST r;
+	r.action = NotifyTaxiLeaving;
+	CopyMemory(&r.messageContent.taxi, &taxi, sizeof(Taxi));
+
+	RequestAction(request, response, r);
+
+	return GetCentralResponse(response, request);
 }
 

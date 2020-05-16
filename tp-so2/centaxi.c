@@ -114,11 +114,28 @@ int GetIndexFromPassengerWithoutTransport(Passenger* passengers, int size) {
 	return -1;
 }
 
+enum passanger_state GetPassengerStatus(Passenger* passengers, int size, TCHAR* name) {
+	for (unsigned int i = 0; i < size; i++) {
+		if (_tcscmp(passengers[i].nome, name) == 0)
+			return passengers[i].state;
+	}
+	return NotFound;
+}
+
+int GetPassengerIndex(Passenger* passengers, int size, TCHAR* name) {
+	for (unsigned int i = 0; i < size; i++) {
+		if (_tcscmp(passengers[i].nome, name) == 0)
+			return i;
+	}
+	return -1;
+}
+
 
 SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, Content content) {
 	SHM_CC_RESPONSE response;
 	response.action = ERRO;
 	int index, x, y;
+	enum passanger_state status;
 	_tprintf(_T("Action request: %d\n"), action);
 	switch (action) {
 			case UpdateTaxiLocation:
@@ -153,6 +170,8 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 				(cd->taxis + index)->location.y = content.taxi.location.y;
 				(cd->taxis + index)->autopilot = content.taxi.autopilot;
 				(cd->taxis + index)->velocity = content.taxi.velocity;
+				cd->taxis[index].client.location.x = content.taxi.location.x;
+				cd->taxis[index].client.location.y = content.taxi.location.y;
 				_tprintf(_T("Changing taxi position...\n"));
 				response.action = OK;
 				break;
@@ -166,12 +185,16 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 				response.action = OK;
 				break;
 			case RequestPassenger:
-				index = GetIndexFromPassengerWithoutTransport(cd->passengers, cd->nrMaxPassengers);
-				if (index == -1) {
-					response.action = HAS_NO_AVAILABLE_PASSENGER;
+				status = GetPassengerStatus(cd->passengers, cd->nrMaxPassengers, &content.passenger.nome);
+				if (status == NotFound) {
+					response.action = PASSENGER_DOESNT_EXIST;
 					break;
 				}
-
+				else if (status != Waiting) {
+					response.action = PASSENGER_ALREADY_TAKEN;
+					break;
+				}
+				index = GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, content.passenger.nome);
 				CopyMemory(response.passenger.nome, cd->passengers[index].nome, sizeof(TCHAR)*25);
 				// atualizar o estado do passageiro na lista de passageiros
 				cd->passengers[index].state = Taken;
@@ -181,6 +204,33 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 				response.passenger.destination.y = cd->passengers[index].destination.y;
 				response.passenger.state = Waiting;
 				response.action = OK;
+				break;
+
+			case NotifySpeedChange:
+				index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
+				if (index == -1) break;
+				CopyMemory(&cd->taxis[index], &content.taxi, sizeof(Taxi));
+				response.action = OK;
+				break;
+
+			case NotifyNQChange:
+				index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
+				if (index == -1) break;
+				CopyMemory(&cd->taxis[index], &content.taxi, sizeof(Taxi));
+				response.action = OK;
+				break;
+
+			case NotifyTaxiLeaving:
+				index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
+				if (index == -1) break;
+				// taxis has passenger
+				if (cd->taxis[index].client.location.x != -1) {
+					response.action = CANT_QUIT_WITH_PASSENGER;
+					break;
+				}
+				ZeroMemory(&cd->taxis[index], sizeof(Taxi));
+				cd->taxis[index].location.x = -1;
+				cd->taxis[index].location.y = -1;
 				break;
 	}
 	return response;

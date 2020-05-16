@@ -6,6 +6,7 @@
 #define COMM_BUF_SIZE 5
 #define MAX_TAXIS 5
 #define MAX_PASSENGERS 5
+#define NQ 10
 
 // Map characters
 #define S_CHAR 'R' // Street char
@@ -19,13 +20,16 @@
 enum type { Street, Building/*, Taxi, Passenger */ };
 
 // Message intentions
-enum message_id { 
+enum message_id {
 	RegisterTaxiInCentral,
 	UpdateTaxiLocation,
 	WarnPassengerCatch,
 	WarnPassengerDeliever,
 	GetCityMap,
 	RequestPassenger,
+	NotifySpeedChange,
+	NotifyNQChange,
+	NotifyTaxiLeaving,
 };
 
 enum response_id {
@@ -34,13 +38,17 @@ enum response_id {
 	INVALID_REGISTRATION_TAXI_POSITION,
 	OUTOFBOUNDS_TAXI_POSITION,
 	HAS_NO_AVAILABLE_PASSENGER,
+	PASSENGER_DOESNT_EXIST,
+	PASSENGER_ALREADY_TAKEN,
+	CANT_QUIT_WITH_PASSENGER,
 };
 
 enum passanger_state {
 	Waiting,
 	Taken,
 	OnDrive,
-	Done
+	Done,
+	NotFound
 };
 
 // Shared memory
@@ -86,7 +94,7 @@ enum passanger_state {
 #define ADM_HELP _T("help")
 
 // Taxi Commands
-#define TXI_TRANSPORT _T("transport") // transport
+#define TXI_TRANSPORT _T("transport") // transport passenger_name
 #define TXI_SPEED_UP _T("speed") // speed
 #define TXI_SLOW_DOWN _T("slow") // slow
 #define TXI_NQ_DEFINE _T("nq") // nq x

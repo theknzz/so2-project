@@ -1,4 +1,4 @@
 ﻿  dll.c
-E:\projects\so2-project\ConTaxiComm_DLL\dll.c(119,12): warning C4047: 'return': 'char **' differs in levels of indirection from 'char [50][50]'
-E:\projects\so2-project\ConTaxiComm_DLL\dll.c(119): warning C4172: returning address of local variable or temporary: map
+E:\projects\so2-project\ConTaxiComm_DLL\dll.c(116,12): warning C4047: 'return': 'char **' differs in levels of indirection from 'char [50][50]'
+E:\projects\so2-project\ConTaxiComm_DLL\dll.c(116): warning C4172: returning address of local variable or temporary: map
   ConTaxiComm_DLL.vcxproj -> E:\projects\so2-project\x64\Debug\ConTaxiComm_DLL.dll
