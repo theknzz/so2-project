@@ -240,19 +240,35 @@ void moveTaxi(CD_TAXI_Thread* cdata) {
 	}
 	else if (isPassengerDestination(cdata->taxi)) {
 		NotifyPassengerDeliever(cdata->comm->request, cdata->comm->response, *(cdata->taxi));
+
 	}
 }
 
 DWORD WINAPI TaxiAutopilot(LPVOID ptr) {
 	CD_TAXI_Thread* cdata = (CD_TAXI_Thread*)ptr;
 	HANDLE hTimer;
-	if ((hTimer = CreateWaitableTimer(NULL, FALSE, _T("clock")) == NULL)) {
+
+	FILETIME ft, ftUTC;
+	LARGE_INTEGER DueTime;
+	SYSTEMTIME systime;
+	LONG interval = (LONG)(1 / cdata->taxi->velocity) * 1000;
+
+	SystemTimeToFileTime(&systime, &ft);
+	LocalFileTimeToFileTime(&ft, &ftUTC);
+	DueTime.HighPart = ftUTC.dwHighDateTime;
+	DueTime.LowPart = ftUTC.dwLowDateTime;
+	DueTime.QuadPart = - (LONGLONG) interval * 1000 * 10;
+
+	if ((hTimer = CreateWaitableTimer(NULL, FALSE, NULL)) == NULL) {
 		_tprintf(_T("Error (%d) creating the waitable timer.\n"), GetLastError());
 		return -1;
 	}
-
-	//SetWaitableTimer(hTimer, (1/cdata->taxi->velocity)* 1000, 1, );
-
+	while (1) {
+		if (!SetWaitableTimer(hTimer, &DueTime, interval, NULL, NULL, FALSE)) {
+			_tprintf(_T("Something went wrong! %d"), GetLastError());
+		}
+		moveTaxi(cdata);
+	}
 	return 0;
 }
 
@@ -317,6 +333,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		if (cdata->taxi->autopilot == 0) {
 			_tprintf(_T("Taxi's autopilot activated.\n"));
 			cdata->taxi->autopilot = 1;
+			CreateThread(NULL, 0, TaxiAutopilot, cdata, 0, NULL);
 		}
 		else {
 			_tprintf(_T("Taxi's autopilot desactivated.\n"));
