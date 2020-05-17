@@ -427,19 +427,6 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 	_tprintf(_T("[LOG] Sent response to the taxi's registration request.\n"));
 }
 
-//void RespondToTaxi(CC_CDResponse response, Content* content, enum response_id responseId) {
-//
-//	WaitForSingleObject(response.mutex, INFINITE);
-//	
-//	response.shared->action = responseId;
-//	CopyMemory(&response.shared->responseContent, content, sizeof(Content));
-//
-//	ReleaseMutex(response.mutex);
-//
-//	SetEvent(response.got_response);
-//
-//}
-
 int FindTaxiIndex(Taxi* taxis, int size, Taxi target) {
 	for (unsigned int i = 0; i < size; i++)
 		if (_tcscmp((taxis + i)->licensePlate, target.licensePlate) == 0)

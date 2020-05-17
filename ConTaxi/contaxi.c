@@ -7,6 +7,7 @@
 #include <io.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "rules.h"
 #include "structs.h"
@@ -47,7 +48,8 @@ int CalculateDistanceTo(Coords org, Coords dest) {
 	return (int)sqrt(pow(y_dist, 2) + pow(x_dist, 2));
 }
 
-enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* response, TCHAR* lPlate, Coords org, Coords dest, char map[MIN_LIN][MIN_COL]) {
+enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* response, Taxi* taxi, Coords dest, char map[MIN_LIN][MIN_COL]) {
+	Coords org = taxi->location;
 	// bottom, left, top, right
 	int positions[4];
 	Coords coords[4];
@@ -69,28 +71,28 @@ enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* r
 	coords[3].y = org.y;
 
 	// se nesta posição estiver uma celula de edificio ou um taxi, ou desqualificou-a do algoritmo
-	if (coords[0].y > MIN_LIN || map[coords[0].x][coords[0].y]== B_DISPLAY) {
+	if (taxi->direction == UP || coords[0].y > MIN_LIN || map[coords[0].x][coords[0].y]== B_DISPLAY) {
 		positions[0] = INT_MAX;
 	}
 	else {
 		positions[0] = CalculateDistanceTo(coords[0], dest);
 	}
 
-	if (coords[1].x < 0 || map[coords[1].x][coords[1].y] == B_DISPLAY) {
+	if (taxi->direction == RIGHT || coords[1].x < 0 || map[coords[1].x][coords[1].y] == B_DISPLAY) {
 		positions[1] = INT_MAX;
 	}
 	else {
 		positions[1] = CalculateDistanceTo(coords[1], dest);
 	}
 
-	if (coords[2].y < 0 || map[coords[2].x][coords[2].y] == B_DISPLAY) {
+	if (taxi->direction == DOWN || coords[2].y < 0 || map[coords[2].x][coords[2].y] == B_DISPLAY) {
 		positions[2] = INT_MAX;
 	}
 	else {
 		positions[2] = CalculateDistanceTo(coords[2], dest);
 	}
 
-	if (coords[3].y > MIN_COL || map[coords[3].x][coords[3].y] == B_DISPLAY) {
+	if (taxi->direction == LEFT || coords[3].y > MIN_COL || map[coords[3].x][coords[3].y] == B_DISPLAY) {
 		positions[3] = INT_MAX;
 	}
 	else {
@@ -107,7 +109,13 @@ enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* r
 		}
 	}
 
-	return UpdateMyLocation(request, response, lPlate, coords[nr]);
+	enum response_id ret;
+	if ((ret = UpdateMyLocation(request, response, taxi, coords[nr]) == OK)) {
+		taxi->location.x = coords[nr].x;
+		taxi->location.y = coords[nr].y;
+		taxi->direction = nr;
+	}
+	return ret;
 }
 
 int CanMoveTo(char map[MIN_LIN][MIN_COL], Coords destination) {
@@ -156,6 +164,96 @@ TCHAR** ParseCommand(TCHAR* cmd) {
 		CopyMemory(command[counter++], _T("NULL"), sizeof(TCHAR) * 100);
 	}
 	return command;
+}
+
+BOOL isCruzamento(Taxi* taxi, char map[MIN_LIN][MIN_COL]) {
+	int x = taxi->location.x;
+	int y = taxi->location.y;
+	switch (taxi->direction) {
+		case DOWN:
+			return map[x + 1][y - 1] == B_DISPLAY && map[x + 1][y] == S_DISPLAY ? 1 : 0;
+		case LEFT:
+			return map[x + 1][y + 1] == B_DISPLAY && map[x][y + 1] == S_DISPLAY ? 1 : 0;
+		case UP:
+			return map[x - 1][y + 1] == B_DISPLAY && map[x - 1][y] == S_DISPLAY ? 1 : 0;
+		case RIGHT:
+			return map[x - 1][y - 1] == B_DISPLAY && map[x][y + 1] == S_DISPLAY ? 1 : 0;
+	}
+}
+
+enum response_id MoveAleatorio(CC_CDRequest* request, CC_CDResponse* response, Taxi* taxi, char map[MIN_LIN][MIN_COL]) {
+	Coords dest = taxi->location;
+	if (isCruzamento(taxi, map)) {
+		int dir = (rand() % 4 - 0 + 1) + 0;
+		switch (dir) {
+			case DOWN:
+				dest.y += 1;
+				if (CanMoveTo(map, dest))
+					return UpdateMyLocation(request, response, taxi, dest);
+				break;
+			case LEFT:
+				dest.x -= 1;
+				if (CanMoveTo(map, dest))
+					return UpdateMyLocation(request, response, taxi, dest);
+				break;
+			case UP:
+				dest.y -= 1;
+				if (CanMoveTo(map, dest))
+					return UpdateMyLocation(request, response, taxi, dest);
+				break;
+			case RIGHT:
+				dest.x += 1;
+				if (CanMoveTo(map, dest))
+					return UpdateMyLocation(request, response, taxi, dest);
+				break;
+		}
+	}
+}
+
+BOOL hasPassenger(Taxi* taxi) {
+	return taxi->client.location.x == -1 ? 1 : 0;
+}
+
+BOOL isPassengerLocation(Taxi* taxi) {
+	return taxi->location.x == taxi->client.location.x && taxi->location.y == taxi->client.location.y ? 1 : 0;
+}
+
+BOOL isPassengerDestination(Taxi* taxi) {
+	return taxi->location.x == taxi->client.destination.x && taxi->location.y == taxi->client.destination.y ? 1 : 0;
+}
+
+void moveTaxi(CD_TAXI_Thread* cdata) {
+	if (hasPassenger(cdata->taxi)) {
+		if (MoveMeToOptimalPosition(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->taxi->client.location, cdata->charMap) == OK)
+			_tprintf(_T("Taxi location updated!\n"));
+		else
+			_tprintf(_T("For some reason taxi can't move that way!\n"));
+	}
+	else {
+		if (MoveAleatorio(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->charMap)==OK)
+			_tprintf(_T("Taxi location updated!\n"));
+		else
+			_tprintf(_T("For some reason taxi can't move that way!\n"));
+	}
+	if (isPassengerLocation(cdata->taxi)) {
+		NotifyPassengerCatch(cdata->comm->request, cdata->comm->response, *(cdata->taxi));
+	}
+	else if (isPassengerDestination(cdata->taxi)) {
+		NotifyPassengerDeliever(cdata->comm->request, cdata->comm->response, *(cdata->taxi));
+	}
+}
+
+DWORD WINAPI TaxiAutopilot(LPVOID ptr) {
+	CD_TAXI_Thread* cdata = (CD_TAXI_Thread*)ptr;
+	HANDLE hTimer;
+	if ((hTimer = CreateWaitableTimer(NULL, FALSE, _T("clock")) == NULL)) {
+		_tprintf(_T("Error (%d) creating the waitable timer.\n"), GetLastError());
+		return -1;
+	}
+
+	//SetWaitableTimer(hTimer, (1/cdata->taxi->velocity)* 1000, 1, );
+
+	return 0;
 }
 
 int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
@@ -234,9 +332,11 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return;
 		}
 		else {
-			CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
-			if (UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi->licensePlate, dest)==OK)
+			if (UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest) == OK) {
 				_tprintf(_T("Moving up\n"));
+				CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
+				cdata->taxi->direction = UP;
+			}
 		}
 	}
 	else if (_tcscmp(cmd[0], TXI_LEFT) == 0) {
@@ -248,9 +348,11 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return;
 		}
 		else {
-			CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
-			if (UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi->licensePlate, dest) == OK)
+			if (UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest) == OK) {
 				_tprintf(_T("Moving left\n"));
+				CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
+				cdata->taxi->direction = LEFT;
+			}
 		}
 	}
 	else if (_tcscmp(cmd[0], TXI_DOWN) == 0) {
@@ -262,9 +364,11 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return;
 		}
 		else {
-			CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
-			if (UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi->licensePlate, dest) == OK)
+			if (UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest) == OK) {
+				CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
 				_tprintf(_T("Moving down\n"));
+				cdata->taxi->direction = DOWN;
+			}
 		}
 	}
 	else if (_tcscmp(cmd[0], TXI_RIGHT) == 0) {
@@ -276,9 +380,11 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return;
 		}
 		else {
-			CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
-			if (UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi->licensePlate, dest) == OK)
+			if (UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest) == OK) {
+				CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
 				_tprintf(_T("Moving right\n"));
+				cdata->taxi->direction = RIGHT;
+			}
 		}
 	}
 	else if (_tcscmp(cmd[0], TXI_HELP) == 0) {
@@ -397,7 +503,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 	HANDLE threads[50];
 	HANDLE views[50];
 	int handleCounter = 0, threadCounter = 0, viewCounter = 0;
-
+	// for the random numbers
+	srand(time(0));
 #ifdef UNICODE
 	_setmode(_fileno(stdin), _O_WTEXT);
 	_setmode(_fileno(stdout), _O_WTEXT);

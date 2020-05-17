@@ -116,15 +116,15 @@ char** GetMapFromCentral(CC_CDResponse* response, CC_CDRequest* request) {
 	return map;
 }
 
-enum response_id UpdateMyLocation(CC_CDRequest* request, CC_CDResponse* response, TCHAR* licensePlate, Coords location) {
+enum response_id UpdateMyLocation(CC_CDRequest* request, CC_CDResponse* response, Taxi* taxi, Coords location) {
 	SHM_CC_REQUEST r;
-	Content content;
 
-	CopyMemory(&content.taxi.licensePlate, licensePlate, sizeof(TCHAR) * 9);
-	content.taxi.location.x = location.x;
-	content.taxi.location.y = location.y;
-	
-	CopyMemory(&r.messageContent, &content, sizeof(Content));
+	CopyMemory(&r.messageContent.taxi, taxi, sizeof(Taxi));
+	// change the location of the taxi to the destination
+	// this happens here so the real position is just changed when
+	// the central gives a response to the taxi's request
+	r.messageContent.taxi.location.x = location.x;
+	r.messageContent.taxi.location.y = location.y;
 	r.action = UpdateTaxiLocation;
 
 	RequestAction(request, response, r);
@@ -193,6 +193,22 @@ enum response_id NotifyCentralTaxiLeaving(CC_CDRequest* request, CC_CDResponse* 
 
 	RequestAction(request, response, r);
 
+	return GetCentralResponse(response, request);
+}
+
+enum response_id NotifyPassengerCatch(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi) {
+	SHM_CC_REQUEST r;
+	r.action = WarnPassengerCatch;
+	CopyMemory(&r.messageContent.taxi, &taxi, sizeof(Taxi));
+	RequestAction(request, response, r);
+	return GetCentralResponse(response, request);
+}
+
+enum response_id NotifyPassengerDeliever(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi) {
+	SHM_CC_REQUEST r;
+	r.action = WarnPassengerDeliever;
+	CopyMemory(&r.messageContent.taxi, &taxi, sizeof(Taxi));
+	RequestAction(request, response, r);
 	return GetCentralResponse(response, request);
 }
 

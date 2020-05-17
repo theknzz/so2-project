@@ -51,6 +51,13 @@ enum passanger_state {
 	NotFound
 };
 
+enum taxi_direction {
+	DOWN,
+	LEFT,
+	UP,
+	RIGHT
+};
+
 // Shared memory
 #define SHM_CC_REQUEST_NAME _T("SHM_CC_REQUEST_%s")
 #define SHM_CC_RESPONSE_NAME _T("SHM_CC_RESPONSE_%s")

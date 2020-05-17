@@ -19,6 +19,7 @@ typedef struct _TAXI {
 	float velocity;
 	Passenger client;
 	int nq;
+	enum taxi_direction direction;
 } Taxi;
 
 typedef struct MapCell {
