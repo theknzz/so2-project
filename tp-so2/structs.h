@@ -78,17 +78,6 @@ typedef struct Control_Data_Broadcast {
 	SHM_BROADCAST* shared;
 } CC_Broadcast;
 
-typedef struct txtInterfaceControlData {
-	BOOL gate;
-	Cell* map;
-	Taxi* taxis;
-	Passenger* passengers;
-	int taxiCount;
-	int passengerCount;
-	int* WaitTimeOnTaxiRequest;
-	CC_Broadcast* broadcast;
-} TI_Controldata;
-
 typedef struct Control_Data_For_Request {
 	HANDLE mutex;
 	HANDLE new_response;
@@ -135,6 +124,7 @@ typedef struct _CONTROL_DATA_TAXI_THREAD{
 	Taxi* taxi;
 	HANDLE taxiGate;
 	char charMap[MIN_COL][MIN_LIN];
+	CC_Broadcast* broadcast;
 } CD_TAXI_Thread;
 
 typedef struct ThreadControlData {
@@ -142,12 +132,15 @@ typedef struct ThreadControlData {
 	int nrMaxPassengers;
 	Cell* map;
 	Taxi* taxis;
+	CC_Broadcast* broadcast;
+	int* WaitTimeOnTaxiRequest;
 	Passenger* passengers;
 	HContainer* hContainer;
 	CC_Comm* comm;
 	CDLogin_Request* cdLogin_Request;
 	CDLogin_Response* cdLogin_Response;
 	char charMap[MIN_COL][MIN_LIN];
+	SHM_CC_REQUEST* requests;
 } CDThread;
 
 typedef struct _CMD_STRUCT {

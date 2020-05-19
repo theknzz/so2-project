@@ -113,6 +113,8 @@ enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* r
 	if ((ret = UpdateMyLocation(request, response, taxi, coords[nr]) == OK)) {
 		taxi->location.x = coords[nr].x;
 		taxi->location.y = coords[nr].y;
+		taxi->client.location.x = coords[nr].x;
+		taxi->client.location.y = coords[nr].y;
 		taxi->direction = nr;
 	}
 	return ret;
@@ -171,13 +173,13 @@ BOOL isCruzamento(Taxi* taxi, char map[MIN_LIN][MIN_COL]) {
 	int y = taxi->location.y;
 	switch (taxi->direction) {
 		case DOWN:
-			return map[x + 1][y - 1] == B_DISPLAY && map[x + 1][y] == S_DISPLAY ? 1 : 0;
+			return map[x + 1][y - 1] == B_DISPLAY && map[x - 1][y - 1] == B_DISPLAY ? 1 : 0;
 		case LEFT:
-			return map[x + 1][y + 1] == B_DISPLAY && map[x][y + 1] == S_DISPLAY ? 1 : 0;
+			return map[x + 1][y + 1] == B_DISPLAY && map[x + 1][y - 1] == B_DISPLAY ? 1 : 0;
 		case UP:
-			return map[x - 1][y + 1] == B_DISPLAY && map[x - 1][y] == S_DISPLAY ? 1 : 0;
+			return map[x - 1][y + 1] == B_DISPLAY && map[x + 1][y + 1] == B_DISPLAY ? 1 : 0;
 		case RIGHT:
-			return map[x - 1][y - 1] == B_DISPLAY && map[x][y + 1] == S_DISPLAY ? 1 : 0;
+			return map[x - 1][y - 1] == B_DISPLAY && map[x - 1][y + 1] == B_DISPLAY ? 1 : 0;
 	}
 }
 
@@ -211,7 +213,7 @@ enum response_id MoveAleatorio(CC_CDRequest* request, CC_CDResponse* response, T
 }
 
 BOOL hasPassenger(Taxi* taxi) {
-	return taxi->client.location.x == -1 ? 1 : 0;
+	return taxi->client.location.x < 0? 0 : 1;
 }
 
 BOOL isPassengerLocation(Taxi* taxi) {
@@ -223,24 +225,47 @@ BOOL isPassengerDestination(Taxi* taxi) {
 }
 
 void moveTaxi(CD_TAXI_Thread* cdata) {
+	enum response_id resp;
+	
 	if (hasPassenger(cdata->taxi)) {
-		if (MoveMeToOptimalPosition(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->taxi->client.location, cdata->charMap) == OK)
-			_tprintf(_T("Taxi location updated!\n"));
-		else
-			_tprintf(_T("For some reason taxi can't move that way!\n"));
+
+		if (isPassengerLocation(cdata->taxi)) {
+			if ((resp = NotifyPassengerCatch(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK)
+				PrintError(resp);
+			else {
+				cdata->taxi->client.state = OnDrive;
+				_tprintf(_T("Passenger caught!\n"));
+			}
+		}
+		else if (isPassengerDestination(cdata->taxi)) {
+			if ((resp = NotifyPassengerDeliever(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK)
+				PrintError(resp);
+			else {
+				_tprintf(_T("Passenger delvired!\n"));
+			}
+		}
+
+		if (cdata->taxi->client.state == OnDrive) {
+			if (MoveMeToOptimalPosition(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->taxi->client.destination, cdata->charMap) == OK)
+				_tprintf(_T("Taxi location updated!\n"));
+			else
+				_tprintf(_T("For some reason taxi can't move that way!\n"));
+		}
+		else if (cdata->taxi->client.state == Waiting) {
+			if (MoveMeToOptimalPosition(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->taxi->client.location, cdata->charMap) == OK)
+				_tprintf(_T("Taxi location updated!\n"));
+			else
+				_tprintf(_T("For some reason taxi can't move that way!\n"));
+		}
 	}
 	else {
+		// se estiver a menos de nq de um passageiro que se juntou recentemente
+		// faz o request do mesmo
+		
 		if (MoveAleatorio(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->charMap)==OK)
 			_tprintf(_T("Taxi location updated!\n"));
 		else
 			_tprintf(_T("For some reason taxi can't move that way!\n"));
-	}
-	if (isPassengerLocation(cdata->taxi)) {
-		NotifyPassengerCatch(cdata->comm->request, cdata->comm->response, *(cdata->taxi));
-	}
-	else if (isPassengerDestination(cdata->taxi)) {
-		NotifyPassengerDeliever(cdata->comm->request, cdata->comm->response, *(cdata->taxi));
-
 	}
 }
 
@@ -259,16 +284,16 @@ DWORD WINAPI TaxiAutopilot(LPVOID ptr) {
 	DueTime.LowPart = ftUTC.dwLowDateTime;
 	DueTime.QuadPart = - (LONGLONG) interval * 1000 * 10;
 
-	if ((hTimer = CreateWaitableTimer(NULL, FALSE, NULL)) == NULL) {
-		_tprintf(_T("Error (%d) creating the waitable timer.\n"), GetLastError());
-		return -1;
-	}
-	while (1) {
+	//if ((hTimer = CreateWaitableTimer(NULL, FALSE, NULL)) == NULL) {
+	//	_tprintf(_T("Error (%d) creating the waitable timer.\n"), GetLastError());
+	//	return -1;
+	//}
+	/*while (1) {
 		if (!SetWaitableTimer(hTimer, &DueTime, interval, NULL, NULL, FALSE)) {
 			_tprintf(_T("Something went wrong! %d"), GetLastError());
-		}
+		}*/
 		moveTaxi(cdata);
-	}
+	//}
 	return 0;
 }
 
@@ -286,6 +311,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		_T("\tclose - closes taxi's application.\n")
 	};
 
+	enum response_id res;
 	TCHAR cmd[4][100];
 	CopyMemory(cmd, ParseCommand(command), sizeof(TCHAR) * 4 * 100);
 	int argc = 0;
@@ -297,7 +323,6 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			_tprintf(_T("Too few arguments to use this command!\n"));
 			return;
 		}
-		enum response_id res;
 		if ((res = RequestPassengerTransport(cdata->comm->request, cdata->comm->response, &cdata->taxi->client, cmd[1])) != OK)
 			PrintError(res);
 		else
@@ -307,8 +332,13 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 	else if (_tcscmp(cmd[0], TXI_SPEED_UP) == 0) {
 		_tprintf(_T("speed\n"));
 		cdata->taxi->velocity += 0.5;
-		NotifyVelocityChange(cdata->comm->request, cdata->comm->response, *(cdata->taxi));
-		_tprintf(_T("You speeding up!\n"));
+		if ((res = NotifyVelocityChange(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK) {
+			PrintError(res);
+			cdata->taxi->velocity -= 0.5;
+		}
+		else {
+			_tprintf(_T("You speed up!\n"));
+		}
 	}
 	else if (_tcscmp(cmd[0], TXI_SLOW_DOWN) == 0) {
 		_tprintf(_T("slow\n"));
@@ -317,23 +347,34 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return 0;
 		}
 		cdata->taxi->velocity -= 0.5;
-		NotifyVelocityChange(cdata->comm->request, cdata->comm->response, *(cdata->taxi));
-		_tprintf(_T("You are slowing down!\n"));
+		if ((res = NotifyVelocityChange(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK) {
+			PrintError(res);
+			cdata->taxi->velocity += 0.5;
+		}
+		else {
+			_tprintf(_T("You are slowing down!\n"));
+		}
 	}
 	else if (_tcscmp(cmd[0], TXI_NQ_DEFINE) == 0) {
 		if (argc < 2) {
 			_tprintf(_T("Too few arguments to use this command!\n"));
 			return;
 		}
-		_tprintf(_T("nr : %d\n"), _ttoi(cmd[1]));
+		int aux = cdata->taxi->nq;
 		cdata->taxi->nq = _ttoi(cmd[1]);
-		NotifyCentralNQChange(cdata->comm->request, cdata->comm->response, *(cdata->taxi));
+		if ((res = NotifyCentralNQChange(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK) {
+			PrintError(res);
+			cdata->taxi->nq = aux;
+		}
+		else {
+			_tprintf(_T("NQ constante updated to %d.\n"), _ttoi(cmd[1]));
+		}
 	}
 	else if (_tcscmp(cmd[0], TXI_AUTOPILOT) == 0) {
 		if (cdata->taxi->autopilot == 0) {
 			_tprintf(_T("Taxi's autopilot activated.\n"));
 			cdata->taxi->autopilot = 1;
-			CreateThread(NULL, 0, TaxiAutopilot, cdata, 0, NULL);
+			//CreateThread(NULL, 0, TaxiAutopilot, cdata, 0, NULL);
 		}
 		else {
 			_tprintf(_T("Taxi's autopilot desactivated.\n"));
@@ -345,7 +386,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		dest.x = cdata->taxi->location.x;
 		dest.y = cdata->taxi->location.y - 1;
 		if (!CanMoveTo(cdata->charMap, dest)) {
-			_tprintf(_T("The system doesn't let you crash your car!"));
+			_tprintf(_T("The system doesn't let you crash your car!\n"));
 			return;
 		}
 		else {
@@ -404,6 +445,23 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			}
 		}
 	}
+	else if (_tcscmp(cmd[0], TXI_CATCH) == 0) {
+		if ((res = NotifyPassengerCatch(cdata->comm->request, cdata->comm->response, *cdata->taxi)) != OK) {
+			PrintError(res);
+		}
+		else {
+			cdata->taxi->client.state = OnDrive;
+			_tprintf(_T("Passenger caught!\n"));
+		}
+	}
+	else if (_tcscmp(cmd[0], TXI_DELIVER) == 0) {
+		if ((res = NotifyPassengerDeliever(cdata->comm->request, cdata->comm->response, *cdata->taxi)) != OK) {
+			PrintError(res);
+		}
+		else {
+			_tprintf(_T("Passenger delivered!\n"));
+		}
+	}
 	else if (_tcscmp(cmd[0], TXI_HELP) == 0) {
 		for (int i = 0; i < 10; i++)
 			_tprintf(_T("%s"), commands[i]);
@@ -423,7 +481,10 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 
 
 DWORD WINAPI ReceiveBroadcastMessage(LPVOID ptr) {
-	CC_Broadcast* broadcast = (CC_Broadcast*)ptr;
+	CD_TAXI_Thread* cd = (CD_TAXI_Thread*)ptr;
+	CC_Broadcast* broadcast = cd->broadcast;
+	Passenger newPassenger;
+	enum response_id resp;
 
 	while (1) {
 		WaitForSingleObject(broadcast->new_passenger, INFINITE);
@@ -433,7 +494,22 @@ DWORD WINAPI ReceiveBroadcastMessage(LPVOID ptr) {
 		_tprintf(_T("New passenger joined central: '%s' at {%.2d;%.2d}\n"), broadcast->shared->passenger.nome,
 			broadcast->shared->passenger.location.x, broadcast->shared->passenger.location.y);
 
+		CopyMemory(&newPassenger, &broadcast->shared->passenger, sizeof(Passenger));
+
 		ReleaseMutex(broadcast->mutex, INFINITE);
+
+		if (cd->taxi->autopilot) {
+			if (!hasPassenger(cd->taxi)) {
+				if (CalculateDistanceTo(cd->taxi->location, newPassenger.location) <= cd->taxi->nq) {
+					if ((resp = RequestPassengerTransport(cd->comm->request, cd->comm->response, &cd->taxi->client, newPassenger.nome)) != OK)
+						PrintError(resp);
+					else {
+						_tprintf(_T("Got '%s' as a passenger in {%.2d,%.2d} with the destination {%.2d,%.2d}.\n"), newPassenger.nome,
+							newPassenger.location.x, newPassenger.location.y, newPassenger.destination.x, newPassenger.destination.y);
+					}
+				}
+			}
+		}
 		// O evento desbloqueia todos os taxis ao mesmo tempo?
 		// SetEvent(broadcast->new_passenger);
 	}
@@ -451,68 +527,6 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 	_tprintf(_T("text interface closing...\n"));
 	return 0;
 }
-
-//Coords MoveMeToOptimalPosition_DEBUG(Coords org, Coords dest, char map[MIN_LIN][MIN_COL]) {
-//	// bottom, left, top, right
-//	int positions[4];
-//	Coords coords[4];
-//
-//	// bottom
-//	coords[0].x = org.x;
-//	coords[0].y = org.y + 1;
-//
-//	// left
-//	coords[1].x = org.x - 1;
-//	coords[1].y = org.y;
-//
-//	// top
-//	coords[2].x = org.x;
-//	coords[2].y = org.y - 1;
-//
-//	// right
-//	coords[3].x = org.x + 1;
-//	coords[3].y = org.y;
-//
-//	// se nesta posição estiver uma celula de edificio ou um taxi, ou desqualificou-a do algoritmo
-//	if (coords[0].y > MIN_LIN || map[coords[0].x][coords[0].y] == B_DISPLAY) {
-//		positions[0] = INT_MAX;
-//	}
-//	else {
-//		positions[0] = CalculateDistanceTo(coords[0], dest);
-//	}
-//
-//	if (coords[1].x < 0 || map[coords[1].x][coords[1].y] == B_DISPLAY) {
-//		positions[1] = INT_MAX;
-//	}
-//	else {
-//		positions[1] = CalculateDistanceTo(coords[1], dest);
-//	}
-//
-//	if (coords[2].y < 0 || map[coords[2].x][coords[2].y] == B_DISPLAY) {
-//		positions[2] = INT_MAX;
-//	}
-//	else {
-//		positions[2] = CalculateDistanceTo(coords[2], dest);
-//	}
-//
-//	if (coords[3].y > MIN_COL || map[coords[3].x][coords[3].y] == B_DISPLAY) {
-//		positions[3] = INT_MAX;
-//	}
-//	else {
-//		positions[3] = CalculateDistanceTo(coords[3], dest);
-//	}
-//
-//	// select the best position (less distance)
-//	int optimal = positions[0];
-//	int nr = 0;
-//	for (unsigned int i = 1; i < 4; i++) {
-//		if (positions[i] < optimal) {
-//			optimal = positions[i];
-//			nr = i;
-//		}
-//	}
-//	return coords[nr];
-//}
 
 int _tmain(int argc, TCHAR* argv[]) {
 
@@ -586,12 +600,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	handles[handleCounter++] = broadcast.new_passenger;
 
-	if ((threads[threadCounter++] = CreateThread(NULL, 0, ReceiveBroadcastMessage, &broadcast, 0, NULL)) == NULL) {
-		_tprintf(_T("Error launching comm thread (%d)\n"), GetLastError());
-		UnmapAllViews(views, viewCounter);
-		CloseMyHandles(handles, handleCounter);
-		exit(-1);
-	}
 
 	HANDLE FM_LOGIN_REQUEST = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
@@ -842,6 +850,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	me.nq = NQ;
 	cd.taxi = &me;
 	cd.taxiGate = taxiGate;
+	cd.broadcast = &broadcast;
 
 	enum response_id ret;
 	ret = GetMap(cd.charMap, &request, &response);
@@ -850,6 +859,13 @@ int _tmain(int argc, TCHAR* argv[]) {
 		WaitAllThreads(threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
+	}
+
+	if ((threads[threadCounter++] = CreateThread(NULL, 0, ReceiveBroadcastMessage, &cd, 0, NULL)) == NULL) {
+		_tprintf(_T("Error launching comm thread (%d)\n"), GetLastError());
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
 	}
 
 	if ((threads[threadCounter++] = CreateThread(NULL, 0, TextInterface, &cd, 0, NULL)) == NULL) {

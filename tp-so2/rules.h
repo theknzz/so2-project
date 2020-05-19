@@ -7,10 +7,11 @@
 #define MAX_TAXIS 5
 #define MAX_PASSENGERS 5
 #define NQ 10
+#define WAIT_TIME 5
 
 // Map characters
-#define S_CHAR 'R' // Street char
-#define B_CHAR 'E' // Building char
+#define S_CHAR '_' // Street char
+#define B_CHAR 'X' // Building char
 #define T_CHAR 'T' // Taxi char
 #define S_DISPLAY '-'
 #define B_DISPLAY '+'
@@ -112,6 +113,8 @@ enum taxi_direction {
 #define TXI_DOWN _T("down")
 #define TXI_RIGHT _T("right")
 #define TXI_CLOSE _T("close")
+#define TXI_CATCH _T("catch")
+#define TXI_DELIVER _T("deliver")
 
 // Debug Commands
 #define DBG_ADD_PASSENGER _T("add") // add passenger_name x y dest_x dest_y

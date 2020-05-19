@@ -12,160 +12,168 @@ E:\projects\so2-project\tp-so2\centaxi.c(104,29): warning C4018: '<': signed/uns
 E:\projects\so2-project\tp-so2\centaxi.c(112,29): warning C4018: '<': signed/unsigned mismatch
 E:\projects\so2-project\tp-so2\centaxi.c(118,29): warning C4018: '<': signed/unsigned mismatch
 E:\projects\so2-project\tp-so2\centaxi.c(126,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(150,26): warning C4013: 'FindTaxiIndex' undefined; assuming extern returning int
-E:\projects\so2-project\tp-so2\centaxi.c(188,93): warning C4047: 'function': 'TCHAR *' differs in levels of indirection from 'TCHAR (*)[25]'
-E:\projects\so2-project\tp-so2\centaxi.c(188,93): warning C4024: 'GetPassengerStatus': different types for formal and actual parameter 3
-E:\projects\so2-project\tp-so2\centaxi.c(323,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(323,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(324,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(324,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(336,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(336,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(337,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(337,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(345,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(345,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(346,61): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(346,61): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(347,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(347,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(355,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(355,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(356,61): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(356,61): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(357,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(357,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(371,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(371,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(372,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(372,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(381,28): warning C4133: '=': incompatible types - from 'SHM_CC_REQUEST *' to 'SHM_CC_RESPONSE *'
-E:\projects\so2-project\tp-so2\centaxi.c(384,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(384,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(385,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(385,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(393,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(393,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(394,61): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(394,61): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(395,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(395,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(403,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(403,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(404,61): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(404,61): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(405,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(405,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(416,119): warning C4047: '=': 'HANDLE' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(418,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(418,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(419,61): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(419,61): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(420,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(420,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(431,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(438,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(508,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [6][100]'
-E:\projects\so2-project\tp-so2\centaxi.c(541,30): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(604,32): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(609,32): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(620,32): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(625,32): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(676,16): warning C4047: 'return': 'char **' differs in levels of indirection from 'char [50][50]'
-E:\projects\so2-project\tp-so2\centaxi.c(734,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(734,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(735,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(735,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(736,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(736,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(739,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(750,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(750,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(751,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(751,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(752,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(752,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(755,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(770,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(770,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(784,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(784,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(792,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(792,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(793,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(793,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(801,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(801,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(802,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(802,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(811,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(811,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(812,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(812,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(813,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(813,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(836,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(836,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(850,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(850,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(143,26): warning C4013: 'FindTaxiIndex' undefined; assuming extern returning int
+E:\projects\so2-project\tp-so2\centaxi.c(235,93): warning C4047: 'function': 'TCHAR *' differs in levels of indirection from 'TCHAR (*)[25]'
+E:\projects\so2-project\tp-so2\centaxi.c(235,93): warning C4024: 'GetPassengerStatus': different types for formal and actual parameter 3
+E:\projects\so2-project\tp-so2\centaxi.c(338,94): warning C4047: '=': 'HANDLE' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(416,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(416,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(417,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(417,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(429,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(429,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(430,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(430,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(438,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(438,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(439,61): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(439,61): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(440,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(440,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(448,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(448,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(449,61): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(449,61): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(450,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(450,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(464,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(464,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(465,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(465,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(474,28): warning C4133: '=': incompatible types - from 'SHM_CC_REQUEST *' to 'SHM_CC_RESPONSE *'
+E:\projects\so2-project\tp-so2\centaxi.c(477,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(477,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(478,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(478,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(486,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(486,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(487,61): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(487,61): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(488,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(488,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(496,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(496,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(497,61): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(497,61): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(498,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(498,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(509,119): warning C4047: '=': 'HANDLE' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(511,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(511,66): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(512,61): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(512,61): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(513,66): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(513,66): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(524,29): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(531,29): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(601,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [6][100]'
+E:\projects\so2-project\tp-so2\centaxi.c(634,30): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(705,32): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(710,32): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(721,32): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(726,32): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(777,16): warning C4047: 'return': 'char **' differs in levels of indirection from 'char [50][50]'
+E:\projects\so2-project\tp-so2\centaxi.c(835,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(835,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(836,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(836,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(837,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(837,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(840,29): warning C4018: '<': signed/unsigned mismatch
 E:\projects\so2-project\tp-so2\centaxi.c(851,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(851,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(865,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(865,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(866,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(866,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(881,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(881,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(882,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(882,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(851,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(852,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(852,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(853,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(853,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(856,29): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(871,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(871,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(885,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(885,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(893,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(893,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
 E:\projects\so2-project\tp-so2\centaxi.c(894,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(894,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(895,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(895,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(894,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(902,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(902,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
 E:\projects\so2-project\tp-so2\centaxi.c(903,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(903,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(904,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(904,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(905,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(905,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(913,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(913,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(914,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(914,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(915,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(915,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(923,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(923,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(924,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(924,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(925,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(925,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(933,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(933,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(934,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(934,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(903,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(912,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(912,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(913,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(913,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(914,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(914,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(933,95): warning C4047: '=': 'SHM_CC_REQUEST *' differs in levels of indirection from 'int'
 E:\projects\so2-project\tp-so2\centaxi.c(935,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(935,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(935,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(936,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(936,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(937,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(937,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
 E:\projects\so2-project\tp-so2\centaxi.c(943,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(943,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(944,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(944,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(945,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(945,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(943,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(957,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(957,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(958,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(958,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
 E:\projects\so2-project\tp-so2\centaxi.c(972,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
 E:\projects\so2-project\tp-so2\centaxi.c(972,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(973,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(973,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(974,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(974,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(980,39): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(980,39): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(981,34): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(981,34): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(982,39): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(982,39): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(973,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(973,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(988,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(988,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(989,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(989,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1001,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1001,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1002,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1002,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1010,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1010,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1011,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1011,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1012,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1012,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1020,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1020,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1021,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1021,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1022,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1022,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1030,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1030,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1031,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1031,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1032,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1032,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1040,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1040,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1041,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1041,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1042,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1042,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1050,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1050,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1051,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1051,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1052,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1052,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1073,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1073,40): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1074,35): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1074,35): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1075,40): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1075,40): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1080,39): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1080,39): warning C4024: 'WaitAllThreads': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1081,34): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1081,34): warning C4024: 'UnmapAllViews': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1082,39): warning C4047: 'function': 'int *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1082,39): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
 E:\projects\so2-project\tp-so2\centaxi.c(90): warning C4715: 'InsertTaxiIntoMapCell': not all control paths return a value
-E:\projects\so2-project\tp-so2\centaxi.c(508): warning C4172: returning address of local variable or temporary: command
-E:\projects\so2-project\tp-so2\centaxi.c(594): warning C4716: 'FindFeatureAndRun': must return a value
-E:\projects\so2-project\tp-so2\centaxi.c(676): warning C4172: returning address of local variable or temporary: charMap
+E:\projects\so2-project\tp-so2\centaxi.c(601): warning C4172: returning address of local variable or temporary: command
+E:\projects\so2-project\tp-so2\centaxi.c(687): warning C4716: 'FindFeatureAndRun': must return a value
+E:\projects\so2-project\tp-so2\centaxi.c(777): warning C4172: returning address of local variable or temporary: charMap
   tp-so2.vcxproj -> E:\projects\so2-project\x64\Debug\CenTaxi.exe
