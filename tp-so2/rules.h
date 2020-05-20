@@ -42,6 +42,7 @@ enum response_id {
 	PASSENGER_DOESNT_EXIST,
 	PASSENGER_ALREADY_TAKEN,
 	CANT_QUIT_WITH_PASSENGER,
+	TAXI_REQUEST_PAUSED
 };
 
 enum passanger_state {

@@ -36,6 +36,9 @@ void PrintError(enum response_id resp) {
 	case CANT_QUIT_WITH_PASSENGER:
 		_tprintf(_T("You need to reach destination before you quit!\n"));
 		break;
+	case TAXI_REQUEST_PAUSED:
+		_tprintf(_T("Login requests are now paused, try later!\n"));
+		break;
 	}
 }
 
@@ -120,11 +123,11 @@ enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* r
 	return ret;
 }
 
-int CanMoveTo(char map[MIN_LIN][MIN_COL], Coords destination) {
-	if (destination.x < 0 || destination.y < 0) return 0;
+BOOL CanMoveTo(char map[MIN_LIN][MIN_COL], Coords destination) {
+	if (destination.x < 0 || destination.y < 0 || destination.x > MIN_COL || destination.y > MIN_LIN) return FALSE;
 	if (map[destination.x][destination.y] == B_DISPLAY)
-		return 0;
-	return 1;
+		return FALSE;
+	return TRUE;
 }
 
 // Wait for all the threads to stop
@@ -168,48 +171,26 @@ TCHAR** ParseCommand(TCHAR* cmd) {
 	return command;
 }
 
-BOOL isCruzamento(Taxi* taxi, char map[MIN_LIN][MIN_COL]) {
-	int x = taxi->location.x;
-	int y = taxi->location.y;
-	switch (taxi->direction) {
-		case DOWN:
-			return map[x + 1][y - 1] == B_DISPLAY && map[x - 1][y - 1] == B_DISPLAY ? 1 : 0;
-		case LEFT:
-			return map[x + 1][y + 1] == B_DISPLAY && map[x + 1][y - 1] == B_DISPLAY ? 1 : 0;
-		case UP:
-			return map[x - 1][y + 1] == B_DISPLAY && map[x + 1][y + 1] == B_DISPLAY ? 1 : 0;
-		case RIGHT:
-			return map[x - 1][y - 1] == B_DISPLAY && map[x - 1][y + 1] == B_DISPLAY ? 1 : 0;
-	}
-}
-
 enum response_id MoveAleatorio(CC_CDRequest* request, CC_CDResponse* response, Taxi* taxi, char map[MIN_LIN][MIN_COL]) {
-	Coords dest = taxi->location;
-	if (isCruzamento(taxi, map)) {
-		int dir = (rand() % 4 - 0 + 1) + 0;
-		switch (dir) {
-			case DOWN:
-				dest.y += 1;
-				if (CanMoveTo(map, dest))
-					return UpdateMyLocation(request, response, taxi, dest);
-				break;
-			case LEFT:
-				dest.x -= 1;
-				if (CanMoveTo(map, dest))
-					return UpdateMyLocation(request, response, taxi, dest);
-				break;
-			case UP:
-				dest.y -= 1;
-				if (CanMoveTo(map, dest))
-					return UpdateMyLocation(request, response, taxi, dest);
-				break;
-			case RIGHT:
-				dest.x += 1;
-				if (CanMoveTo(map, dest))
-					return UpdateMyLocation(request, response, taxi, dest);
-				break;
+	Coords positions[4];
+	Coords finals[4];
+	int nr = 0;
+
+	positions[DOWN] = taxi->location; positions[DOWN].y += 1;
+	positions[LEFT] = taxi->location; positions[LEFT].x -= 1;
+	positions[UP] = taxi->location; positions[UP].y -= 1;
+	positions[RIGHT] = taxi->location; positions[RIGHT].x += 1;
+
+	// invalidate outofbounds locations
+	for (unsigned int i = 0; i < 4; i++) {
+		if (CanMoveTo(map, positions[i]) && i!=taxi->direction) {
+			finals[nr].x = positions[i].x;
+			finals[nr].y = positions[i].y;
+			nr++;
 		}
 	}
+	int dir = (rand() % nr - 0 + 1) + 0;
+	return UpdateMyLocation(request, response, taxi, finals[dir]);
 }
 
 BOOL hasPassenger(Taxi* taxi) {
@@ -259,9 +240,6 @@ void moveTaxi(CD_TAXI_Thread* cdata) {
 		}
 	}
 	else {
-		// se estiver a menos de nq de um passageiro que se juntou recentemente
-		// faz o request do mesmo
-		
 		if (MoveAleatorio(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->charMap)==OK)
 			_tprintf(_T("Taxi location updated!\n"));
 		else
@@ -859,6 +837,12 @@ int _tmain(int argc, TCHAR* argv[]) {
 		WaitAllThreads(threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
+	}
+
+	for (unsigned int i = 0; i < MIN_LIN; i++) {
+		for (unsigned int j = 0; j < MIN_COL; j++)
+			_tprintf(_T("%c"), cd.charMap[j][i]);
+		_tprintf(_T("\n"));
 	}
 
 	if ((threads[threadCounter++] = CreateThread(NULL, 0, ReceiveBroadcastMessage, &cd, 0, NULL)) == NULL) {

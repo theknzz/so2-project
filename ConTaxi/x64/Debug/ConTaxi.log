@@ -1,29 +1,27 @@
 ﻿  contaxi.c
-E:\projects\so2-project\ConTaxi\contaxi.c(168,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [4][100]'
-E:\projects\so2-project\ConTaxi\contaxi.c(274,9): warning C4101: 'hTimer': unreferenced local variable
-E:\projects\so2-project\ConTaxi\contaxi.c(324,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(361,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(390,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(406,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(422,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(438,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(499,42): warning C4020: 'ReleaseMutex': too many actual parameters
-E:\projects\so2-project\ConTaxi\contaxi.c(524,13): warning C4477: 'wscanf_s' : format string '%99[^\n]' requires an argument of type 'unsigned int', but variadic argument 2 has type 'unsigned __int64'
-E:\projects\so2-project\ConTaxi\contaxi.c(524,13): message : this argument is used as a buffer size
-E:\projects\so2-project\ConTaxi\contaxi.c(538,15): warning C4244: 'function': conversion from 'time_t' to 'unsigned int', possible loss of data
-E:\projects\so2-project\ConTaxi\contaxi.c(546,12): warning C4473: 'wprintf' : not enough arguments passed for format string
-E:\projects\so2-project\ConTaxi\contaxi.c(546,12): message : placeholders and their parameters expect 1 variadic arguments, but 0 were provided
-E:\projects\so2-project\ConTaxi\contaxi.c(546,12): message : the missing variadic argument 1 is required by format string '%d'
-E:\projects\so2-project\ConTaxi\contaxi.c(704,13): warning C4477: 'wscanf_s' : format string '%9s' requires an argument of type 'unsigned int', but variadic argument 2 has type 'unsigned __int64'
-E:\projects\so2-project\ConTaxi\contaxi.c(704,13): message : this argument is used as a buffer size
-E:\projects\so2-project\ConTaxi\contaxi.c(711,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
-E:\projects\so2-project\ConTaxi\contaxi.c(711,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
-E:\projects\so2-project\ConTaxi\contaxi.c(717,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
-E:\projects\so2-project\ConTaxi\contaxi.c(717,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
-E:\projects\so2-project\ConTaxi\contaxi.c(856,25): warning C4047: 'function': 'char **' differs in levels of indirection from 'char [50][50]'
-E:\projects\so2-project\ConTaxi\contaxi.c(856,25): warning C4024: 'GetMap': different types for formal and actual parameter 1
-E:\projects\so2-project\ConTaxi\contaxi.c(168): warning C4172: returning address of local variable or temporary: command
-E:\projects\so2-project\ConTaxi\contaxi.c(184): warning C4715: 'isCruzamento': not all control paths return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(213): warning C4715: 'MoveAleatorio': not all control paths return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(480): warning C4715: 'FindFeatureAndRun': not all control paths return a value
+E:\projects\so2-project\ConTaxi\contaxi.c(171,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [4][100]'
+E:\projects\so2-project\ConTaxi\contaxi.c(252,9): warning C4101: 'hTimer': unreferenced local variable
+E:\projects\so2-project\ConTaxi\contaxi.c(302,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\contaxi.c(339,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\contaxi.c(368,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\contaxi.c(384,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\contaxi.c(400,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\contaxi.c(416,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\contaxi.c(477,42): warning C4020: 'ReleaseMutex': too many actual parameters
+E:\projects\so2-project\ConTaxi\contaxi.c(502,13): warning C4477: 'wscanf_s' : format string '%99[^\n]' requires an argument of type 'unsigned int', but variadic argument 2 has type 'unsigned __int64'
+E:\projects\so2-project\ConTaxi\contaxi.c(502,13): message : this argument is used as a buffer size
+E:\projects\so2-project\ConTaxi\contaxi.c(516,15): warning C4244: 'function': conversion from 'time_t' to 'unsigned int', possible loss of data
+E:\projects\so2-project\ConTaxi\contaxi.c(524,12): warning C4473: 'wprintf' : not enough arguments passed for format string
+E:\projects\so2-project\ConTaxi\contaxi.c(524,12): message : placeholders and their parameters expect 1 variadic arguments, but 0 were provided
+E:\projects\so2-project\ConTaxi\contaxi.c(524,12): message : the missing variadic argument 1 is required by format string '%d'
+E:\projects\so2-project\ConTaxi\contaxi.c(682,13): warning C4477: 'wscanf_s' : format string '%9s' requires an argument of type 'unsigned int', but variadic argument 2 has type 'unsigned __int64'
+E:\projects\so2-project\ConTaxi\contaxi.c(682,13): message : this argument is used as a buffer size
+E:\projects\so2-project\ConTaxi\contaxi.c(689,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
+E:\projects\so2-project\ConTaxi\contaxi.c(689,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
+E:\projects\so2-project\ConTaxi\contaxi.c(695,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
+E:\projects\so2-project\ConTaxi\contaxi.c(695,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
+E:\projects\so2-project\ConTaxi\contaxi.c(834,25): warning C4047: 'function': 'char **' differs in levels of indirection from 'char [50][50]'
+E:\projects\so2-project\ConTaxi\contaxi.c(834,25): warning C4024: 'GetMap': different types for formal and actual parameter 1
+E:\projects\so2-project\ConTaxi\contaxi.c(171): warning C4172: returning address of local variable or temporary: command
+E:\projects\so2-project\ConTaxi\contaxi.c(458): warning C4715: 'FindFeatureAndRun': not all control paths return a value
   ConTaxi.vcxproj -> E:\projects\so2-project\x64\Debug\ConTaxi.exe

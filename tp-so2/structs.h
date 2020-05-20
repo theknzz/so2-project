@@ -128,6 +128,7 @@ typedef struct _CONTROL_DATA_TAXI_THREAD{
 } CD_TAXI_Thread;
 
 typedef struct ThreadControlData {
+	BOOL* areTaxisRequestsPause;
 	int nrMaxTaxis;
 	int nrMaxPassengers;
 	Cell* map;
