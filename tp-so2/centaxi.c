@@ -142,8 +142,10 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 				// encontrar o taxi na tabela de taxis ativos
 				index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
 				// se nao encontrar devolve erro
-				if (index == -1)
+				if (index == -1) {
+					response.action = TAXI_KICKED;
 					break;
+				}
 				// guarda a posição atual no mapa em variaveis auxiliares
 				x = (*(cd->taxis + index)).location.x;
 				y = (*(cd->taxis + index)).location.y;
@@ -183,7 +185,10 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 			case WarnPassengerCatch:
 				// change the state of the taxi's client
 				index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
-				if (index == -1) break;
+				if (index == -1) {
+					response.action = TAXI_KICKED;
+					break;
+				}
 				x = (*(cd->taxis + index)).location.x;
 				y = (*(cd->taxis + index)).location.y;
 				cd->taxis[index].client.state = OnDrive;
@@ -201,7 +206,10 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 				break;
 			case WarnPassengerDeliever:
 				index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
-				if (index == -1) break;
+				if (index == -1) {
+					response.action = TAXI_KICKED;
+					break;
+				}
 				x = cd->taxis[index].location.x;
 				y = cd->taxis[index].location.y;
 				cd->taxis[index].client.state = Done;
@@ -253,21 +261,29 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 				break;
 			case NotifySpeedChange:
 				index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
-				if (index == -1) break;
+				if (index == -1) {
+					response.action = TAXI_KICKED;
+					break;
+				}
 				CopyMemory(&cd->taxis[index], &content.taxi, sizeof(Taxi));
 				response.action = OK;
 				break;
-
 			case NotifyNQChange:
 				index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
-				if (index == -1) break;
+				if (index == -1) {
+					response.action = TAXI_KICKED;
+					break;
+				}
 				CopyMemory(&cd->taxis[index], &content.taxi, sizeof(Taxi));
 				response.action = OK;
 				break;
 
 			case NotifyTaxiLeaving:
 				index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
-				if (index == -1) break;
+				if (index == -1) {
+					response.action = TAXI_KICKED;
+					break;
+				}
 				// taxis has passenger
 				if (cd->taxis[index].client.location.x != -1) {
 					response.action = CANT_QUIT_WITH_PASSENGER;
@@ -675,8 +691,7 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 			ZeroMemory(&cdata->taxis[index], sizeof(Taxi));
 			cdata->taxis[index].location.x = -1;
 			cdata->taxis[index].location.y = -1;
-			// notify the taxi that he session finished
-			// ## TODO
+			RemoveTaxiFromMapCell(&cdata->map[cdata->taxis[index].location.x + cdata->taxis[index].location.y * MIN_COL], cmd[1], cdata->nrMaxTaxis);
 			_tprintf(_T("Taxi with '%s' as license has been kicked from the server.\n"), cmd[1]);
 		}
 	}
@@ -689,7 +704,6 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 			if (cdata->taxis[i].location.x > 0)
 				_tprintf(_T("%.2d - %9s at {%.2d;%.2d} is \n"), i, cdata->taxis[i].licensePlate, cdata->taxis[i].location.x, cdata->taxis[i].location.y);
 		}
-
 	}
 	else if (_tcscmp(cmd[0], ADM_LIST_PASSENGERS) == 0) {
 		for (unsigned int i = 0; i < cdata->nrMaxPassengers; i++) {
@@ -698,7 +712,6 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 					i, cdata->passengers[i].nome, cdata->passengers[i].location.x, cdata->passengers[i].location.y,
 					cdata->passengers[i].destination.x, cdata->passengers[i].destination.y, ParseStateToString(cdata->passengers[i].state));
 		}
-
 	}
 	else if (_tcscmp(cmd[0], ADM_PAUSE) == 0) {
 		_tprintf(_T("System pause\n"));
@@ -738,7 +751,6 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 			cdata->passengers[index + 1].destination.x = dest_x;
 			cdata->passengers[index + 1].destination.y = dest_y;
 			cdata->passengers[index + 1].state = Waiting;
-
 			index = GetLastPassengerIndex(cdata->map[x + y * MIN_COL].passengers, cdata->nrMaxPassengers);
 			CopyMemory(cdata->map[x + y * MIN_COL].passengers[index + 1].nome, cmd[1], sizeof(TCHAR) * 25);
 			cdata->map[x + y * MIN_COL].passengers[index + 1].location.x = x;
