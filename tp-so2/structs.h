@@ -61,8 +61,8 @@ typedef struct _MSG_TO_CENTRAL {
 } SHM_CC_REQUEST;
 
 typedef struct _BROADCAST_MSG {
-	int dbg;
 	Passenger passenger;
+	BOOL isSystemClosing;
 } SHM_BROADCAST;
 
 typedef struct _MSG_TO_TAXI {
@@ -125,6 +125,7 @@ typedef struct _CONTROL_DATA_TAXI_THREAD{
 	HANDLE taxiGate;
 	char charMap[MIN_COL][MIN_LIN];
 	CC_Broadcast* broadcast;
+	BOOL isTaxiKicked;
 } CD_TAXI_Thread;
 
 typedef struct ThreadControlData {
@@ -133,6 +134,7 @@ typedef struct ThreadControlData {
 	int nrMaxPassengers;
 	Cell* map;
 	Taxi* taxis;
+	BOOL isSystemClosing;
 	CC_Broadcast* broadcast;
 	int* WaitTimeOnTaxiRequest;
 	Passenger* passengers;
@@ -142,6 +144,7 @@ typedef struct ThreadControlData {
 	CDLogin_Response* cdLogin_Response;
 	char charMap[MIN_COL][MIN_LIN];
 	SHM_CC_REQUEST* requests;
+	HANDLE timerHandle;
 } CDThread;
 
 typedef struct _CMD_STRUCT {

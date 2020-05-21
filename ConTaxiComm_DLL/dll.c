@@ -13,23 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-//enum response_id CallCentral(CDThread cdThread, Content content, enum message_id messageId) {
-//	CC_CDRequest cdata = cdThread.controlDataTaxi;
-//	CC_CDResponse cdResponse = cdThread.cdResponse;
-//
-//	WaitForSingleObject(cdata.mutex, INFINITE);
-//
-//	cdata.shared->action = messageId;
-//	//cdata.shared->messageContent = content;
-//	CopyMemory(&cdata.shared->messageContent, &content, sizeof(Content));
-//
-//	ReleaseMutex(cdata.mutex);
-//	SetEvent(cdata.write_event);
-//
-//	//WaitForSingleObject(cdata.read_event, INFINITE);
-//	return ReadResponse(cdResponse);
-//}
-
 enum response_id RegisterInCentral(LR_Container* res, CDThread cdata, TCHAR* licensePlate, Coords location) {
 	CDLogin_Request* cdRequest = cdata.cdLogin_Request;
 	CDLogin_Response* cdResponse = cdata.cdLogin_Response;
@@ -118,6 +101,7 @@ char** GetMapFromCentral(CC_CDResponse* response, CC_CDRequest* request) {
 
 enum response_id UpdateMyLocation(CC_CDRequest* request, CC_CDResponse* response, Taxi* taxi, Coords location) {
 	SHM_CC_REQUEST r;
+	enum response_id res;
 
 	CopyMemory(&r.messageContent.taxi, taxi, sizeof(Taxi));
 	// change the location of the taxi to the destination
@@ -129,7 +113,12 @@ enum response_id UpdateMyLocation(CC_CDRequest* request, CC_CDResponse* response
 
 	RequestAction(request, response, r);
 
-	return GetCentralResponse(response, request);
+	if ((res = GetCentralResponse(response, request)) == OK) {
+		taxi->location.x = location.x;
+		taxi->location.y = location.y;
+	}
+
+	return res;
 }
 
 enum response_id GetMap(char** map, CC_CDRequest* request, CC_CDResponse* response) {
@@ -155,10 +144,11 @@ enum response_id GetPassengerFromCentral(CC_CDResponse* response, CC_CDRequest* 
 	return response->shared->action;
 }
 
-enum response_id RequestPassengerTransport(CC_CDRequest* request, CC_CDResponse* response, Passenger* passenger, TCHAR passengerName[25]) {
+enum response_id RequestPassengerTransport(CC_CDRequest* request, CC_CDResponse* response, Passenger* passenger, TCHAR passengerName[25], TCHAR* license) {
 	SHM_CC_REQUEST r;
 	r.action = RequestPassenger;
-	//_tcscpy(r.messageContent.passenger.nome, passengerName);
+
+	CopyMemory(r.messageContent.taxi.licensePlate, license, sizeof(Taxi));
 	CopyMemory(r.messageContent.passenger.nome, passengerName, sizeof(TCHAR)*25);
 
 	RequestAction(request, response, r);

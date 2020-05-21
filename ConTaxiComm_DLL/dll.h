@@ -22,7 +22,7 @@ enum response_id DLL_EXPORT GetMap(char* * map, CC_CDRequest* request, CC_CDResp
 
 char** GetMapFromCentral(CC_CDResponse* response, CC_CDRequest* request);
 
-enum response_id DLL_EXPORT RequestPassengerTransport(CC_CDRequest* request, CC_CDResponse* response, Passenger* passenger, TCHAR passengerName[25]);
+enum response_id DLL_EXPORT RequestPassengerTransport(CC_CDRequest* request, CC_CDResponse* response, Passenger* passenger, TCHAR passengerName[25], TCHAR* license);
 
 enum response_id DLL_EXPORT NotifyVelocityChange(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi);
 

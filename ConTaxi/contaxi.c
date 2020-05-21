@@ -13,7 +13,7 @@
 #include "structs.h"
 #include "dll.h"
 
-void PrintError(enum response_id resp) {
+void PrintError(enum response_id resp, CD_TAXI_Thread* cd) {
 	switch (resp) {
 	case INVALID_REGISTRATION_TAXI_POSITION:
 		_tprintf(_T("Taxi can't be place in a building cell!\n"));
@@ -38,6 +38,10 @@ void PrintError(enum response_id resp) {
 		break;
 	case TAXI_REQUEST_PAUSED:
 		_tprintf(_T("Login requests are now paused, try later!\n"));
+		break;
+	case TAXI_KICKED:
+		_tprintf(_T("Central kicked you!\n"));
+		cd->isTaxiKicked = TRUE;
 		break;
 	}
 }
@@ -172,6 +176,7 @@ TCHAR** ParseCommand(TCHAR* cmd) {
 }
 
 enum response_id MoveAleatorio(CC_CDRequest* request, CC_CDResponse* response, Taxi* taxi, char map[MIN_LIN][MIN_COL]) {
+	enum response_id res;
 	Coords positions[4];
 	Coords finals[4];
 	int nr = 0;
@@ -189,8 +194,11 @@ enum response_id MoveAleatorio(CC_CDRequest* request, CC_CDResponse* response, T
 			nr++;
 		}
 	}
-	int dir = (rand() % nr - 0 + 1) + 0;
-	return UpdateMyLocation(request, response, taxi, finals[dir]);
+	int dir = (rand() % nr - 0) + 0;
+	if ((res = UpdateMyLocation(request, response, taxi, finals[dir])) == OK) {
+		CopyMemory(&taxi->location, &finals[dir], sizeof(Coords));
+	}
+	return res;
 }
 
 BOOL hasPassenger(Taxi* taxi) {
@@ -209,10 +217,9 @@ void moveTaxi(CD_TAXI_Thread* cdata) {
 	enum response_id resp;
 	
 	if (hasPassenger(cdata->taxi)) {
-
-		if (isPassengerLocation(cdata->taxi)) {
+		if (isPassengerLocation(cdata->taxi) && cdata->taxi->client.state != OnDrive) {
 			if ((resp = NotifyPassengerCatch(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK)
-				PrintError(resp);
+				PrintError(resp, cdata);
 			else {
 				cdata->taxi->client.state = OnDrive;
 				_tprintf(_T("Passenger caught!\n"));
@@ -220,31 +227,31 @@ void moveTaxi(CD_TAXI_Thread* cdata) {
 		}
 		else if (isPassengerDestination(cdata->taxi)) {
 			if ((resp = NotifyPassengerDeliever(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK)
-				PrintError(resp);
+				PrintError(resp, cdata);
 			else {
 				_tprintf(_T("Passenger delvired!\n"));
 			}
 		}
 
 		if (cdata->taxi->client.state == OnDrive) {
-			if (MoveMeToOptimalPosition(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->taxi->client.destination, cdata->charMap) == OK)
+			if ((resp = MoveMeToOptimalPosition(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->taxi->client.destination, cdata->charMap)) == OK)
 				_tprintf(_T("Taxi location updated!\n"));
 			else
-				_tprintf(_T("For some reason taxi can't move that way!\n"));
+				PrintError(resp, cdata);
 		}
 		else if (cdata->taxi->client.state == Waiting) {
-			if (MoveMeToOptimalPosition(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->taxi->client.location, cdata->charMap) == OK)
+			if ((resp = MoveMeToOptimalPosition(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->taxi->client.location, cdata->charMap)) == OK)
 				_tprintf(_T("Taxi location updated!\n"));
 			else
-				_tprintf(_T("For some reason taxi can't move that way!\n"));
+				PrintError(resp, cdata);
 		}
 	}
-	else {
+	/*else {
 		if (MoveAleatorio(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->charMap)==OK)
 			_tprintf(_T("Taxi location updated!\n"));
 		else
 			_tprintf(_T("For some reason taxi can't move that way!\n"));
-	}
+	}*/
 }
 
 DWORD WINAPI TaxiAutopilot(LPVOID ptr) {
@@ -254,7 +261,7 @@ DWORD WINAPI TaxiAutopilot(LPVOID ptr) {
 	FILETIME ft, ftUTC;
 	LARGE_INTEGER DueTime;
 	SYSTEMTIME systime;
-	LONG interval = (LONG)(1 / cdata->taxi->velocity) * 1000;
+	LONG interval = (LONG)/*(1 / cdata->taxi->velocity)*/5 * 1000;
 
 	SystemTimeToFileTime(&systime, &ft);
 	LocalFileTimeToFileTime(&ft, &ftUTC);
@@ -262,16 +269,17 @@ DWORD WINAPI TaxiAutopilot(LPVOID ptr) {
 	DueTime.LowPart = ftUTC.dwLowDateTime;
 	DueTime.QuadPart = - (LONGLONG) interval * 1000 * 10;
 
-	//if ((hTimer = CreateWaitableTimer(NULL, FALSE, NULL)) == NULL) {
-	//	_tprintf(_T("Error (%d) creating the waitable timer.\n"), GetLastError());
-	//	return -1;
-	//}
-	/*while (1) {
-		if (!SetWaitableTimer(hTimer, &DueTime, interval, NULL, NULL, FALSE)) {
+	if ((hTimer = CreateWaitableTimer(NULL, TRUE, NULL)) == NULL) {
+		_tprintf(_T("Error (%d) creating the waitable timer.\n"), GetLastError());
+		return -1;
+	}
+	while (cdata->taxi->autopilot) {
+		if (!SetWaitableTimer(hTimer, &DueTime, 0, NULL, NULL, FALSE)) {
 			_tprintf(_T("Something went wrong! %d"), GetLastError());
-		}*/
+		}
 		moveTaxi(cdata);
-	//}
+		WaitForSingleObject(hTimer, INFINITE);
+	}
 	return 0;
 }
 
@@ -301,8 +309,8 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			_tprintf(_T("Too few arguments to use this command!\n"));
 			return;
 		}
-		if ((res = RequestPassengerTransport(cdata->comm->request, cdata->comm->response, &cdata->taxi->client, cmd[1])) != OK)
-			PrintError(res);
+		if ((res = RequestPassengerTransport(cdata->comm->request, cdata->comm->response, &cdata->taxi->client, cmd[1], cdata->taxi->licensePlate)) != OK)
+			PrintError(res, cdata);
 		else
 			_tprintf(_T("Got '%s' as a passenger in {%.2d,%.2d} with the destination {%.2d,%.2d}.\n"), cdata->taxi->client.nome,
 				cdata->taxi->client.location.x, cdata->taxi->client.location.y, cdata->taxi->client.destination.x, cdata->taxi->client.destination.y);
@@ -311,7 +319,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		_tprintf(_T("speed\n"));
 		cdata->taxi->velocity += 0.5;
 		if ((res = NotifyVelocityChange(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK) {
-			PrintError(res);
+			PrintError(res, cdata);
 			cdata->taxi->velocity -= 0.5;
 		}
 		else {
@@ -326,7 +334,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		}
 		cdata->taxi->velocity -= 0.5;
 		if ((res = NotifyVelocityChange(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK) {
-			PrintError(res);
+			PrintError(res, cdata);
 			cdata->taxi->velocity += 0.5;
 		}
 		else {
@@ -341,7 +349,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		int aux = cdata->taxi->nq;
 		cdata->taxi->nq = _ttoi(cmd[1]);
 		if ((res = NotifyCentralNQChange(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK) {
-			PrintError(res);
+			PrintError(res, cdata);
 			cdata->taxi->nq = aux;
 		}
 		else {
@@ -352,7 +360,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		if (cdata->taxi->autopilot == 0) {
 			_tprintf(_T("Taxi's autopilot activated.\n"));
 			cdata->taxi->autopilot = 1;
-			//CreateThread(NULL, 0, TaxiAutopilot, cdata, 0, NULL);
+			CreateThread(NULL, 0, TaxiAutopilot, cdata, 0, NULL);
 		}
 		else {
 			_tprintf(_T("Taxi's autopilot desactivated.\n"));
@@ -368,11 +376,13 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return;
 		}
 		else {
-			if (UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest) == OK) {
+			if ((res = UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest)) == OK) {
 				_tprintf(_T("Moving up\n"));
 				CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
 				cdata->taxi->direction = UP;
 			}
+			else
+				PrintError(res, cdata);
 		}
 	}
 	else if (_tcscmp(cmd[0], TXI_LEFT) == 0) {
@@ -384,11 +394,13 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return;
 		}
 		else {
-			if (UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest) == OK) {
+			if ((res = UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest)) == OK) {
 				_tprintf(_T("Moving left\n"));
 				CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
 				cdata->taxi->direction = LEFT;
 			}
+			else
+				PrintError(res, cdata);
 		}
 	}
 	else if (_tcscmp(cmd[0], TXI_DOWN) == 0) {
@@ -400,11 +412,13 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return;
 		}
 		else {
-			if (UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest) == OK) {
+			if ((res=UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest)) == OK) {
 				CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
 				_tprintf(_T("Moving down\n"));
 				cdata->taxi->direction = DOWN;
 			}
+			else
+				PrintError(res, cdata);
 		}
 	}
 	else if (_tcscmp(cmd[0], TXI_RIGHT) == 0) {
@@ -416,16 +430,18 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return;
 		}
 		else {
-			if (UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest) == OK) {
+			if ((res = UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest)) == OK) {
 				CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
 				_tprintf(_T("Moving right\n"));
 				cdata->taxi->direction = RIGHT;
 			}
+			else
+				PrintError(res, cdata);
 		}
 	}
 	else if (_tcscmp(cmd[0], TXI_CATCH) == 0) {
 		if ((res = NotifyPassengerCatch(cdata->comm->request, cdata->comm->response, *cdata->taxi)) != OK) {
-			PrintError(res);
+			PrintError(res, cdata);
 		}
 		else {
 			cdata->taxi->client.state = OnDrive;
@@ -434,7 +450,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 	}
 	else if (_tcscmp(cmd[0], TXI_DELIVER) == 0) {
 		if ((res = NotifyPassengerDeliever(cdata->comm->request, cdata->comm->response, *cdata->taxi)) != OK) {
-			PrintError(res);
+			PrintError(res, cdata);
 		}
 		else {
 			_tprintf(_T("Passenger delivered!\n"));
@@ -461,29 +477,34 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 DWORD WINAPI ReceiveBroadcastMessage(LPVOID ptr) {
 	CD_TAXI_Thread* cd = (CD_TAXI_Thread*)ptr;
 	CC_Broadcast* broadcast = cd->broadcast;
-	Passenger newPassenger;
+	SHM_BROADCAST message;
 	enum response_id resp;
 
-	while (1) {
+	while (!cd->isTaxiKicked) {
 		WaitForSingleObject(broadcast->new_passenger, INFINITE);
 
 		WaitForSingleObject(broadcast->mutex, INFINITE);
-		
-		_tprintf(_T("New passenger joined central: '%s' at {%.2d;%.2d}\n"), broadcast->shared->passenger.nome,
-			broadcast->shared->passenger.location.x, broadcast->shared->passenger.location.y);
 
-		CopyMemory(&newPassenger, &broadcast->shared->passenger, sizeof(Passenger));
+		CopyMemory(&message, broadcast->shared, sizeof(SHM_BROADCAST));
 
 		ReleaseMutex(broadcast->mutex, INFINITE);
 
+		cd->isTaxiKicked = message.isSystemClosing;
+
+		if (!message.isSystemClosing)
+			_tprintf(_T("New passenger joined central: '%s' at {%.2d;%.2d}\n"), broadcast->shared->passenger.nome,
+				broadcast->shared->passenger.location.x, broadcast->shared->passenger.location.y);
+		else
+			_tprintf(_T("Central is closing...\n"));
+
 		if (cd->taxi->autopilot) {
 			if (!hasPassenger(cd->taxi)) {
-				if (CalculateDistanceTo(cd->taxi->location, newPassenger.location) <= cd->taxi->nq) {
-					if ((resp = RequestPassengerTransport(cd->comm->request, cd->comm->response, &cd->taxi->client, newPassenger.nome)) != OK)
-						PrintError(resp);
+				if (CalculateDistanceTo(cd->taxi->location, message.passenger.location) <= cd->taxi->nq) {
+					if ((resp = RequestPassengerTransport(cd->comm->request, cd->comm->response, &cd->taxi->client, message.passenger.nome, cd->taxi->licensePlate)) != OK)
+						PrintError(resp, cd);
 					else {
-						_tprintf(_T("Got '%s' as a passenger in {%.2d,%.2d} with the destination {%.2d,%.2d}.\n"), newPassenger.nome,
-							newPassenger.location.x, newPassenger.location.y, newPassenger.destination.x, newPassenger.destination.y);
+						_tprintf(_T("Got '%s' as a passenger in {%.2d,%.2d} with the destination {%.2d,%.2d}.\n"), message.passenger.nome,
+							message.passenger.location.x, message.passenger.location.y, message.passenger.destination.x, message.passenger.destination.y);
 					}
 				}
 			}
@@ -497,17 +518,15 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 	CD_TAXI_Thread* cdata = (CD_TAXI_Thread*)ptr;
 	TCHAR command[100];
 
-	while (1) {
+	while (!cdata->isTaxiKicked) {
 		_tprintf(_T("Command: "));
 		_tscanf_s(_T(" %99[^\n]"), command, sizeof(TCHAR) * 100);
 		if (FindFeatureAndRun(command, cdata) == -1) break;
 	}
-	_tprintf(_T("text interface closing...\n"));
 	return 0;
 }
 
 int _tmain(int argc, TCHAR* argv[]) {
-
 	HANDLE handles[50];
 	HANDLE threads[50];
 	HANDLE views[50];
@@ -702,6 +721,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 	CDThread cdThread;
 	cdThread.cdLogin_Request = &cdLogin_Request;
 	cdThread.cdLogin_Response = &cdLogin_Response;
+	CD_TAXI_Thread cd;
+	cd.isTaxiKicked = FALSE;
 
 	LR_Container res;
 	enum responde_id resp = RegisterInCentral(&res, cdThread, licensePlate, coords);
@@ -709,7 +730,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	{
 		CloseMyHandles(handles, handleCounter);
 		UnmapAllViews(views, viewCounter);
-		PrintError(resp);
+		PrintError(resp, &cd);
 		Sleep(5000);
 		exit(-1);
 	}
@@ -817,7 +838,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 	cc_comm.response = &response;
 	cc_comm.container = &res;
 
-	CD_TAXI_Thread cd;
 	Taxi me;
 	cd.comm = &cc_comm;
 	CopyMemory(me.licensePlate, licensePlate, sizeof(TCHAR) * 9);
@@ -833,7 +853,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	enum response_id ret;
 	ret = GetMap(cd.charMap, &request, &response);
 	if (ret != OK) {
-		PrintError(ret);
+		PrintError(ret, &cd);
 		WaitAllThreads(threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);

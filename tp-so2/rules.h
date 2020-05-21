@@ -6,7 +6,7 @@
 #define COMM_BUF_SIZE 5
 #define MAX_TAXIS 5
 #define MAX_PASSENGERS 5
-#define NQ 10
+#define NQ 50
 #define WAIT_TIME 5
 
 // Map characters
