@@ -49,7 +49,7 @@ void PrintMap(Cell* map) {
 	_tprintf(_T("\n"));
 }
 
-void SendBroadCastMessage(CC_Broadcast* broadcast, SHM_BROADCAST* message) {
+void SendBroadCastMessage(CC_Broadcast* broadcast, SHM_BROADCAST* message, int nr) {
 
 	WaitForSingleObject(broadcast->mutex, INFINITE);
 
@@ -57,7 +57,7 @@ void SendBroadCastMessage(CC_Broadcast* broadcast, SHM_BROADCAST* message) {
 
 	ReleaseMutex(broadcast->mutex);
 
-	SetEvent(broadcast->new_passenger);
+	ReleaseSemaphore(broadcast->new_passenger, (LONG)nr, NULL);
 }
 
 // função-thread responsável por tratar a interação com o admin
@@ -707,6 +707,14 @@ TCHAR* ParseStateToString(enum passanger_state state) {
 	}
 }
 
+int NumberOfActiveTaxis(Taxi* taxis, int size) {
+	int count = 0;
+	for (unsigned int i = 0; i < size; i++)
+		if (taxis[i].location.x != -1)
+			count++;
+	return count;
+}
+
 int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 	TCHAR commands[7][100] = {
 		_T("\tkick x - kick taxi with x as id.\n"),
@@ -747,7 +755,7 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 		SHM_BROADCAST b;
 		cdata->isSystemClosing = TRUE;
 		b.isSystemClosing = TRUE;
-		SendBroadCastMessage(cdata->broadcast, &b);
+		SendBroadCastMessage(cdata->broadcast, &b, NumberOfActiveTaxis(cdata->taxis, cdata->nrMaxTaxis));
 	}
 	else if (_tcscmp(cmd[0], ADM_LIST_TAXIS) == 0) {
 		for (unsigned int i = 0; i < cdata->nrMaxTaxis; i++) {
@@ -808,7 +816,7 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 			SHM_BROADCAST b;
 			b.isSystemClosing = FALSE;
 			CopyMemory(&b.passenger, &cdata->passengers[index + 1], sizeof(Passenger));
-			SendBroadCastMessage(cdata->broadcast, &b);
+			SendBroadCastMessage(cdata->broadcast, &b, NumberOfActiveTaxis(cdata->taxis, cdata->nrMaxTaxis));
 		}
 	}
 	else {

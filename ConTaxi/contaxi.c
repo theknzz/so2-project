@@ -527,8 +527,6 @@ DWORD WINAPI ReceiveBroadcastMessage(LPVOID ptr) {
 				}
 			}
 		}
-		// O evento desbloqueia todos os taxis ao mesmo tempo?
-		//SetEvent(broadcast->new_passenger);
 	}
 }
 
