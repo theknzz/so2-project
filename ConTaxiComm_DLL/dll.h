@@ -30,6 +30,6 @@ enum response_id DLL_EXPORT NotifyCentralNQChange(CC_CDRequest* request, CC_CDRe
 
 enum response_id DLL_EXPORT NotifyCentralTaxiLeaving(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi);
 
-enum response_id DLL_EXPORT NotifyPassengerCatch(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi);
+enum response_id DLL_EXPORT NotifyPassengerCatch(CC_CDRequest* request, CC_CDResponse* response, Taxi* taxi);
 
-enum response_id DLL_EXPORT NotifyPassengerDeliever(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi);
+enum response_id DLL_EXPORT NotifyPassengerDeliever(CC_CDRequest* request, CC_CDResponse* response, Taxi* taxi);

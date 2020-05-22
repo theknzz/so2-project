@@ -824,41 +824,42 @@ void LoadMapa(Cell* map, char* buffer, int nrTaxis, int nrPassangers) {
 				continue;
 			}
 			aux = ((i * MIN_COL) + j);
+			Cell* cell = &map[aux];
 			if (c == S_CHAR) {
-				map[aux].taxis = malloc(nrTaxis * sizeof(Taxi));
+				cell->taxis = malloc(nrTaxis * sizeof(Taxi));
 				for (unsigned int i = 0; i < nrTaxis; i++) {
 					ZeroMemory(&map[aux].taxis[i].licensePlate, sizeof(TCHAR) * 9);
-					map[aux].taxis[i].location.x = -1;
-					map[aux].taxis[i].location.y = -1;
+					cell->taxis[i].location.x = -1;
+					cell->taxis[i].location.y = -1;
 				}
-				map[aux].passengers = malloc(nrPassangers * sizeof(Passenger));
+				cell->passengers = malloc(nrPassangers * sizeof(Passenger));
 				for (unsigned int i = 0; i < nrPassangers; i++) {
 					ZeroMemory(&map[aux].passengers[i].nome, sizeof(TCHAR) * 25);
-					map[aux].passengers[i].location.x = -1;
-					map[aux].passengers[i].location.y = -1;
+					cell->passengers[i].location.x = -1;
+					cell->passengers[i].location.y = -1;
 				}
-				map[aux].display = S_DISPLAY;
-				map[aux].cellType = Street;
-				map[aux].x = j;
-				map[aux].y = i;
+				cell->display = S_DISPLAY;
+				cell->cellType = Street;
+				cell->x = j;
+				cell->y = i;
 			}
 			else if (c == B_CHAR) {
-				map[aux].taxis = malloc(nrTaxis * sizeof(Taxi));
+				cell->taxis = malloc(nrTaxis * sizeof(Taxi));
 				for (unsigned int i = 0; i < nrTaxis; i++) {
 					ZeroMemory(&map[aux].taxis[i].licensePlate, sizeof(TCHAR) * 9);
-					map[aux].taxis[i].location.x = -1;
-					map[aux].taxis[i].location.y = -1;
+					cell->taxis[i].location.x = -1;
+					cell->taxis[i].location.y = -1;
 				}
-				map[aux].passengers = malloc(nrPassangers * sizeof(Passenger));
+				cell->passengers = malloc(nrPassangers * sizeof(Passenger));
 				for (unsigned int i = 0; i < nrPassangers; i++) {
 					ZeroMemory(&map[aux].passengers[i].nome, sizeof(TCHAR) * 25);
-					map[aux].passengers[i].location.x = -1;
-					map[aux].passengers[i].location.y = -1;
+					cell->passengers[i].location.x = -1;
+					cell->passengers[i].location.y = -1;
 				}
-				map[aux].display = B_DISPLAY;
-				map[aux].cellType = Building;
-				map[aux].x = j;
-				map[aux].y = i;
+				cell->display = B_DISPLAY;
+				cell->cellType = Building;
+				cell->x = j;
+				cell->y = i;
 			}
 		}
 	}

@@ -117,11 +117,14 @@ enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* r
 	}
 
 	enum response_id ret;
-	if ((ret = UpdateMyLocation(request, response, taxi, coords[nr]) == OK)) {
+	ret = UpdateMyLocation(request, response, taxi, coords[nr]);
+	if (ret == OK) {
 		taxi->location.x = coords[nr].x;
 		taxi->location.y = coords[nr].y;
-		taxi->client.location.x = coords[nr].x;
-		taxi->client.location.y = coords[nr].y;
+		if (taxi->client.state == OnDrive) {
+			taxi->client.location.x = coords[nr].x;
+			taxi->client.location.y = coords[nr].y;
+		}
 		taxi->direction = nr;
 	}
 	return ret;
@@ -218,15 +221,14 @@ void moveTaxi(CD_TAXI_Thread* cdata) {
 	
 	if (hasPassenger(cdata->taxi)) {
 		if (isPassengerLocation(cdata->taxi) && cdata->taxi->client.state != OnDrive) {
-			if ((resp = NotifyPassengerCatch(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK)
+			if ((resp = NotifyPassengerCatch(cdata->comm->request, cdata->comm->response, cdata->taxi)) != OK)
 				PrintError(resp, cdata);
 			else {
-				cdata->taxi->client.state = OnDrive;
 				_tprintf(_T("Passenger caught!\n"));
 			}
 		}
 		else if (isPassengerDestination(cdata->taxi)) {
-			if ((resp = NotifyPassengerDeliever(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK)
+			if ((resp = NotifyPassengerDeliever(cdata->comm->request, cdata->comm->response, cdata->taxi)) != OK)
 				PrintError(resp, cdata);
 			else {
 				_tprintf(_T("Passenger delvired!\n"));
@@ -239,7 +241,7 @@ void moveTaxi(CD_TAXI_Thread* cdata) {
 			else
 				PrintError(resp, cdata);
 		}
-		else if (cdata->taxi->client.state == Waiting) {
+		else if (cdata->taxi->client.state == Waiting && !(cdata->taxi->client.location.x <0)) {
 			if ((resp = MoveMeToOptimalPosition(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->taxi->client.location, cdata->charMap)) == OK)
 				_tprintf(_T("Taxi location updated!\n"));
 			else
@@ -261,7 +263,7 @@ DWORD WINAPI TaxiAutopilot(LPVOID ptr) {
 	FILETIME ft, ftUTC;
 	LARGE_INTEGER DueTime;
 	SYSTEMTIME systime;
-	LONG interval = (LONG)/*(1 / cdata->taxi->velocity)*/5 * 1000;
+	LONG interval = (LONG)/*(1 / cdata->taxi->velocity)*/2 * 1000;
 
 	SystemTimeToFileTime(&systime, &ft);
 	LocalFileTimeToFileTime(&ft, &ftUTC);
@@ -440,16 +442,15 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		}
 	}
 	else if (_tcscmp(cmd[0], TXI_CATCH) == 0) {
-		if ((res = NotifyPassengerCatch(cdata->comm->request, cdata->comm->response, *cdata->taxi)) != OK) {
+		if ((res = NotifyPassengerCatch(cdata->comm->request, cdata->comm->response, cdata->taxi)) != OK) {
 			PrintError(res, cdata);
 		}
 		else {
-			cdata->taxi->client.state = OnDrive;
 			_tprintf(_T("Passenger caught!\n"));
 		}
 	}
 	else if (_tcscmp(cmd[0], TXI_DELIVER) == 0) {
-		if ((res = NotifyPassengerDeliever(cdata->comm->request, cdata->comm->response, *cdata->taxi)) != OK) {
+		if ((res = NotifyPassengerDeliever(cdata->comm->request, cdata->comm->response, cdata->taxi)) != OK) {
 			PrintError(res, cdata);
 		}
 		else {

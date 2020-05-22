@@ -186,19 +186,34 @@ enum response_id NotifyCentralTaxiLeaving(CC_CDRequest* request, CC_CDResponse* 
 	return GetCentralResponse(response, request);
 }
 
-enum response_id NotifyPassengerCatch(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi) {
+enum response_id NotifyPassengerCatch(CC_CDRequest* request, CC_CDResponse* response, Taxi* taxi) {
 	SHM_CC_REQUEST r;
+	enum response_id res;
 	r.action = WarnPassengerCatch;
-	CopyMemory(&r.messageContent.taxi, &taxi, sizeof(Taxi));
+	CopyMemory(&r.messageContent.taxi, taxi, sizeof(Taxi));
 	RequestAction(request, response, r);
-	return GetCentralResponse(response, request);
+	res = GetCentralResponse(response, request);
+	if (res==OK)
+		taxi->client.state = OnDrive;
+	return res;
 }
 
-enum response_id NotifyPassengerDeliever(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi) {
+enum response_id NotifyPassengerDeliever(CC_CDRequest* request, CC_CDResponse* response, Taxi* taxi) {
 	SHM_CC_REQUEST r;
+	enum response_id res;
+
 	r.action = WarnPassengerDeliever;
-	CopyMemory(&r.messageContent.taxi, &taxi, sizeof(Taxi));
+	CopyMemory(&r.messageContent.taxi, taxi, sizeof(Taxi));
 	RequestAction(request, response, r);
-	return GetCentralResponse(response, request);
+
+	res = GetCentralResponse(response, request);
+
+	if (res == OK) {
+		ZeroMemory(&taxi->client, sizeof(Passenger));
+		taxi->client.location.x = -1;
+		taxi->client.location.y = -1;
+	}
+
+	return res;
 }
 
