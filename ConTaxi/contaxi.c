@@ -178,12 +178,28 @@ TCHAR** ParseCommand(TCHAR* cmd) {
 	return command;
 }
 
+enum taxi_direction getTaxiDirection(Coords org, Coords target) {
+	if (org.x - 1 == target.x && org.y == target.y) return LEFT;
+	else if (org.x + 1 == target.x && org.y == target.y) return RIGHT;
+	else if (org.x == target.x && org.y + 1 == target.y) return DOWN;
+	return UP;
+}
+
+enum taxi_direction getOppositeDirection(enum taxi_direction dir) {
+	switch (dir) {
+	case DOWN: return UP;
+	case LEFT: return RIGHT;
+	case RIGHT: return LEFT;
+	case UP: return DOWN;
+	}
+}
+
 enum response_id MoveAleatorio(CC_CDRequest* request, CC_CDResponse* response, Taxi* taxi, char map[MIN_LIN][MIN_COL]) {
 	enum response_id res;
 	Coords positions[4];
 	Coords finals[4];
 	int nr = 0;
-
+	Coords org = taxi->location;
 	positions[DOWN] = taxi->location; positions[DOWN].y += 1;
 	positions[LEFT] = taxi->location; positions[LEFT].x -= 1;
 	positions[UP] = taxi->location; positions[UP].y -= 1;
@@ -191,7 +207,7 @@ enum response_id MoveAleatorio(CC_CDRequest* request, CC_CDResponse* response, T
 
 	// invalidate outofbounds locations
 	for (unsigned int i = 0; i < 4; i++) {
-		if (CanMoveTo(map, positions[i]) && i!=taxi->direction) {
+		if (CanMoveTo(map, positions[i]) && i!= getOppositeDirection(taxi->direction)) {
 			finals[nr].x = positions[i].x;
 			finals[nr].y = positions[i].y;
 			nr++;
@@ -200,6 +216,7 @@ enum response_id MoveAleatorio(CC_CDRequest* request, CC_CDResponse* response, T
 	int dir = (rand() % nr - 0) + 0;
 	if ((res = UpdateMyLocation(request, response, taxi, finals[dir])) == OK) {
 		CopyMemory(&taxi->location, &finals[dir], sizeof(Coords));
+		taxi->direction = getTaxiDirection(org, finals[dir]);
 	}
 	return res;
 }
@@ -248,12 +265,12 @@ void moveTaxi(CD_TAXI_Thread* cdata) {
 				PrintError(resp, cdata);
 		}
 	}
-	/*else {
+	else {
 		if (MoveAleatorio(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->charMap)==OK)
 			_tprintf(_T("Taxi location updated!\n"));
 		else
 			_tprintf(_T("For some reason taxi can't move that way!\n"));
-	}*/
+	}
 }
 
 DWORD WINAPI TaxiAutopilot(LPVOID ptr) {
