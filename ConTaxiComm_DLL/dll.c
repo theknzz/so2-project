@@ -111,12 +111,14 @@ enum response_id UpdateMyLocation(CC_CDRequest* request, CC_CDResponse* response
 	r.messageContent.taxi.location.y = location.y;
 	r.action = UpdateTaxiLocation;
 
+	_tprintf(_T("Request done by %s\n"), taxi->licensePlate);
 	RequestAction(request, response, r);
 
 	if ((res = GetCentralResponse(response, request)) == OK) {
 		taxi->location.x = location.x;
 		taxi->location.y = location.y;
 	}
+	_tprintf(_T("Got response by %s\n"), taxi->licensePlate);
 
 	return res;
 }

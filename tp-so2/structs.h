@@ -114,13 +114,13 @@ typedef struct HANDLE_CONTAINER {
 } HContainer;
 
 typedef struct _CC_COMMUNICATION_CONTAINER {
-	CC_CDRequest* request;
-	CC_CDResponse* response;
-	LR_Container* container;
+	CC_CDRequest request;
+	CC_CDResponse response;
+	LR_Container container;
 } CC_Comm;
 
 typedef struct _CONTROL_DATA_TAXI_THREAD{
-	CC_Comm* comm;
+	CC_Comm comm;
 	Taxi* taxi;
 	HANDLE taxiGate;
 	char charMap[MIN_COL][MIN_LIN];
@@ -139,13 +139,17 @@ typedef struct ThreadControlData {
 	int* WaitTimeOnTaxiRequest;
 	Passenger* passengers;
 	HContainer* hContainer;
-	CC_Comm* comm;
+	//CC_Comm* comm;
 	CDLogin_Request* cdLogin_Request;
 	CDLogin_Response* cdLogin_Response;
 	char charMap[MIN_COL][MIN_LIN];
 	SHM_CC_REQUEST* requests;
-	HANDLE timerHandle;
 } CDThread;
+
+typedef struct IndividualThreadControl {
+	CDThread* cd;
+	CC_Comm comm;
+} IndividualCD;
 
 typedef struct _CMD_STRUCT {
 	TCHAR* command;

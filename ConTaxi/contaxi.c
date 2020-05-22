@@ -238,14 +238,14 @@ void moveTaxi(CD_TAXI_Thread* cdata) {
 	
 	if (hasPassenger(cdata->taxi)) {
 		if (isPassengerLocation(cdata->taxi) && cdata->taxi->client.state != OnDrive) {
-			if ((resp = NotifyPassengerCatch(cdata->comm->request, cdata->comm->response, cdata->taxi)) != OK)
+			if ((resp = NotifyPassengerCatch(&cdata->comm.request, &cdata->comm.response, cdata->taxi)) != OK)
 				PrintError(resp, cdata);
 			else {
 				_tprintf(_T("Passenger caught!\n"));
 			}
 		}
 		else if (isPassengerDestination(cdata->taxi)) {
-			if ((resp = NotifyPassengerDeliever(cdata->comm->request, cdata->comm->response, cdata->taxi)) != OK)
+			if ((resp = NotifyPassengerDeliever(&cdata->comm.request, &cdata->comm.response, cdata->taxi)) != OK)
 				PrintError(resp, cdata);
 			else {
 				_tprintf(_T("Passenger delvired!\n"));
@@ -253,20 +253,20 @@ void moveTaxi(CD_TAXI_Thread* cdata) {
 		}
 
 		if (cdata->taxi->client.state == OnDrive) {
-			if ((resp = MoveMeToOptimalPosition(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->taxi->client.destination, cdata->charMap)) == OK)
+			if ((resp = MoveMeToOptimalPosition(&cdata->comm.request, &cdata->comm.response, cdata->taxi, cdata->taxi->client.destination, cdata->charMap)) == OK)
 				_tprintf(_T("Taxi location updated!\n"));
 			else
 				PrintError(resp, cdata);
 		}
 		else if (cdata->taxi->client.state == Waiting && !(cdata->taxi->client.location.x <0)) {
-			if ((resp = MoveMeToOptimalPosition(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->taxi->client.location, cdata->charMap)) == OK)
+			if ((resp = MoveMeToOptimalPosition(&cdata->comm.request, &cdata->comm.response, cdata->taxi, cdata->taxi->client.location, cdata->charMap)) == OK)
 				_tprintf(_T("Taxi location updated!\n"));
 			else
 				PrintError(resp, cdata);
 		}
 	}
 	else {
-		if (MoveAleatorio(cdata->comm->request, cdata->comm->response, cdata->taxi, cdata->charMap)==OK)
+		if (MoveAleatorio(&cdata->comm.request, &cdata->comm.response, cdata->taxi, cdata->charMap)==OK)
 			_tprintf(_T("Taxi location updated!\n"));
 		else
 			_tprintf(_T("For some reason taxi can't move that way!\n"));
@@ -328,7 +328,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			_tprintf(_T("Too few arguments to use this command!\n"));
 			return;
 		}
-		if ((res = RequestPassengerTransport(cdata->comm->request, cdata->comm->response, &cdata->taxi->client, cmd[1], cdata->taxi->licensePlate)) != OK)
+		if ((res = RequestPassengerTransport(&cdata->comm.request, &cdata->comm.response, &cdata->taxi->client, cmd[1], cdata->taxi->licensePlate)) != OK)
 			PrintError(res, cdata);
 		else
 			_tprintf(_T("Got '%s' as a passenger in {%.2d,%.2d} with the destination {%.2d,%.2d}.\n"), cdata->taxi->client.nome,
@@ -337,7 +337,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 	else if (_tcscmp(cmd[0], TXI_SPEED_UP) == 0) {
 		_tprintf(_T("speed\n"));
 		cdata->taxi->velocity += 0.5;
-		if ((res = NotifyVelocityChange(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK) {
+		if ((res = NotifyVelocityChange(&cdata->comm.request, &cdata->comm.response, *(cdata->taxi))) != OK) {
 			PrintError(res, cdata);
 			cdata->taxi->velocity -= 0.5;
 		}
@@ -352,7 +352,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return 0;
 		}
 		cdata->taxi->velocity -= 0.5;
-		if ((res = NotifyVelocityChange(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK) {
+		if ((res = NotifyVelocityChange(&cdata->comm.request, &cdata->comm.response, *(cdata->taxi))) != OK) {
 			PrintError(res, cdata);
 			cdata->taxi->velocity += 0.5;
 		}
@@ -367,7 +367,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		}
 		int aux = cdata->taxi->nq;
 		cdata->taxi->nq = _ttoi(cmd[1]);
-		if ((res = NotifyCentralNQChange(cdata->comm->request, cdata->comm->response, *(cdata->taxi))) != OK) {
+		if ((res = NotifyCentralNQChange(&cdata->comm.request, &cdata->comm.response, *(cdata->taxi))) != OK) {
 			PrintError(res, cdata);
 			cdata->taxi->nq = aux;
 		}
@@ -395,7 +395,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return;
 		}
 		else {
-			if ((res = UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest)) == OK) {
+			if ((res = UpdateMyLocation(&cdata->comm.request, &cdata->comm.response, cdata->taxi, dest)) == OK) {
 				_tprintf(_T("Moving up\n"));
 				CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
 				cdata->taxi->direction = UP;
@@ -413,7 +413,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return;
 		}
 		else {
-			if ((res = UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest)) == OK) {
+			if ((res = UpdateMyLocation(&cdata->comm.request, &cdata->comm.response, cdata->taxi, dest)) == OK) {
 				_tprintf(_T("Moving left\n"));
 				CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
 				cdata->taxi->direction = LEFT;
@@ -431,7 +431,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return;
 		}
 		else {
-			if ((res=UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest)) == OK) {
+			if ((res=UpdateMyLocation(&cdata->comm.request, &cdata->comm.response, cdata->taxi, dest)) == OK) {
 				CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
 				_tprintf(_T("Moving down\n"));
 				cdata->taxi->direction = DOWN;
@@ -449,7 +449,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			return;
 		}
 		else {
-			if ((res = UpdateMyLocation(cdata->comm->request, cdata->comm->response, cdata->taxi, dest)) == OK) {
+			if ((res = UpdateMyLocation(&cdata->comm.request, &cdata->comm.response, cdata->taxi, dest)) == OK) {
 				CopyMemory(&cdata->taxi->location, &dest, sizeof(Coords));
 				_tprintf(_T("Moving right\n"));
 				cdata->taxi->direction = RIGHT;
@@ -459,7 +459,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		}
 	}
 	else if (_tcscmp(cmd[0], TXI_CATCH) == 0) {
-		if ((res = NotifyPassengerCatch(cdata->comm->request, cdata->comm->response, cdata->taxi)) != OK) {
+		if ((res = NotifyPassengerCatch(&cdata->comm.request, &cdata->comm.response, cdata->taxi)) != OK) {
 			PrintError(res, cdata);
 		}
 		else {
@@ -467,7 +467,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		}
 	}
 	else if (_tcscmp(cmd[0], TXI_DELIVER) == 0) {
-		if ((res = NotifyPassengerDeliever(cdata->comm->request, cdata->comm->response, cdata->taxi)) != OK) {
+		if ((res = NotifyPassengerDeliever(&cdata->comm.request, &cdata->comm.response, cdata->taxi)) != OK) {
 			PrintError(res, cdata);
 		}
 		else {
@@ -480,7 +480,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 	}
 	else if (_tcscmp(cmd[0], TXI_CLOSE) == 0) {
 		_tprintf(_T("Closing taxi client\n"));
-		NotifyCentralTaxiLeaving(cdata->comm->request, cdata->comm->response, *(cdata->taxi));
+		NotifyCentralTaxiLeaving(&cdata->comm.request, &cdata->comm.response, *(cdata->taxi));
 		// ## TODO tratar o close properly
 		ReleaseSemaphore(cdata->taxiGate, 1, NULL);
 		return -1;
@@ -518,7 +518,7 @@ DWORD WINAPI ReceiveBroadcastMessage(LPVOID ptr) {
 		if (cd->taxi->autopilot) {
 			if (!hasPassenger(cd->taxi)) {
 				if (CalculateDistanceTo(cd->taxi->location, message.passenger.location) <= cd->taxi->nq) {
-					if ((resp = RequestPassengerTransport(cd->comm->request, cd->comm->response, &cd->taxi->client, message.passenger.nome, cd->taxi->licensePlate)) != OK)
+					if ((resp = RequestPassengerTransport(&cd->comm.request, &cd->comm.response, &cd->taxi->client, message.passenger.nome, cd->taxi->licensePlate)) != OK)
 						PrintError(resp, cd);
 					else {
 						_tprintf(_T("Got '%s' as a passenger in {%.2d,%.2d} with the destination {%.2d,%.2d}.\n"), message.passenger.nome,
@@ -528,7 +528,7 @@ DWORD WINAPI ReceiveBroadcastMessage(LPVOID ptr) {
 			}
 		}
 		// O evento desbloqueia todos os taxis ao mesmo tempo?
-		// SetEvent(broadcast->new_passenger);
+		//SetEvent(broadcast->new_passenger);
 	}
 }
 
@@ -605,7 +605,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	handles[handleCounter++] = broadcast.mutex;
 
-	broadcast.new_passenger = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_NEW_PASSENGER);
+	broadcast.new_passenger = OpenSemaphore(SYNCHRONIZE | SEMAPHORE_MODIFY_STATE, FALSE, EVENT_NEW_PASSENGER);
 	if (broadcast.new_passenger  == NULL) {
 		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
 		//WaitAllThreads(threads, threadCounter);
@@ -614,7 +614,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	handles[handleCounter++] = broadcast.new_passenger;
-
 
 	HANDLE FM_LOGIN_REQUEST = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
@@ -752,6 +751,9 @@ int _tmain(int argc, TCHAR* argv[]) {
 		Sleep(5000);
 		exit(-1);
 	}
+	else {
+		_tprintf(_T("Login done.\n"));
+	}
 
 	//CloseMyHandles(handles, handleCounter);
 	//UnmapAllViews(views, viewCounter);
@@ -852,12 +854,12 @@ int _tmain(int argc, TCHAR* argv[]) {
 	handles[handleCounter++] = response.new_request;
 
 	CC_Comm cc_comm;
-	cc_comm.request = &request;
-	cc_comm.response = &response;
-	cc_comm.container = &res;
+	cc_comm.request = request;
+	cc_comm.response = response;
+	cc_comm.container = res;
 
 	Taxi me;
-	cd.comm = &cc_comm;
+	CopyMemory(&cd.comm, &cc_comm, sizeof(CC_Comm));
 	CopyMemory(me.licensePlate, licensePlate, sizeof(TCHAR) * 9);
 	me.autopilot = 0;
 	me.location.x = coords.x;
@@ -875,12 +877,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 		WaitAllThreads(threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
-	}
-
-	for (unsigned int i = 0; i < MIN_LIN; i++) {
-		for (unsigned int j = 0; j < MIN_COL; j++)
-			_tprintf(_T("%c"), cd.charMap[j][i]);
-		_tprintf(_T("\n"));
 	}
 
 	if ((threads[threadCounter++] = CreateThread(NULL, 0, ReceiveBroadcastMessage, &cd, 0, NULL)) == NULL) {
