@@ -63,11 +63,11 @@ void SendBroadCastMessage(CC_Broadcast* broadcast, SHM_BROADCAST* message, int n
 // função-thread responsável por tratar a interação com o admin
 DWORD WINAPI TextInterface(LPVOID ptr) {
 	CDThread* cdata = (CDThread*)ptr;
-	TCHAR* command = (TCHAR*) malloc (sizeof(TCHAR) * 100);
+	TCHAR command[100];
 	do {
 		PrintMap(cdata->map);
 		_tprintf(_T("Command: "));
-		_tscanf_s(_T(" %98[^\n]"), command, sizeof(TCHAR)*100);
+		_tscanf(_T(" %[^\n]"), command);
 		if (FindFeatureAndRun(command, cdata) == -1) break;
 	} while (!cdata->isSystemClosing);
 	return 0;
@@ -503,6 +503,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			exit(-1);
 		}
 		container->handles[(*container->handleCounter)++] = FM_REQUEST;
+		cdThread->dllMethods->Register(request_shm_name, FILE_MAPPING);
 
 		cdRequest.shared = (SHM_CC_REQUEST*)MapViewOfFile(FM_REQUEST,
 			FILE_MAP_ALL_ACCESS,
@@ -516,6 +517,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			exit(-1);
 		}
 		container->views[(*container->viewCounter)++] = cdRequest.shared;
+		cdThread->dllMethods->Register(request_shm_name, VIEW);
 
 		cdRequest.mutex = CreateMutex(NULL, FALSE, request_mutex_name);
 		if (cdRequest.mutex == NULL) {
@@ -526,6 +528,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			exit(-1);
 		}
 		container->handles[(*container->handleCounter)++] = cdRequest.mutex;
+		cdThread->dllMethods->Register(request_mutex_name, MUTEX);
 
 		cdRequest.new_response = CreateEvent(NULL, FALSE, FALSE, response_event_name);
 		if (request->new_response == NULL) {
@@ -536,6 +539,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			exit(-1);
 		}
 		container->handles[(*container->handleCounter)++] = cdRequest.new_response;
+		cdThread->dllMethods->Register(response_event_name, EVENT);
 
 		HANDLE FM_RESPONSE = CreateFileMapping(
 			INVALID_HANDLE_VALUE,
@@ -551,6 +555,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			exit(-1);
 		}
 		container->handles[(*container->handleCounter)++] = FM_RESPONSE;
+		cdThread->dllMethods->Register(response_shm_name, FILE_MAPPING);
 
 		cdResponse.shared = (SHM_CC_REQUEST*)MapViewOfFile(FM_RESPONSE,
 			FILE_MAP_ALL_ACCESS,
@@ -564,6 +569,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			exit(-1);
 		}
 		container->views[(*container->viewCounter)++] = cdResponse.shared;
+		cdThread->dllMethods->Register(response_shm_name, VIEW);
 
 		cdResponse.mutex = CreateMutex(NULL, FALSE, response_mutex_name);
 		if (cdResponse.mutex == NULL) {
@@ -574,6 +580,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			exit(-1);
 		}
 		container->handles[(*container->handleCounter)++] = cdResponse.mutex;
+		cdThread->dllMethods->Register(response_mutex_name, MUTEX);
 
 		cdResponse.new_request = CreateEvent(NULL, FALSE, FALSE, request_event_name);
 		if (cdResponse.new_request == NULL) {
@@ -584,7 +591,8 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			exit(-1);
 		}
 		container->handles[(*container->handleCounter)++] = cdResponse.new_request;
-		
+		cdThread->dllMethods->Register(request_event_name, EVENT);
+
 		IndividualCD* indCD = (IndividualCD*) malloc(sizeof(IndividualCD));
 		indCD->cd = cdThread;
 		CopyMemory(&indCD->comm.container, &res, sizeof(LR_Container));
@@ -599,9 +607,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			exit(-1);
 		}
 	}
-
 	SetEvent(request->new_response);
-
 	_tprintf(_T("[LOG] Sent response to the '%s' registration request.\n"), licensePlate);
 }
 
@@ -802,6 +808,7 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 		}
 	}
 	else if (_tcscmp(cmd[0], ADM_HELP) == 0) {
+		cdata->dllMethods->Test();
 		for (int i = 0; i < 7; i++)
 			_tprintf(_T("%s"), commands[i]);
 	}
@@ -1017,10 +1024,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 
-	dllMethods.Register(SHM_BROADCAST_PASSENGER_ARRIVE, 6);
-	dllMethods.Log(_T("dbg"));
-	dllMethods.Test();
-
 	Taxi* taxis = (Taxi*)malloc(nrMaxTaxis * sizeof(Taxi));
 	if (taxis == NULL) {
 		_tprintf(_T("Error allocating memory (%d)\n"), GetLastError());
@@ -1064,6 +1067,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	handles[handleCounter++] = FM_BROADCAST;
+	dllMethods.Register(SHM_BROADCAST_PASSENGER_ARRIVE, FILE_MAPPING);
 
 	CC_Broadcast broadcast;
 
@@ -1078,6 +1082,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	views[viewCounter++] = broadcast.shared;
+	dllMethods.Register(SHM_BROADCAST_PASSENGER_ARRIVE, VIEW);
 
 	broadcast.mutex = CreateMutex(NULL, FALSE, BROADCAST_MUTEX);
 	if (broadcast.mutex == NULL) {
@@ -1087,6 +1092,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	handles[handleCounter++] = broadcast.mutex;
+	dllMethods.Register(BROADCAST_MUTEX, MUTEX);
 
 	broadcast.new_passenger = CreateSemaphore(NULL, 0, nrMaxTaxis, EVENT_NEW_PASSENGER);
 	if (broadcast.new_passenger  == NULL) {
@@ -1096,6 +1102,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	handles[handleCounter++] = broadcast.new_passenger;
+	dllMethods.Register(EVENT_NEW_PASSENGER, SEMAPHORE);
 
 	char* fileContent = NULL;
 	// Le conteudo do ficheiro para array de chars
@@ -1111,6 +1118,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	LoadMapa(map, fileContent, nrMaxTaxis, nrMaxPassengers);
 
 	CDThread cdThread;
+	cdThread.dllMethods = &dllMethods;
 	cdThread.taxis = taxis;
 	cdThread.map = map;
 	cdThread.nrMaxTaxis = nrMaxTaxis;
@@ -1150,6 +1158,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	handles[handleCounter++] = FM_CC_LOGIN_REQUEST;
+	dllMethods.Register(SHM_LOGIN_REQUEST_NAME, FILE_MAPPING);
 
 	HANDLE FM_CC_LOGIN_RESPONSE = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
@@ -1165,6 +1174,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	handles[handleCounter++] = FM_CC_LOGIN_RESPONSE;
+	dllMethods.Register(SHM_LOGIN_RESPONSE_NAME, FILE_MAPPING);
 
 	CDLogin_Request CDLogin_Request;
 	CDLogin_Response CDLogin_Response;
@@ -1181,6 +1191,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	views[viewCounter++] = CDLogin_Request.request;
+	dllMethods.Register(SHM_LOGIN_REQUEST_NAME, VIEW);
 
 	CDLogin_Response.response = (SHM_LOGIN_RESPONSE*)MapViewOfFile(FM_CC_LOGIN_RESPONSE,
 		FILE_MAP_ALL_ACCESS,
@@ -1194,6 +1205,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	views[viewCounter++] = CDLogin_Response.response;
+	dllMethods.Register(SHM_LOGIN_RESPONSE_NAME, VIEW);
 
 	CDLogin_Request.login_m = CreateMutex(NULL, FALSE, LOGIN_REQUEST_MUTEX);
 	if (CDLogin_Request.login_m == NULL) {
@@ -1204,6 +1216,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	handles[handleCounter++] = CDLogin_Request.login_m;
+	dllMethods.Register(LOGIN_REQUEST_MUTEX, MUTEX);
 
 	CDLogin_Response.login_m = CreateMutex(NULL, FALSE, LOGIN_RESPONSE_MUTEX);
 	if (CDLogin_Response.login_m == NULL) {
@@ -1214,6 +1227,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	handles[handleCounter++] = CDLogin_Response.login_m;
+	dllMethods.Register(LOGIN_RESPONSE_MUTEX, MUTEX);
 
 	CDLogin_Request.login_write_m = CreateMutex(NULL, FALSE, LOGIN_TAXI_WRITE_MUTEX);
 	if (CDLogin_Request.login_write_m == NULL) {
@@ -1224,6 +1238,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	handles[handleCounter++] = CDLogin_Request.login_write_m;
+	dllMethods.Register(LOGIN_TAXI_WRITE_MUTEX, MUTEX);
 
 	CDLogin_Request.new_response = CreateEvent(NULL, FALSE, FALSE, EVENT_WRITE_FROM_TAXIS);
 	if (CDLogin_Request.new_response == NULL) {
@@ -1234,6 +1249,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	handles[handleCounter++] = CDLogin_Request.new_response;
+	dllMethods.Register(EVENT_WRITE_FROM_TAXIS, EVENT);
 
 	CDLogin_Response.new_request = CreateEvent(NULL, FALSE, FALSE, EVENT_READ_FROM_TAXIS);
 	if (CDLogin_Response.new_request == NULL) {
@@ -1244,6 +1260,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	handles[handleCounter++] = CDLogin_Response.new_request;
+	dllMethods.Register(EVENT_READ_FROM_TAXIS, EVENT);
 
 	cdThread.cdLogin_Response = &CDLogin_Response;
 	cdThread.cdLogin_Request = &CDLogin_Request;
@@ -1257,6 +1274,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	container.viewCounter = &viewCounter;
 	container.handleCounter = &handleCounter;
 	cdThread.hContainer = &container;
+	cdThread.dllMethods = &dllMethods;
 
 	HANDLE listenThread = CreateThread(NULL, 0, ListenToLoginRequests, &cdThread, 0, NULL);
 	if (!listenThread) {
@@ -1269,8 +1287,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 	threads[threadCounter++] = listenThread;
 
 	WaitAllThreads(threads, threadCounter);
-	//UnmapAllViews(views, viewCounter);
-	//CloseMyHandles(handles, handleCounter);
+	UnmapAllViews(views, viewCounter);
+	CloseMyHandles(handles, handleCounter);
 
 	// dar free da memoria dos taxis em todas as celulas
 	for (unsigned int i = 0; i < MIN_LIN * MIN_COL; i++) {

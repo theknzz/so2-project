@@ -9,6 +9,16 @@
 #define NQ 50
 #define WAIT_TIME 5
 
+// dll indices
+#define MUTEX 1
+#define CRITICAL_SECTION 2
+#define SEMAPHORE 3
+#define EVENT 4
+#define WAITABLE_TIMER 5
+#define FILE_MAPPING 6
+#define VIEW 7
+#define NAMED_PIPE 8
+
 // Map characters
 #define S_CHAR '_' // Street char
 #define B_CHAR 'X' // Building char

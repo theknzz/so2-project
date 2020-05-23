@@ -1,7 +1,5 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(467,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (tp-so2.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   centaxi.c
-E:\projects\so2-project\tp-so2\centaxi.c(70,13): warning C4477: 'wscanf_s' : format string '%98[^\n]' requires an argument of type 'unsigned int', but variadic argument 2 has type 'unsigned __int64'
-E:\projects\so2-project\tp-so2\centaxi.c(70,13): message : this argument is used as a buffer size
 E:\projects\so2-project\tp-so2\centaxi.c(71,24): warning C4013: 'FindFeatureAndRun' undefined; assuming extern returning int
 E:\projects\so2-project\tp-so2\centaxi.c(78,32): warning C4013: 'FindFirstFreeTaxiIndex' undefined; assuming extern returning int
 E:\projects\so2-project\tp-so2\centaxi.c(90,29): warning C4018: '<': signed/unsigned mismatch
@@ -13,37 +11,37 @@ E:\projects\so2-project\tp-so2\centaxi.c(140,26): warning C4013: 'FindTaxiIndex'
 E:\projects\so2-project\tp-so2\centaxi.c(240,32): warning C4013: 'FindTaxiWithLicense' undefined; assuming extern returning int
 E:\projects\so2-project\tp-so2\centaxi.c(245,93): warning C4047: 'function': 'TCHAR *' differs in levels of indirection from 'TCHAR (*)[25]'
 E:\projects\so2-project\tp-so2\centaxi.c(245,93): warning C4024: 'GetPassengerStatus': different types for formal and actual parameter 3
-E:\projects\so2-project\tp-so2\centaxi.c(559,28): warning C4133: '=': incompatible types - from 'SHM_CC_REQUEST *' to 'SHM_CC_RESPONSE *'
-E:\projects\so2-project\tp-so2\centaxi.c(594,116): warning C4047: '=': 'HANDLE' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(609,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(616,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(624,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(707,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [6][100]'
-E:\projects\so2-project\tp-so2\centaxi.c(725,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(756,11): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\tp-so2\centaxi.c(775,30): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(564,28): warning C4133: '=': incompatible types - from 'SHM_CC_REQUEST *' to 'SHM_CC_RESPONSE *'
+E:\projects\so2-project\tp-so2\centaxi.c(602,116): warning C4047: '=': 'HANDLE' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(615,29): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(622,29): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(630,29): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(713,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [6][100]'
+E:\projects\so2-project\tp-so2\centaxi.c(731,29): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(762,11): warning C4033: 'FindFeatureAndRun' must return a value
 E:\projects\so2-project\tp-so2\centaxi.c(781,30): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(790,38): warning C4047: '=': 'BOOL *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\centaxi.c(858,32): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(864,32): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(876,32): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(882,32): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(934,16): warning C4047: 'return': 'char **' differs in levels of indirection from 'char [50][50]'
-E:\projects\so2-project\tp-so2\centaxi.c(950,12): warning C4013: 'time' undefined; assuming extern returning int
-E:\projects\so2-project\tp-so2\centaxi.c(995,41): warning C4047: 'function': 'int' differs in levels of indirection from 'int *'
-E:\projects\so2-project\tp-so2\centaxi.c(995,41): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(787,30): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(796,38): warning C4047: '=': 'BOOL *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(865,32): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(871,32): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(883,32): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(889,32): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(941,16): warning C4047: 'return': 'char **' differs in levels of indirection from 'char [50][50]'
+E:\projects\so2-project\tp-so2\centaxi.c(957,12): warning C4013: 'time' undefined; assuming extern returning int
 E:\projects\so2-project\tp-so2\centaxi.c(1002,41): warning C4047: 'function': 'int' differs in levels of indirection from 'int *'
 E:\projects\so2-project\tp-so2\centaxi.c(1002,41): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
 E:\projects\so2-project\tp-so2\centaxi.c(1009,41): warning C4047: 'function': 'int' differs in levels of indirection from 'int *'
 E:\projects\so2-project\tp-so2\centaxi.c(1009,41): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
 E:\projects\so2-project\tp-so2\centaxi.c(1016,41): warning C4047: 'function': 'int' differs in levels of indirection from 'int *'
 E:\projects\so2-project\tp-so2\centaxi.c(1016,41): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(1032,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(1048,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(1124,95): warning C4047: '=': 'SHM_CC_REQUEST *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\centaxi.c(1023,41): warning C4047: 'function': 'int' differs in levels of indirection from 'int *'
+E:\projects\so2-project\tp-so2\centaxi.c(1023,41): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
+E:\projects\so2-project\tp-so2\centaxi.c(1035,29): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(1051,29): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\centaxi.c(1132,95): warning C4047: '=': 'SHM_CC_REQUEST *' differs in levels of indirection from 'int'
 E:\projects\so2-project\tp-so2\centaxi.c(449): warning C4715: 'TalkToTaxi': not all control paths return a value
-E:\projects\so2-project\tp-so2\centaxi.c(707): warning C4172: returning address of local variable or temporary: command
-E:\projects\so2-project\tp-so2\centaxi.c(721): warning C4715: 'ParseStateToString': not all control paths return a value
-E:\projects\so2-project\tp-so2\centaxi.c(839): warning C4715: 'FindFeatureAndRun': not all control paths return a value
-E:\projects\so2-project\tp-so2\centaxi.c(934): warning C4172: returning address of local variable or temporary: charMap
+E:\projects\so2-project\tp-so2\centaxi.c(713): warning C4172: returning address of local variable or temporary: command
+E:\projects\so2-project\tp-so2\centaxi.c(727): warning C4715: 'ParseStateToString': not all control paths return a value
+E:\projects\so2-project\tp-so2\centaxi.c(846): warning C4715: 'FindFeatureAndRun': not all control paths return a value
+E:\projects\so2-project\tp-so2\centaxi.c(941): warning C4172: returning address of local variable or temporary: charMap
   tp-so2.vcxproj -> E:\projects\so2-project\x64\Debug\CenTaxi.exe

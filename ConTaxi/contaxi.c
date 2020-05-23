@@ -86,7 +86,7 @@ enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* r
 	coords[3].y = org.y;
 
 	// se nesta posição estiver uma celula de edificio ou um taxi, ou desqualificou-a do algoritmo
-	if (taxi->direction == UP || coords[0].y > MIN_LIN || map[coords[0].x][coords[0].y]== B_DISPLAY) {
+	if (taxi->direction == UP || coords[0].y > MIN_LIN || map[coords[0].x][coords[0].y] == B_DISPLAY) {
 		positions[0] = INT_MAX;
 	}
 	else {
@@ -512,7 +512,8 @@ DWORD WINAPI ReceiveBroadcastMessage(LPVOID ptr) {
 	enum response_id resp;
 
 	while (!cd->isTaxiKicked) {
-		WaitForSingleObject(broadcast->new_passenger, INFINITE);
+		if (WaitForSingleObject(broadcast->new_passenger, 2000) == WAIT_TIMEOUT)
+			continue;
 
 		WaitForSingleObject(broadcast->mutex, INFINITE);
 
@@ -545,14 +546,14 @@ DWORD WINAPI ReceiveBroadcastMessage(LPVOID ptr) {
 
 DWORD WINAPI TextInterface(LPVOID ptr) {
 	CD_TAXI_Thread* cdata = (CD_TAXI_Thread*)ptr;
-	TCHAR* str = (TCHAR*) malloc (sizeof(TCHAR) * 100);
+	TCHAR str[100];
 	while (!cdata->isTaxiKicked) {
 		PrintPersonalInformation(cdata);
 		_tprintf(_T("Command: "));
-		_tscanf_s(_T(" %99[^\n]"), str, sizeof(TCHAR) * 100);
+		_tscanf(_T(" %99[^\n]"), str);
+		if (cdata->isTaxiKicked) break;
 		if (FindFeatureAndRun(str, cdata) == -1) break;
 	}
-	free(str);
 	return 0;
 }
 
@@ -563,6 +564,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	int handleCounter = 0, threadCounter = 0, viewCounter = 0;
 	// for the random numbers
 	srand(time(0));
+
 #ifdef UNICODE
 	_setmode(_fileno(stdin), _O_WTEXT);
 	_setmode(_fileno(stdout), _O_WTEXT);
@@ -727,7 +729,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
 	while (1) {
 		_tprintf(_T("Insert your license plate: "));
-		_tscanf_s(TEXT(" %9s"), licensePlate, 9 * sizeof(TCHAR));
+		_tscanf(TEXT(" %9s"), licensePlate);
 		if (_tcslen(licensePlate) < 8 || _tcslen(licensePlate) > 8)
 		{
 			_tprintf(_T("Insert a valid license plate. Example: xx-xx-xx\n"));
@@ -767,9 +769,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 		_tprintf(_T("Login done.\n"));
 	}
 
-	//CloseMyHandles(handles, handleCounter);
-	//UnmapAllViews(views, viewCounter);
-
 	CC_CDRequest request;
 	CC_CDResponse response;
 
@@ -793,8 +792,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 		sizeof(SHM_CC_REQUEST));
 	if (request.shared == NULL) {
 		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
-		//WaitAllThreads(threads, threadCounter);
-		//CloseMyHandles(handles, handleCounter);
+		WaitAllThreads(threads, threadCounter);
+		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
 	views[viewCounter++] = request.shared;
@@ -802,9 +801,9 @@ int _tmain(int argc, TCHAR* argv[]) {
 	request.mutex = OpenMutex(SYNCHRONIZE, FALSE, res.request_mutex_name);
 	if (request.mutex == NULL) {
 		_tprintf(TEXT("Error creating mtxCenTaxiToConTaxi mutex (%d).\n"), GetLastError());
-		//WaitAllThreads(threads, threadCounter);
-		//UnmapAllViews(views, viewCounter);
-		//CloseMyHandles(handles, handleCounter);
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
 	handles[handleCounter++] = request.mutex;
@@ -812,9 +811,9 @@ int _tmain(int argc, TCHAR* argv[]) {
 	request.new_response = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, res.response_event_name);
 	if (request.new_response == NULL) {
 		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
-		//WaitAllThreads(threads, threadCounter);
-		//UnmapAllViews(views, viewCounter);
-		//CloseMyHandles(handles, handleCounter);
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
 	handles[handleCounter++] = request.new_response;
@@ -839,8 +838,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 		sizeof(SHM_CC_RESPONSE));
 	if (response.shared == NULL) {
 		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
-		//WaitAllThreads(threads, threadCounter);
-		//CloseMyHandles(handles, handleCounter);
+		WaitAllThreads(threads, threadCounter);
+		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
 	views[viewCounter++] = response.shared;
@@ -848,9 +847,9 @@ int _tmain(int argc, TCHAR* argv[]) {
 	response.mutex = OpenMutex(SYNCHRONIZE, FALSE, res.response_mutex_name);
 	if (response.mutex == NULL) {
 		_tprintf(TEXT("Error creating mtxCenTaxiToConTaxi mutex (%d).\n"), GetLastError());
-		//WaitAllThreads(threads, threadCounter);
-		//UnmapAllViews(views, viewCounter);
-		//CloseMyHandles(handles, handleCounter);
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
 	handles[handleCounter++] = response.mutex;
@@ -858,9 +857,9 @@ int _tmain(int argc, TCHAR* argv[]) {
 	response.new_request = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, res.request_event_name);
 	if (response.new_request == NULL) {
 		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
-		//WaitAllThreads(threads, threadCounter);
-		//UnmapAllViews(views, viewCounter);
-		//CloseMyHandles(handles, handleCounter);
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
 	handles[handleCounter++] = response.new_request;
@@ -905,7 +904,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
-
 
 	WaitAllThreads(threads, threadCounter);
 	UnmapAllViews(views, viewCounter);
