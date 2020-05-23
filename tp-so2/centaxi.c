@@ -301,16 +301,14 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 	return response;
 }
 
-DWORD WINAPI WaitAndShufflePassenger(LPVOID ptr) {
-	IndividualCD* indCD = (IndividualCD*)ptr;
+DWORD WINAPI timer(LPVOID ptr) {
+	int* waitTime = (int*)ptr;
 	HANDLE hTimer;
-	SHM_CC_RESPONSE shm_response;
-	SHM_CC_REQUEST shm_request;
 
 	FILETIME ft, ftUTC;
 	LARGE_INTEGER DueTime;
 	SYSTEMTIME systime;
-	LONG interval = (LONG)*indCD->cd->WaitTimeOnTaxiRequest * 1000;
+	LONG interval = (LONG)*waitTime * 1000;
 
 	SystemTimeToFileTime(&systime, &ft);
 	LocalFileTimeToFileTime(&ft, &ftUTC);
@@ -327,31 +325,11 @@ DWORD WINAPI WaitAndShufflePassenger(LPVOID ptr) {
 		_tprintf(_T("Something went wrong! %d"), GetLastError());
 	}
 	WaitForSingleObject(hTimer, INFINITE);
-
-	int nr = (rand() % (*indCD->cd->requestIndex) - 0) + 0;
-
-	for (unsigned int i = 0; i < (*indCD->cd->requestIndex); i++) {
-		_tprintf(_T("request: %d - %s\n"), indCD->cd->requests[i].req->action, indCD->cd->requests[i].req->messageContent.taxi.licensePlate);
-		if (i == nr) {
-			shm_response = ParseAndExecuteOperation(indCD->cd, indCD->cd->requests[i].req->action, indCD->cd->requests[i].req->messageContent);
-		}
-		else
-			shm_response.action = PASSENGER_ALREADY_TAKEN;
-
-		// Enviar resposta
-		WaitForSingleObject(indCD->cd->requests[i].comm->response.mutex, INFINITE);
-		indCD->cd->requests[i].comm->response.shared->action = shm_response.action;
-		CopyMemory(&indCD->cd->requests[i].comm->response.shared->passenger, &shm_response.passenger, sizeof(Passenger));
-		ReleaseMutex(indCD->cd->requests[i].comm->response.mutex);
-		SetEvent(indCD->cd->requests[i].comm->request.new_response);
-	}
-
 	CloseHandle(hTimer);
 	return 0;
 }
 
 DWORD WINAPI TalkToTaxi(LPVOID ptr) {
-
 	IndividualCD* ind= (IndividualCD*)ptr;
 	CDThread* cd = ind->cd;
 	CC_CDRequest* request = &ind->comm.request;
@@ -359,36 +337,58 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 	SHM_CC_REQUEST shm_request;
 	SHM_CC_RESPONSE shm_response;
 	BOOL isTimerLaunched=FALSE;
-	cd->timerH = NULL;
+	SHM_CC_REQUEST* requestPassengerList;
+	int index = 0;
+	//HANDLE timerHandle = NULL;
+
+	requestPassengerList = (SHM_CC_REQUEST*)malloc(cd->nrMaxTaxis * sizeof(SHM_CC_REQUEST));
+	if (requestPassengerList == NULL)
+		return -1;
 
 	while (!cd->isSystemClosing) {
 		// Receber request
 		WaitForSingleObject(response->new_request, INFINITE);
 		WaitForSingleObject(request->mutex, INFINITE);
-		_tprintf(_T("Got resquest done!\n"));
+		//_tprintf(_T("Got resquest done!\n"));
 		// Guardar o conteudo da mensagem
 		CopyMemory(&shm_request.messageContent, &request->shared->messageContent, sizeof(Content));
 		shm_request.action = request->shared->action;
 		ReleaseMutex(request->mutex);
 
-		if (shm_request.action == RequestPassenger) {
-			cd->requests[*(cd->requestIndex)].req = &shm_request;
-			cd->requests[*(cd->requestIndex)].comm = &ind->comm;
-			(*cd->requestIndex)++;
+		//if (shm_request.action == RequestPassenger) {
+			/*CopyMemory(&requestPassengerList[index++], &shm_request, sizeof(SHM_CC_REQUEST));
 			if (!isTimerLaunched) {
-				if ((cd->requestIndex = CreateThread(NULL, 0, WaitAndShufflePassenger, ind, 0, NULL)) == NULL) {
+				if ( (timerHandle = CreateThread(NULL, 0, timer, cd->WaitTimeOnTaxiRequest, 0, NULL)) == NULL) {
 					_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
 					exit(-1);
 				}
 				isTimerLaunched = TRUE;
 			}
-			if (cd->requestIndex != NULL) {
-				WaitForSingleObject(cd->requestIndex, INFINITE);
+			if (timerHandle != NULL) {
+				WaitForSingleObject(timerHandle, INFINITE);
 			}
+			
+			int nr = (rand() % index - 0) + 0;
 			isTimerLaunched = FALSE;
-			*(cd->requestIndex) = 0;
-		}
-		else {
+
+			for (unsigned int i = 0; i < cd->nrMaxTaxis; i++) {
+				if (i == nr) {
+					_tprintf(_T("%s - ok!\n"), request->shared->messageContent.taxi);*/
+					//shm_response = ParseAndExecuteOperation(cd, shm_request.action, shm_request.messageContent);
+				//}
+				//else
+				//	shm_response.action = PASSENGER_ALREADY_TAKEN;
+
+				// Enviar resposta
+				//WaitForSingleObject(response->mutex, INFINITE);
+				//response->shared->action = shm_response.action;
+				//CopyMemory(&response->shared->passenger, &shm_response.passenger, sizeof(Passenger));
+				//ReleaseMutex(response->mutex);
+				//SetEvent(request->new_response);
+			//}
+		//}
+		//else {
+
 			// Tratar mensagem
 			shm_response = ParseAndExecuteOperation(cd, shm_request.action, shm_request.messageContent);
 
@@ -407,19 +407,17 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 
 			ReleaseMutex(response->mutex);
 			SetEvent(request->new_response);
+			PrintMap(cd->map);
 		}
-		PrintMap(cd->map);
-	}
-	CloseHandle(ind->comm.request.mutex);
-	CloseHandle(ind->comm.request.new_response);
-	CloseHandle(ind->comm.response.new_request);
-	CloseHandle(ind->comm.response.mutex);
+	//}
 	free(ind);
+
 	//CDThread* cd = (CDThread*)ptr;
 	//CC_CDRequest* request = cd->comm->request;
 	//CC_CDResponse* response = cd->comm->response;
 	//SHM_CC_REQUEST shm_request;
 	//SHM_CC_RESPONSE shm_response;
+
 	//while (!cd->isSystemClosing) {
 
 	//	WaitForSingleObject(response->new_request, INFINITE);
@@ -600,6 +598,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			exit(-1);
 		}
 	}
+
 	SetEvent(request->new_response);
 
 	_tprintf(_T("[LOG] Sent response to the '%s' registration request.\n"), licensePlate);
@@ -643,7 +642,6 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 		CopyMemory(&shared, cdata->request, sizeof(SHM_LOGIN_REQUEST));
 
 		ReleaseMutex(cdata->login_m);
-
 		int index = FindTaxiWithLicense(cd->taxis, cd->nrMaxTaxis, shared.taxi.licensePlate);
 		if (index != -1) {
 			RespondToTaxiLogin(cd, shared.taxi.licensePlate, cd->hContainer, LICENSE_PLATED_ALREADY_IN_CENTRAL);
@@ -689,7 +687,8 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 	return 0;
 }
 
-void ParseCommand(TCHAR* cmd, TCHAR command[6][100]) {
+TCHAR** ParseCommand(TCHAR* cmd) {
+	TCHAR command[6][100];
 	TCHAR* delimiter = _T(" ");
 	int counter = 0;
 
@@ -703,6 +702,7 @@ void ParseCommand(TCHAR* cmd, TCHAR command[6][100]) {
 	while (counter < 6) {
 		CopyMemory(command[counter++], _T("NULL"), sizeof(TCHAR) * 100);
 	}
+	return command;
 }
 
 TCHAR* ParseStateToString(enum passanger_state state) {
@@ -738,7 +738,7 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 	};
 	
 	TCHAR cmd[6][100];
-	ParseCommand(command, cmd);
+	CopyMemory(cmd, ParseCommand(command), sizeof(TCHAR) * 6 * 100);
 	int argc = 0;
 
 	for (int i = 0; i < 6; i++)
@@ -1008,7 +1008,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
-
 	for (unsigned int i = 0; i < nrMaxPassengers; i++) {
 		ZeroMemory(passengers[i].nome, sizeof(passengers[i].nome));
 		passengers[i].location.x = -1;
@@ -1065,6 +1064,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	// Le conteudo do ficheiro para array de chars
 	if ((fileContent = ReadFileToCharArray(_T("E:\\projects\\so2-project\\maps\\mapa.txt"))) == NULL) {
 		_tprintf(_T("Error reading the file (%d)\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
@@ -1084,17 +1084,12 @@ int _tmain(int argc, TCHAR* argv[]) {
 	cdThread.areTaxisRequestsPause = FALSE;
 	cdThread.isSystemClosing = FALSE;
 
-	//cdThread.requests = (PInf*) malloc(nrMaxTaxis * sizeof(PInf));
-	//if (cdThread.requests == NULL) {
-	//	_tprintf(_T("Error allocating memory for requests's array.\n"));
-	//	WaitAllThreads(threads, threadCounter);
-	//	UnmapAllViews(views, viewCounter);
-	//	CloseMyHandles(handles, handleCounter);
-	//}
-
-	//cdThread.requestIndex = malloc(sizeof(int));
-	//int index = 0;
-	//cdThread.requestIndex = &index;
+	if ((cdThread.requests = (SHM_CC_REQUEST*)malloc(nrMaxTaxis * sizeof(SHM_CC_REQUEST)) == NULL)) {
+		_tprintf(_T("Error allocating memory for requests's array.\n"));
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+	}
 
 	HANDLE consoleThread = CreateThread(NULL, 0, TextInterface, &cdThread, 0, NULL);
 	if (!consoleThread) {
