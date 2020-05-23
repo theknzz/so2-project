@@ -128,6 +128,11 @@ typedef struct _CONTROL_DATA_TAXI_THREAD{
 	BOOL isTaxiKicked;
 } CD_TAXI_Thread;
 
+typedef struct PassengerInfo {
+	CC_Comm* comm;
+	SHM_CC_REQUEST* req;
+} PInf;
+
 typedef struct ThreadControlData {
 	BOOL* areTaxisRequestsPause;
 	int nrMaxTaxis;
@@ -139,11 +144,12 @@ typedef struct ThreadControlData {
 	int* WaitTimeOnTaxiRequest;
 	Passenger* passengers;
 	HContainer* hContainer;
-	//CC_Comm* comm;
 	CDLogin_Request* cdLogin_Request;
 	CDLogin_Response* cdLogin_Response;
 	char charMap[MIN_COL][MIN_LIN];
-	SHM_CC_REQUEST* requests;
+	PInf* requests;
+	int* requestIndex;
+	HANDLE timerH;
 } CDThread;
 
 typedef struct IndividualThreadControl {

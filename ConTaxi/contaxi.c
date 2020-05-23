@@ -43,6 +43,9 @@ void PrintError(enum response_id resp, CD_TAXI_Thread* cd) {
 		_tprintf(_T("Central kicked you!\n"));
 		cd->isTaxiKicked = TRUE;
 		break;
+	case LICENSE_PLATED_ALREADY_IN_CENTRAL:
+		_tprintf(_T("License Plate already existes in the system!\n"));
+		break;
 	}
 }
 
@@ -302,7 +305,9 @@ DWORD WINAPI TaxiAutopilot(LPVOID ptr) {
 	return 0;
 }
 
-int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
+int FindFeatureAndRun(CD_TAXI_Thread* cdata) {
+	TCHAR command[100];
+	_tscanf(_T(" %99[^\n]"), command);
 	TCHAR commands[10][100] = {
 		_T("\ttransport - request a passanger transport.\n"),
 		_T("\tspeed - increase the speed in 0.5 cells/s.\n"),
@@ -475,8 +480,8 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		}
 	}
 	else if (_tcscmp(cmd[0], TXI_HELP) == 0) {
-		for (int i = 0; i < 10; i++)
-			_tprintf(_T("%s"), commands[i]);
+		//for (int i = 0; i < 10; i++)
+		//	_tprintf(_T("%s"), commands[i]);
 	}
 	else if (_tcscmp(cmd[0], TXI_CLOSE) == 0) {
 		_tprintf(_T("Closing taxi client\n"));
@@ -532,12 +537,10 @@ DWORD WINAPI ReceiveBroadcastMessage(LPVOID ptr) {
 
 DWORD WINAPI TextInterface(LPVOID ptr) {
 	CD_TAXI_Thread* cdata = (CD_TAXI_Thread*)ptr;
-	TCHAR command[100];
 
 	while (!cdata->isTaxiKicked) {
 		_tprintf(_T("Command: "));
-		_tscanf_s(_T(" %99[^\n]"), command, sizeof(TCHAR) * 100);
-		if (FindFeatureAndRun(command, cdata) == -1) break;
+		if (FindFeatureAndRun(cdata) == -1) break;
 	}
 	return 0;
 }

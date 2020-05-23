@@ -301,14 +301,16 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 	return response;
 }
 
-DWORD WINAPI timer(LPVOID ptr) {
-	int* waitTime = (int*)ptr;
+DWORD WINAPI WaitAndShufflePassenger(LPVOID ptr) {
+	IndividualCD* indCD = (IndividualCD*)ptr;
 	HANDLE hTimer;
+	SHM_CC_RESPONSE shm_response;
+	SHM_CC_REQUEST shm_request;
 
 	FILETIME ft, ftUTC;
 	LARGE_INTEGER DueTime;
 	SYSTEMTIME systime;
-	LONG interval = (LONG)*waitTime * 1000;
+	LONG interval = (LONG)*indCD->cd->WaitTimeOnTaxiRequest * 1000;
 
 	SystemTimeToFileTime(&systime, &ft);
 	LocalFileTimeToFileTime(&ft, &ftUTC);
@@ -325,11 +327,31 @@ DWORD WINAPI timer(LPVOID ptr) {
 		_tprintf(_T("Something went wrong! %d"), GetLastError());
 	}
 	WaitForSingleObject(hTimer, INFINITE);
+
+	int nr = (rand() % (*indCD->cd->requestIndex) - 0) + 0;
+
+	for (unsigned int i = 0; i < (*indCD->cd->requestIndex); i++) {
+		_tprintf(_T("request: %d - %s\n"), indCD->cd->requests[i].req->action, indCD->cd->requests[i].req->messageContent.taxi.licensePlate);
+		if (i == nr) {
+			shm_response = ParseAndExecuteOperation(indCD->cd, indCD->cd->requests[i].req->action, indCD->cd->requests[i].req->messageContent);
+		}
+		else
+			shm_response.action = PASSENGER_ALREADY_TAKEN;
+
+		// Enviar resposta
+		WaitForSingleObject(indCD->cd->requests[i].comm->response.mutex, INFINITE);
+		indCD->cd->requests[i].comm->response.shared->action = shm_response.action;
+		CopyMemory(&indCD->cd->requests[i].comm->response.shared->passenger, &shm_response.passenger, sizeof(Passenger));
+		ReleaseMutex(indCD->cd->requests[i].comm->response.mutex);
+		SetEvent(indCD->cd->requests[i].comm->request.new_response);
+	}
+
 	CloseHandle(hTimer);
 	return 0;
 }
 
 DWORD WINAPI TalkToTaxi(LPVOID ptr) {
+
 	IndividualCD* ind= (IndividualCD*)ptr;
 	CDThread* cd = ind->cd;
 	CC_CDRequest* request = &ind->comm.request;
@@ -337,13 +359,7 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 	SHM_CC_REQUEST shm_request;
 	SHM_CC_RESPONSE shm_response;
 	BOOL isTimerLaunched=FALSE;
-	SHM_CC_REQUEST* requestPassengerList;
-	int index = 0;
-	HANDLE timerHandle = NULL;
-	// Retirar isto daqui
-	requestPassengerList = (SHM_CC_REQUEST*)malloc(cd->nrMaxTaxis * sizeof(SHM_CC_REQUEST));
-	if (requestPassengerList == NULL)
-		return -1;
+	cd->timerH = NULL;
 
 	while (!cd->isSystemClosing) {
 		// Receber request
@@ -356,39 +372,23 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 		ReleaseMutex(request->mutex);
 
 		if (shm_request.action == RequestPassenger) {
-			CopyMemory(&requestPassengerList[index++], &shm_request, sizeof(SHM_CC_REQUEST));
+			cd->requests[*(cd->requestIndex)].req = &shm_request;
+			cd->requests[*(cd->requestIndex)].comm = &ind->comm;
+			(*cd->requestIndex)++;
 			if (!isTimerLaunched) {
-				if ( (timerHandle = CreateThread(NULL, 0, timer, cd->WaitTimeOnTaxiRequest, 0, NULL)) == NULL) {
+				if ((cd->requestIndex = CreateThread(NULL, 0, WaitAndShufflePassenger, ind, 0, NULL)) == NULL) {
 					_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
 					exit(-1);
 				}
 				isTimerLaunched = TRUE;
 			}
-			if (timerHandle != NULL) {
-				WaitForSingleObject(timerHandle, INFINITE);
+			if (cd->requestIndex != NULL) {
+				WaitForSingleObject(cd->requestIndex, INFINITE);
 			}
-			
-			int nr = (rand() % index - 0) + 0;
 			isTimerLaunched = FALSE;
-
-			for (unsigned int i = 0; i < cd->nrMaxTaxis; i++) {
-				if (i == nr) {
-					_tprintf(_T("%s - ok!\n"), request->shared->messageContent.taxi);
-					shm_response = ParseAndExecuteOperation(cd, shm_request.action, shm_request.messageContent);
-				}
-				else
-					shm_response.action = PASSENGER_ALREADY_TAKEN;
-
-				// Enviar resposta
-				WaitForSingleObject(response->mutex, INFINITE);
-				response->shared->action = shm_response.action;
-				CopyMemory(&response->shared->passenger, &shm_response.passenger, sizeof(Passenger));
-				ReleaseMutex(response->mutex);
-				SetEvent(request->new_response);
-			}
+			*(cd->requestIndex) = 0;
 		}
 		else {
-
 			// Tratar mensagem
 			shm_response = ParseAndExecuteOperation(cd, shm_request.action, shm_request.messageContent);
 
@@ -410,6 +410,10 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 		}
 		PrintMap(cd->map);
 	}
+	CloseHandle(ind->comm.request.mutex);
+	CloseHandle(ind->comm.request.new_response);
+	CloseHandle(ind->comm.response.new_request);
+	CloseHandle(ind->comm.response.mutex);
 	free(ind);
 	//CDThread* cd = (CDThread*)ptr;
 	//CC_CDRequest* request = cd->comm->request;
@@ -596,7 +600,6 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			exit(-1);
 		}
 	}
-
 	SetEvent(request->new_response);
 
 	_tprintf(_T("[LOG] Sent response to the '%s' registration request.\n"), licensePlate);
@@ -640,8 +643,13 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 		CopyMemory(&shared, cdata->request, sizeof(SHM_LOGIN_REQUEST));
 
 		ReleaseMutex(cdata->login_m);
-		
-		int index = FindFirstFreeTaxiIndex(cd->taxis, cd->nrMaxTaxis);
+
+		int index = FindTaxiWithLicense(cd->taxis, cd->nrMaxTaxis, shared.taxi.licensePlate);
+		if (index != -1) {
+			RespondToTaxiLogin(cd, shared.taxi.licensePlate, cd->hContainer, LICENSE_PLATED_ALREADY_IN_CENTRAL);
+			continue;
+		}
+		index = FindFirstFreeTaxiIndex(cd->taxis, cd->nrMaxTaxis);
 		if (index == -1) {
 			RespondToTaxiLogin(cd, shared.taxi.licensePlate, cd->hContainer, ERRO);
 			continue;
@@ -652,13 +660,18 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 		}
 		if (shared.action == RegisterTaxiInCentral) {
 			_tprintf(_T("Got a registration request from '%s'\n"), shared.taxi.licensePlate);
-			if (shared.taxi.location.x > MIN_COL || shared.taxi.location.y > MIN_LIN) {
+			if (shared.taxi.location.x > MIN_COL || shared.taxi.location.y > MIN_LIN || shared.taxi.location.x < 0 || shared.taxi.location.y < 0) {
 				RespondToTaxiLogin(cd, shared.taxi.licensePlate, cd->hContainer, OUTOFBOUNDS_TAXI_POSITION);
 				continue;
 			}
 			// inserir taxi na sua posição atual 
 			Cell* cell = cd->map + (shared.taxi.location.x + shared.taxi.location.y * MIN_COL);
 			enum responde_id res;
+
+			if (cell->display == B_DISPLAY) {
+				RespondToTaxiLogin(cd, shared.taxi.licensePlate, cd->hContainer, OUTOFBOUNDS_TAXI_POSITION);
+				continue;
+			}
 
 			if ((res = InsertTaxiIntoMapCell(cell, shared.taxi, cd->nrMaxTaxis)) != OK) {
 				RespondToTaxiLogin(cd, shared.taxi.licensePlate, cd->hContainer, res);
@@ -676,8 +689,7 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 	return 0;
 }
 
-TCHAR** ParseCommand(TCHAR* cmd) {
-	TCHAR command[6][100];
+void ParseCommand(TCHAR* cmd, TCHAR command[6][100]) {
 	TCHAR* delimiter = _T(" ");
 	int counter = 0;
 
@@ -691,7 +703,6 @@ TCHAR** ParseCommand(TCHAR* cmd) {
 	while (counter < 6) {
 		CopyMemory(command[counter++], _T("NULL"), sizeof(TCHAR) * 100);
 	}
-	return command;
 }
 
 TCHAR* ParseStateToString(enum passanger_state state) {
@@ -727,7 +738,7 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 	};
 	
 	TCHAR cmd[6][100];
-	CopyMemory(cmd, ParseCommand(command), sizeof(TCHAR) * 6 * 100);
+	ParseCommand(command, cmd);
 	int argc = 0;
 
 	for (int i = 0; i < 6; i++)
@@ -997,6 +1008,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
+
 	for (unsigned int i = 0; i < nrMaxPassengers; i++) {
 		ZeroMemory(passengers[i].nome, sizeof(passengers[i].nome));
 		passengers[i].location.x = -1;
@@ -1053,7 +1065,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 	// Le conteudo do ficheiro para array de chars
 	if ((fileContent = ReadFileToCharArray(_T("E:\\projects\\so2-project\\maps\\mapa.txt"))) == NULL) {
 		_tprintf(_T("Error reading the file (%d)\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
@@ -1073,12 +1084,17 @@ int _tmain(int argc, TCHAR* argv[]) {
 	cdThread.areTaxisRequestsPause = FALSE;
 	cdThread.isSystemClosing = FALSE;
 
-	if ((cdThread.requests = (SHM_CC_REQUEST*)malloc(nrMaxTaxis * sizeof(SHM_CC_REQUEST)) == NULL)) {
-		_tprintf(_T("Error allocating memory for requests's array.\n"));
-		WaitAllThreads(threads, threadCounter);
-		UnmapAllViews(views, viewCounter);
-		CloseMyHandles(handles, handleCounter);
-	}
+	//cdThread.requests = (PInf*) malloc(nrMaxTaxis * sizeof(PInf));
+	//if (cdThread.requests == NULL) {
+	//	_tprintf(_T("Error allocating memory for requests's array.\n"));
+	//	WaitAllThreads(threads, threadCounter);
+	//	UnmapAllViews(views, viewCounter);
+	//	CloseMyHandles(handles, handleCounter);
+	//}
+
+	//cdThread.requestIndex = malloc(sizeof(int));
+	//int index = 0;
+	//cdThread.requestIndex = &index;
 
 	HANDLE consoleThread = CreateThread(NULL, 0, TextInterface, &cdThread, 0, NULL);
 	if (!consoleThread) {
