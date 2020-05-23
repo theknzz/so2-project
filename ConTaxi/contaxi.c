@@ -46,6 +46,14 @@ void PrintError(enum response_id resp, CD_TAXI_Thread* cd) {
 	}
 }
 
+void PrintPersonalInformation(CD_TAXI_Thread* cd) {
+	_tprintf(_T("\n\n============= TAXI INFO =============\n"));
+	_tprintf(_T("Taxi '%s' located in {%.2d;%.2d}.\n"), cd->taxi->licensePlate, cd->taxi->location.x, cd->taxi->location.y);
+	if (cd->taxi->client.location.x > -1)
+		_tprintf(_T("Taxi has '%s' as passenger.\n"), cd->taxi->client.nome);
+	_tprintf(_T("=======================================\n\n"));
+}
+
 int CalculateDistanceTo(Coords org, Coords dest) {
 	int y_dist, x_dist;
 
@@ -280,7 +288,7 @@ DWORD WINAPI TaxiAutopilot(LPVOID ptr) {
 	FILETIME ft, ftUTC;
 	LARGE_INTEGER DueTime;
 	SYSTEMTIME systime;
-	LONG interval = (LONG)/*(1 / cdata->taxi->velocity)*/2 * 1000;
+	LONG interval = (LONG)(1 / cdata->taxi->velocity)* 1000;
 
 	SystemTimeToFileTime(&systime, &ft);
 	LocalFileTimeToFileTime(&ft, &ftUTC);
@@ -480,10 +488,14 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 	}
 	else if (_tcscmp(cmd[0], TXI_CLOSE) == 0) {
 		_tprintf(_T("Closing taxi client\n"));
-		NotifyCentralTaxiLeaving(&cdata->comm.request, &cdata->comm.response, *(cdata->taxi));
-		// ## TODO tratar o close properly
-		ReleaseSemaphore(cdata->taxiGate, 1, NULL);
-		return -1;
+		if ((res = NotifyCentralTaxiLeaving(&cdata->comm.request, &cdata->comm.response, *(cdata->taxi))) != OK) {
+			PrintError(res, cdata);
+		}
+		else {
+			// ## TODO tratar o close properly
+			ReleaseSemaphore(cdata->taxiGate, 1, NULL);
+				return -1;
+		}
 	}
 	else {
 		_tprintf(_T("System doesn't recognize the command, type 'help' to view all the commands.\n"));
@@ -535,6 +547,7 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 	TCHAR command[100];
 
 	while (!cdata->isTaxiKicked) {
+		PrintPersonalInformation(cdata);
 		_tprintf(_T("Command: "));
 		_tscanf_s(_T(" %99[^\n]"), command, sizeof(TCHAR) * 100);
 		if (FindFeatureAndRun(command, cdata) == -1) break;

@@ -128,6 +128,12 @@ typedef struct _CONTROL_DATA_TAXI_THREAD{
 	BOOL isTaxiKicked;
 } CD_TAXI_Thread;
 
+typedef struct _DDL_METHODS {
+	void (*Register)(TCHAR*, int);
+	void (*Log)(TCHAR*);
+	void (*Test)(void);
+} DLLMethods;
+
 typedef struct ThreadControlData {
 	BOOL* areTaxisRequestsPause;
 	int nrMaxTaxis;
@@ -144,6 +150,7 @@ typedef struct ThreadControlData {
 	CDLogin_Response* cdLogin_Response;
 	char charMap[MIN_COL][MIN_LIN];
 	SHM_CC_REQUEST* requests;
+	DLLMethods dllMethods;
 } CDThread;
 
 typedef struct IndividualThreadControl {
@@ -151,9 +158,3 @@ typedef struct IndividualThreadControl {
 	CC_Comm comm;
 } IndividualCD;
 
-typedef struct _CMD_STRUCT {
-	TCHAR* command;
-	TCHAR* license;
-	int x;
-	int y;
-} CMD;

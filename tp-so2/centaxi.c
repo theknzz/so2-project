@@ -13,24 +13,24 @@
 
 
 // Wait for all the threads to stop
-void WaitAllThreads(HANDLE* threads, int *nr) {
+void WaitAllThreads(HANDLE* threads, int nr) {
 	for (int i = 0; i < nr; i++) 
 		WaitForSingleObject(threads[i], INFINITE);
-	*(nr) = 0;
+	nr = 0;
 }
 
 // Close all open handles
-void CloseMyHandles(HANDLE* handles, int *nr) {
+void CloseMyHandles(HANDLE* handles, int nr) {
 	for (int i = 0; i < nr; i++)
 		CloseHandle(handles[i]);
-	*(nr) = 0;
+	nr = 0;
 }
 
 // Unmaps all views
-void UnmapAllViews(HANDLE* views, int *nr) {
+void UnmapAllViews(HANDLE* views, int nr) {
 	for (int i = 0; i < nr; i++)
 		UnmapViewOfFile(views[i]);
-	*(nr) = 0;
+	nr = 0;
 }
 
 void ClearScreen() {
@@ -39,13 +39,13 @@ void ClearScreen() {
 }
 
 void PrintMap(Cell* map) {
-	//for (int i = 0; i < MIN_LIN; i++) {
-	//	for (int j = 0; j < MIN_COL; j++) {
-	//		Cell cell = *(map + (i * MIN_COL) + j);
-	//		_tprintf(_T("%c"), cell.display);
-	//	}
-	//	_tprintf(_T("\n"));
-	//}
+	for (int i = 0; i < MIN_LIN; i++) {
+		for (int j = 0; j < MIN_COL; j++) {
+			Cell cell = *(map + (i * MIN_COL) + j);
+			_tprintf(_T("%c"), cell.display);
+		}
+		_tprintf(_T("\n"));
+	}
 	_tprintf(_T("\n"));
 }
 
@@ -296,6 +296,7 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 				ZeroMemory(&cd->taxis[index], sizeof(Taxi));
 				cd->taxis[index].location.x = -1;
 				cd->taxis[index].location.y = -1;
+				response.action = OK;
 				break;
 	}
 	return response;
@@ -942,6 +943,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 	int viewCounter = 0, handleCounter = 0, threadCounter = 0;
 	int taxiFreePosition = 0;
 	int WaitTimeOnTaxiRequest = WAIT_TIME;
+	DLLMethods dllMethods;
+	HINSTANCE hDll;
 	srand(time(0));
 
 #ifdef UNICODE
@@ -983,6 +986,38 @@ int _tmain(int argc, TCHAR* argv[]) {
 	handles[handleCounter++] = taxiGate;
 
 	// ====================================================================================================
+
+	hDll = LoadLibraryA(".\\SO2_TP_DLL_64.dll123");
+	if (hDll == NULL) {
+		_tprintf(_T("Error loading dll!\n"));
+		CloseMyHandles(handles, &handleCounter);
+		exit(-1);
+	}
+
+	dllMethods.Register = (void (*)(TCHAR*, int)) GetProcAddress(hDll, "dll_register");
+	if (dllMethods.Register == NULL) {
+		_tprintf(_T("Error getting pointer to dll function.\n"));
+		CloseMyHandles(handles, &handleCounter);
+		exit(-1);
+	}
+
+	dllMethods.Log = (void (*)(TCHAR*)) GetProcAddress(hDll, "dll_log");
+	if (dllMethods.Log == NULL) {
+		_tprintf(_T("Error getting pointer to dll function.\n"));
+		CloseMyHandles(handles, &handleCounter);
+		exit(-1);
+	}
+
+	dllMethods.Test = (void (*)(void)) GetProcAddress(hDll, "dll_test");
+	if (dllMethods.Test == NULL) {
+		_tprintf(_T("Error getting pointer to dll function.\n"));
+		CloseMyHandles(handles, &handleCounter);
+		exit(-1);
+	}
+
+	dllMethods.Register(SHM_BROADCAST_PASSENGER_ARRIVE, 6);
+	dllMethods.Log(_T("dbg"));
+	dllMethods.Test();
 
 	Taxi* taxis = (Taxi*)malloc(nrMaxTaxis * sizeof(Taxi));
 	if (taxis == NULL) {
@@ -1062,7 +1097,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
 	char* fileContent = NULL;
 	// Le conteudo do ficheiro para array de chars
-	if ((fileContent = ReadFileToCharArray(_T("E:\\projects\\so2-project\\maps\\mapa.txt"))) == NULL) {
+	if ((fileContent = ReadFileToCharArray(_T(".\\..\\maps\\mapa.txt"))) == NULL) {
 		_tprintf(_T("Error reading the file (%d)\n"), GetLastError());
 		WaitAllThreads(threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
