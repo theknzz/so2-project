@@ -20,10 +20,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="contaxi.c" />
+    <ClCompile Include="taxi_utils.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\tp-so2\rules.h" />
     <ClInclude Include="..\tp-so2\structs.h" />
+    <ClInclude Include="taxi_utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

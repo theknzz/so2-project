@@ -1,24 +1,34 @@
 ﻿  contaxi.c
-E:\projects\so2-project\ConTaxi\contaxi.c(186,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [4][100]'
-E:\projects\so2-project\ConTaxi\contaxi.c(337,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(374,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(403,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(421,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(439,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(457,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(522,42): warning C4020: 'ReleaseMutex': too many actual parameters
-E:\projects\so2-project\ConTaxi\contaxi.c(566,15): warning C4244: 'function': conversion from 'time_t' to 'unsigned int', possible loss of data
-E:\projects\so2-project\ConTaxi\contaxi.c(575,12): warning C4473: 'wprintf' : not enough arguments passed for format string
-E:\projects\so2-project\ConTaxi\contaxi.c(575,12): message : placeholders and their parameters expect 1 variadic arguments, but 0 were provided
-E:\projects\so2-project\ConTaxi\contaxi.c(575,12): message : the missing variadic argument 1 is required by format string '%d'
-E:\projects\so2-project\ConTaxi\contaxi.c(739,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
-E:\projects\so2-project\ConTaxi\contaxi.c(739,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
-E:\projects\so2-project\ConTaxi\contaxi.c(745,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
-E:\projects\so2-project\ConTaxi\contaxi.c(745,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
-E:\projects\so2-project\ConTaxi\contaxi.c(885,25): warning C4047: 'function': 'char **' differs in levels of indirection from 'char [50][50]'
-E:\projects\so2-project\ConTaxi\contaxi.c(885,25): warning C4024: 'GetMap': different types for formal and actual parameter 1
-E:\projects\so2-project\ConTaxi\contaxi.c(186): warning C4172: returning address of local variable or temporary: command
-E:\projects\so2-project\ConTaxi\contaxi.c(203): warning C4715: 'getOppositeDirection': not all control paths return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(545): warning C4716: 'ReceiveBroadcastMessage': must return a value
-E:\projects\so2-project\ConTaxi\contaxi.c(505): warning C4715: 'FindFeatureAndRun': not all control paths return a value
+E:\projects\so2-project\ConTaxi\contaxi.c(10,15): warning C4244: 'function': conversion from 'time_t' to 'unsigned int', possible loss of data
+E:\projects\so2-project\ConTaxi\contaxi.c(19,12): warning C4473: 'wprintf' : not enough arguments passed for format string
+E:\projects\so2-project\ConTaxi\contaxi.c(19,12): message : placeholders and their parameters expect 1 variadic arguments, but 0 were provided
+E:\projects\so2-project\ConTaxi\contaxi.c(19,12): message : the missing variadic argument 1 is required by format string '%d'
+E:\projects\so2-project\ConTaxi\contaxi.c(183,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
+E:\projects\so2-project\ConTaxi\contaxi.c(183,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
+E:\projects\so2-project\ConTaxi\contaxi.c(189,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
+E:\projects\so2-project\ConTaxi\contaxi.c(189,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
+E:\projects\so2-project\ConTaxi\contaxi.c(329,25): warning C4047: 'function': 'char **' differs in levels of indirection from 'char [50][50]'
+E:\projects\so2-project\ConTaxi\contaxi.c(329,25): warning C4024: 'GetMap': different types for formal and actual parameter 1
+  taxi_utils.c
+E:\projects\so2-project\ConTaxi\taxi_utils.c(46,11): warning C4477: 'wprintf' : format string '%.2d' requires an argument of type 'int', but variadic argument 1 has type 'double'
+E:\projects\so2-project\ConTaxi\taxi_utils.c(124,24): warning C4013: 'UpdateMyLocation' undefined; assuming extern returning int
+E:\projects\so2-project\ConTaxi\taxi_utils.c(182,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [4][100]'
+E:\projects\so2-project\ConTaxi\taxi_utils.c(245,36): warning C4013: 'NotifyPassengerCatch' undefined; assuming extern returning int
+E:\projects\so2-project\ConTaxi\taxi_utils.c(252,39): warning C4013: 'NotifyPassengerDeliever' undefined; assuming extern returning int
+E:\projects\so2-project\ConTaxi\taxi_utils.c(333,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(335,39): warning C4013: 'RequestPassengerTransport' undefined; assuming extern returning int
+E:\projects\so2-project\ConTaxi\taxi_utils.c(345,34): warning C4013: 'NotifyVelocityChange' undefined; assuming extern returning int
+E:\projects\so2-project\ConTaxi\taxi_utils.c(371,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(375,35): warning C4013: 'NotifyCentralNQChange' undefined; assuming extern returning int
+E:\projects\so2-project\ConTaxi\taxi_utils.c(400,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(418,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(436,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(454,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(488,38): warning C4013: 'NotifyCentralTaxiLeaving' undefined; assuming extern returning int
+E:\projects\so2-project\ConTaxi\taxi_utils.c(519,42): warning C4020: 'ReleaseMutex': too many actual parameters
+  Generating Code...
+E:\projects\so2-project\ConTaxi\taxi_utils.c(182): warning C4172: returning address of local variable or temporary: command
+E:\projects\so2-project\ConTaxi\taxi_utils.c(199): warning C4715: 'getOppositeDirection': not all control paths return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(542): warning C4716: 'ReceiveBroadcastMessage': must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(502): warning C4715: 'FindFeatureAndRun': not all control paths return a value
   ConTaxi.vcxproj -> E:\projects\so2-project\x64\Debug\ConTaxi.exe
