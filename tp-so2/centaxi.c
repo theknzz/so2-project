@@ -63,12 +63,12 @@ void SendBroadCastMessage(CC_Broadcast* broadcast, SHM_BROADCAST* message, int n
 // função-thread responsável por tratar a interação com o admin
 DWORD WINAPI TextInterface(LPVOID ptr) {
 	CDThread* cdata = (CDThread*)ptr;
-	TCHAR command[100];
+	TCHAR* command = (TCHAR*) malloc (sizeof(TCHAR) * 100);
 	do {
 		PrintMap(cdata->map);
 		_tprintf(_T("Command: "));
 		_tscanf_s(_T(" %98[^\n]"), command, sizeof(TCHAR)*100);
-		FindFeatureAndRun(command, cdata);
+		if (FindFeatureAndRun(command, cdata) == -1) break;
 	} while (!cdata->isSystemClosing);
 	return 0;
 }
@@ -289,7 +289,7 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 					break;
 				}
 				// taxis has passenger
-				if (cd->taxis[index].client.location.x != -1) {
+				if (cd->taxis[index].client.location.x > 0) {
 					response.action = CANT_QUIT_WITH_PASSENGER;
 					break;
 				}
@@ -635,7 +635,8 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 	SHM_LOGIN_REQUEST shared;
 
 	while (!cd->isSystemClosing) {
-		WaitForSingleObject(cdResponse->new_request, INFINITE);
+		if (WaitForSingleObject(cdResponse->new_request, 3000) == WAIT_TIMEOUT)
+			continue;
 		
 		WaitForSingleObject(cdata->login_m, INFINITE);
 
@@ -768,6 +769,7 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 		cdata->isSystemClosing = TRUE;
 		b.isSystemClosing = TRUE;
 		SendBroadCastMessage(cdata->broadcast, &b, NumberOfActiveTaxis(cdata->taxis, cdata->nrMaxTaxis));
+		return -1;
 	}
 	else if (_tcscmp(cmd[0], ADM_LIST_TAXIS) == 0) {
 		for (unsigned int i = 0; i < cdata->nrMaxTaxis; i++) {
@@ -987,7 +989,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
 	// ====================================================================================================
 
-	hDll = LoadLibraryA(".\\SO2_TP_DLL_64.dll123");
+	hDll = LoadLibraryA(".\\SO2_TP_DLL_64.dll");
 	if (hDll == NULL) {
 		_tprintf(_T("Error loading dll!\n"));
 		CloseMyHandles(handles, &handleCounter);

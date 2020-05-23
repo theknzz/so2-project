@@ -494,7 +494,8 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		else {
 			// ## TODO tratar o close properly
 			ReleaseSemaphore(cdata->taxiGate, 1, NULL);
-				return -1;
+			cdata->isTaxiKicked = TRUE;
+			return -1;
 		}
 	}
 	else {
@@ -544,14 +545,14 @@ DWORD WINAPI ReceiveBroadcastMessage(LPVOID ptr) {
 
 DWORD WINAPI TextInterface(LPVOID ptr) {
 	CD_TAXI_Thread* cdata = (CD_TAXI_Thread*)ptr;
-	TCHAR command[100];
-
+	TCHAR* str = (TCHAR*) malloc (sizeof(TCHAR) * 100);
 	while (!cdata->isTaxiKicked) {
 		PrintPersonalInformation(cdata);
 		_tprintf(_T("Command: "));
-		_tscanf_s(_T(" %99[^\n]"), command, sizeof(TCHAR) * 100);
-		if (FindFeatureAndRun(command, cdata) == -1) break;
+		_tscanf_s(_T(" %99[^\n]"), str, sizeof(TCHAR) * 100);
+		if (FindFeatureAndRun(str, cdata) == -1) break;
 	}
+	free(str);
 	return 0;
 }
 
