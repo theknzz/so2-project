@@ -367,6 +367,27 @@ TCHAR** ParseCommand(TCHAR* cmd) {
 	return command;
 }
 
+DWORD WINAPI GetPassengerRegistration(LPVOID ptr)
+{
+	CDThread* cd = (CDThread*)ptr;
+	BOOL ret;
+	PassMessage message;
+	DWORD nr;
+
+	while (1) {
+		ret = ReadFile(cd->hPassPipeRegister, &message, sizeof(PassMessage), &nr, NULL);
+		_tprintf(_T("%s - {%.2d,%.2d} to {%.2d,%.2d}.\n"), message.passenger.nome, message.passenger.location.x, message.passenger.location.y,
+			message.passenger.destination.x, message.passenger.destination.y);
+		message.resp = OK;
+		if (!WriteFile(cd->hPassPipeRegister, &message, sizeof(PassMessage), &nr, NULL)) {
+			_tprintf(TEXT("[ERRO] Escrever no pipe! (WriteFile)\n"));
+			exit(-1);
+		}
+		ZeroMemory(&message, sizeof(PassMessage));
+	}
+	return 0;
+}
+
 
 SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, Content content) {
 	SHM_CC_RESPONSE response;

@@ -43,7 +43,7 @@ TCHAR* DirectionToString(enum taxi_direction direction) {
 void PrintPersonalInformation(CD_TAXI_Thread* cd) {
 	_tprintf(_T("\n\n============= TAXI INFO =============\n"));
 	_tprintf(_T("Taxi '%s' located in {%.2d;%.2d}.\n"), cd->taxi->licensePlate, cd->taxi->location.x, cd->taxi->location.y);
-	_tprintf(_T("Velocity: %.2d\n"), cd->taxi->velocity);
+	_tprintf(_T("Velocity: %.2f\n"), cd->taxi->velocity);
 	_tprintf(_T("NQ: %.2d\n"), cd->taxi->nq);
 	if (cd->taxi->client.location.x > -1)
 		_tprintf(_T("Taxi has '%s' as passenger.\n"), cd->taxi->client.nome);

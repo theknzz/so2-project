@@ -133,6 +133,7 @@ typedef struct _DDL_METHODS {
 } DLLMethods;
 
 typedef struct ThreadControlData {
+	HANDLE hPassPipeRegister, hPassPipeTalk;
 	BOOL* areTaxisRequestsPause;		// Flag to control if the system is paused or not 
 	int nrMaxTaxis;						// Number of taxis in the system
 	int nrMaxPassengers;				// Number of passengers in the system
@@ -155,3 +156,7 @@ typedef struct IndividualThreadControl {
 	CC_Comm comm;		// Communication container for each one of the taxis
 } IndividualCD;
 
+typedef struct NP_MESSAGE_PASSENGERS{
+	enum response_id resp;
+	Passenger passenger;
+} PassMessage;

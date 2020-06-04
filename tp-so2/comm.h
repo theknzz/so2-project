@@ -20,3 +20,4 @@ void SendBroadCastMessage(CC_Broadcast* broadcast, SHM_BROADCAST* message, int n
 int FindFeatureAndRun(TCHAR* command, CDThread* cdata);
 DWORD WINAPI TextInterface(LPVOID ptr);
 TCHAR** ParseCommand(TCHAR* cmd);
+DWORD WINAPI GetPassengerRegistration(LPVOID ptr);

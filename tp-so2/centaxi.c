@@ -32,12 +32,10 @@ int _tmain(int argc, TCHAR* argv[]) {
 	_setmode(_fileno(stdout), _O_WTEXT);
 #endif
 	if (argc >= 2) {
-
 		if (_tcscmp(argv[1], _T("-t")) == 0)
 			nrMaxTaxis = _ttoi(argv[2]);
 		else if (_tcscmp(argv[1], _T("-p")) == 0)
 			nrMaxPassengers = _ttoi(argv[2]);
-
 		if (argc > 3) {
 			if (_tcscmp(argv[3], _T("-t")) == 0)
 				nrMaxTaxis = _ttoi(argv[4]);
@@ -94,6 +92,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		CloseMyHandles(handles, &handleCounter);
 		exit(-1);
 	}
+	// ====================================================================================================
 
 	Taxi* taxis = (Taxi*)malloc(nrMaxTaxis * sizeof(Taxi));
 	if (taxis == NULL) {
@@ -124,7 +123,44 @@ int _tmain(int argc, TCHAR* argv[]) {
 		passengers[i].location.x = -1;
 		passengers[i].location.y = -1;
 	}
+	// ====================================================================================================
 
+	CDThread cdThread;
+
+	cdThread.hPassPipeRegister = CreateNamedPipe(NP_PASS_REGISTER, PIPE_ACCESS_OUTBOUND | PIPE_ACCESS_DUPLEX, PIPE_WAIT |
+		PIPE_TYPE_BYTE | PIPE_READMODE_BYTE, nrMaxPassengers, sizeof(PassMessage), sizeof(PassMessage), 1000, NULL);
+
+	if (cdThread.hPassPipeRegister == INVALID_HANDLE_VALUE) {
+		_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe) %d"), GetLastError());
+		CloseMyHandles(handles, handleCounter);
+		Sleep(2000);
+		return -1;
+	}
+
+	cdThread.hPassPipeTalk = CreateNamedPipe(NP_PASS_TALK, PIPE_ACCESS_OUTBOUND | PIPE_ACCESS_DUPLEX, PIPE_WAIT |
+		PIPE_TYPE_BYTE | PIPE_READMODE_BYTE, nrMaxPassengers, sizeof(PassMessage), sizeof(PassMessage), 1000, NULL);
+
+	if (cdThread.hPassPipeTalk == INVALID_HANDLE_VALUE) {
+		_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe)"));
+		CloseMyHandles(handles, handleCounter);
+		return -1;
+	}
+
+	// operação bloqueante (fica à espera da ligação de um cliente)
+	if (!ConnectNamedPipe(cdThread.hPassPipeRegister, NULL)) {
+		_tprintf(TEXT("[ERRO] Ligação ao leitor 1! (ConnectNamedPipe %d).\n"), GetLastError());
+		Sleep(20000);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+
+	if (!ConnectNamedPipe(cdThread.hPassPipeTalk, NULL)) {
+		_tprintf(TEXT("[ERRO] Ligação ao leitor 2! (ConnectNamedPipe %d).\n"), GetLastError());
+		Sleep(20000);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	
 	HANDLE FM_BROADCAST = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
 		NULL,
@@ -188,7 +224,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 	// Preenche mapa com o conteudo do ficheiro
 	LoadMapa(map, fileContent, nrMaxTaxis, nrMaxPassengers);
 
-	CDThread cdThread;
 	cdThread.dllMethods = &dllMethods;
 	cdThread.taxis = taxis;
 	cdThread.map = map;
@@ -206,6 +241,16 @@ int _tmain(int argc, TCHAR* argv[]) {
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 	}
+
+	HANDLE cthread = CreateThread(NULL, 0, GetPassengerRegistration, &cdThread, 0, NULL);
+	if (!cthread) {
+		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	threads[threadCounter++] = cthread;
 
 	HANDLE consoleThread = CreateThread(NULL, 0, TextInterface, &cdThread, 0, NULL);
 	if (!consoleThread) {

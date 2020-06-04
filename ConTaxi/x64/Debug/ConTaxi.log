@@ -10,7 +10,6 @@ E:\projects\so2-project\ConTaxi\contaxi.c(189,43): message : placeholders and th
 E:\projects\so2-project\ConTaxi\contaxi.c(329,25): warning C4047: 'function': 'char **' differs in levels of indirection from 'char [50][50]'
 E:\projects\so2-project\ConTaxi\contaxi.c(329,25): warning C4024: 'GetMap': different types for formal and actual parameter 1
   taxi_utils.c
-E:\projects\so2-project\ConTaxi\taxi_utils.c(46,11): warning C4477: 'wprintf' : format string '%.2d' requires an argument of type 'int', but variadic argument 1 has type 'double'
 E:\projects\so2-project\ConTaxi\taxi_utils.c(124,24): warning C4013: 'UpdateMyLocation' undefined; assuming extern returning int
 E:\projects\so2-project\ConTaxi\taxi_utils.c(182,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [4][100]'
 E:\projects\so2-project\ConTaxi\taxi_utils.c(245,36): warning C4013: 'NotifyPassengerCatch' undefined; assuming extern returning int
@@ -27,8 +26,8 @@ E:\projects\so2-project\ConTaxi\taxi_utils.c(454,10): warning C4033: 'FindFeatur
 E:\projects\so2-project\ConTaxi\taxi_utils.c(488,38): warning C4013: 'NotifyCentralTaxiLeaving' undefined; assuming extern returning int
 E:\projects\so2-project\ConTaxi\taxi_utils.c(519,42): warning C4020: 'ReleaseMutex': too many actual parameters
   Generating Code...
-E:\projects\so2-project\ConTaxi\taxi_utils.c(182): warning C4172: returning address of local variable or temporary: command
 E:\projects\so2-project\ConTaxi\taxi_utils.c(199): warning C4715: 'getOppositeDirection': not all control paths return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(182): warning C4172: returning address of local variable or temporary: command
 E:\projects\so2-project\ConTaxi\taxi_utils.c(542): warning C4716: 'ReceiveBroadcastMessage': must return a value
 E:\projects\so2-project\ConTaxi\taxi_utils.c(502): warning C4715: 'FindFeatureAndRun': not all control paths return a value
   ConTaxi.vcxproj -> E:\projects\so2-project\x64\Debug\ConTaxi.exe

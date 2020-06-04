@@ -28,7 +28,7 @@
 #define T_DISPLAY 't'
 
 // Type of Map Cells
-enum type { Street, Building/*, Taxi, Passenger */ };
+enum type { Street, Building };
 
 // Message intentions
 enum message_id {
@@ -54,7 +54,9 @@ enum response_id {
 	PASSENGER_ALREADY_TAKEN,
 	CANT_QUIT_WITH_PASSENGER,
 	TAXI_REQUEST_PAUSED,
-	TAXI_KICKED
+	TAXI_KICKED,
+	PASSENGER_CAUGHT,
+	PASSENGER_REACHED_DESTINATION,
 };
 
 enum passanger_state {
@@ -71,6 +73,7 @@ enum taxi_direction {
 	UP,
 	RIGHT
 };
+
 
 // Shared memory
 #define SHM_CC_REQUEST_NAME _T("SHM_CC_REQUEST_%s")
@@ -104,6 +107,12 @@ enum taxi_direction {
 
 #define EVENT_NEW_PASSENGER _T("event_new_passenger")
 
+
+// Named Pipes
+#define NP_PASS_REGISTER _T("\\\\.\\pipe\\np_passenger_register")
+#define NP_PASS_TALK _T("\\\\.\\pipe\\np_passenger_talk")
+#define NP_TAXI_NAME _T("\\\\.\\pipe\\np_taxi")
+
 // Admin Commands
 #define ADM_KICK _T("kick")
 #define ADM_CLOSE _T("close")
@@ -128,6 +137,9 @@ enum taxi_direction {
 #define TXI_CLOSE _T("close")
 #define TXI_CATCH _T("catch")
 #define TXI_DELIVER _T("deliver")
+
+// Passenger Commands
+#define PASS_REGISTER _T("register")
 
 // Debug Commands
 #define DBG_ADD_PASSENGER _T("add") // add passenger_name x y dest_x dest_y
