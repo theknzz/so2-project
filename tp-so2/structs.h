@@ -156,7 +156,12 @@ typedef struct IndividualThreadControl {
 	CC_Comm comm;		// Communication container for each one of the taxis
 } IndividualCD;
 
-typedef struct NP_MESSAGE_PASSENGERS{
+typedef struct NP_MESSAGE_REGISTER_PASSENGERS{
 	enum response_id resp;
 	Passenger passenger;
+} PassRegisterMessage;
+
+typedef struct NP_MESSAGE_TALK_PASSENGERS {
+	enum response_id resp;
+	Content content;
 } PassMessage;

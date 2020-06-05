@@ -367,27 +367,54 @@ TCHAR** ParseCommand(TCHAR* cmd) {
 	return command;
 }
 
-DWORD WINAPI GetPassengerRegistration(LPVOID ptr)
-{
+DWORD WINAPI GetPassengerRegistration(LPVOID ptr) {
 	CDThread* cd = (CDThread*)ptr;
 	BOOL ret;
-	PassMessage message;
+	PassRegisterMessage message;
 	DWORD nr;
 
 	while (1) {
-		ret = ReadFile(cd->hPassPipeRegister, &message, sizeof(PassMessage), &nr, NULL);
+		ret = ReadFile(cd->hPassPipeRegister, &message, sizeof(PassRegisterMessage), &nr, NULL);
 		_tprintf(_T("%s - {%.2d,%.2d} to {%.2d,%.2d}.\n"), message.passenger.nome, message.passenger.location.x, message.passenger.location.y,
 			message.passenger.destination.x, message.passenger.destination.y);
 		message.resp = OK;
-		if (!WriteFile(cd->hPassPipeRegister, &message, sizeof(PassMessage), &nr, NULL)) {
+		if (!WriteFile(cd->hPassPipeRegister, &message, sizeof(PassRegisterMessage), &nr, NULL)) {
 			_tprintf(TEXT("[ERRO] Escrever no pipe! (WriteFile)\n"));
+			Sleep(2000);
 			exit(-1);
 		}
-		ZeroMemory(&message, sizeof(PassMessage));
+		
+		Passenger p;
+		CopyMemory(&p, &message.passenger, sizeof(Passenger));
+		Taxi taxi;
+		CopyMemory(taxi.licensePlate, _T("aa-aa-aa\0"), sizeof(TCHAR) * 9);
+		SendMessageToPassenger(PASSENGER_GOT_TAXI_ASSIGNED, &p, &taxi, cd);
+		
+		ZeroMemory(&message, sizeof(PassRegisterMessage));
 	}
 	return 0;
 }
 
+void SendMessageToPassenger(enum response_id resp, Passenger* passenger, Taxi* taxi, CDThread* cd) {
+	PassMessage message;
+	DWORD nr;
+	BOOL ret;
+
+	CopyMemory(&message.content.passenger, passenger, sizeof(Passenger));
+	message.resp = resp;
+
+	if (taxi != NULL) {
+		CopyMemory(&message.content.taxi, taxi, sizeof(Taxi));
+	}
+
+	if (!WriteFile(cd->hPassPipeTalk, &message, sizeof(PassMessage), &nr, NULL)) {
+		_tprintf(TEXT("[ERRO] Escrever no pipe! (WriteFile)\n"));
+		Sleep(2000);
+		exit(-1);
+	}
+
+	ret = ReadFile(cd->hPassPipeTalk, &message, sizeof(PassMessage), &nr, NULL);
+}
 
 SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, Content content) {
 	SHM_CC_RESPONSE response;

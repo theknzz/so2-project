@@ -30,6 +30,17 @@ TCHAR** ParseCommand(TCHAR* cmd, int *argc) {
     return command;
 }
 
+void GetOutput(enum response_id resp, Passenger passenger, Taxi taxi) {
+    switch (resp) {
+    case PASSENGER_GOT_TAXI_ASSIGNED:
+        _tprintf(_T("%s was assigned to %s.\n"), passenger.nome, taxi.licensePlate);
+        break;
+    case PASSENGER_CAUGHT:
+        _tprintf(_T("%s was caught by %s.\n"), passenger.nome, taxi.licensePlate);
+        break;
+    }
+}
+
 DWORD WINAPI RecebeNotificacao(LPVOID ptr) {
     HANDLE hPipe = (HANDLE)ptr;
     PassMessage message;
@@ -38,9 +49,9 @@ DWORD WINAPI RecebeNotificacao(LPVOID ptr) {
 
     while (1) {
         ret = ReadFile(hPipe, &message, sizeof(PassMessage), &nr, NULL);
-        if (message.resp == OK) {
-            _tprintf(_T("Passenger added to central of taxis!\n"));
-        }
+
+        GetOutput(message.resp, message.content.passenger, message.content.taxi);
+
         message.resp = OK;
         if (!WriteFile(hPipe, &message, sizeof(PassMessage), &nr, NULL)) {
             _tprintf(TEXT("[ERRO] Escrever no pipe! (WriteFile)\n"));
@@ -57,6 +68,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     BOOL centralIsActive = TRUE;
     BOOL ret;
     Passenger me;
+    PassRegisterMessage resgMessage;
     PassMessage message;
     DWORD nr;
 
@@ -125,7 +137,7 @@ int _tmain(int argc, TCHAR* argv[]) {
                 int locX, locY, desX, desY;
                 locX = _ttoi(cmd[2]); locY = _ttoi(cmd[3]); desX = _ttoi(cmd[4]); desY = _ttoi(cmd[5]);
                 if (locX < 0 || locY > MIN_COL || desX < 0 || desY > MIN_COL) {
-                    _tprintf(_T("Inserted coordinates doesn't match the city map.\n x: [0, %d]\n y: [0, %d]"), MIN_COL, MIN_LIN);
+                    _tprintf(_T("Inserted coordinates don't match the city map.\n x: [0, %d]\n y: [0, %d]"), MIN_COL, MIN_LIN);
                     continue;
                 }
                 else {
@@ -140,19 +152,19 @@ int _tmain(int argc, TCHAR* argv[]) {
             ZeroMemory(cmd, sizeof(TCHAR)*6*100);
         }
 
-        CopyMemory(&message.passenger, &me, sizeof(Passenger));
-        if (!WriteFile(hRegister, &message, sizeof(PassMessage), &nr, NULL)) {
+        CopyMemory(&resgMessage.passenger, &me, sizeof(Passenger));
+        if (!WriteFile(hRegister, &resgMessage, sizeof(PassRegisterMessage), &nr, NULL)) {
             _tprintf(TEXT("[ERRO] Escrever no pipe! (WriteFile)\n"));
             exit(-1);
         }
 
-        ret = ReadFile(hRegister, &message, sizeof(PassMessage), &nr, NULL);
-        if (message.resp == OK) {
-            _tprintf(_T("Passenger added to central of taxis!\n"));
-        }
-        else {
-            _tprintf(_T("ERRO\n"));
-        }
+        ret = ReadFile(hRegister, &resgMessage, sizeof(PassRegisterMessage), &nr, NULL);
+        //if (message.resp == OK) {
+        //    _tprintf(_T("Passenger added to central of taxis!\n"));
+        //}
+        //else {
+        //    _tprintf(_T("ERRO\n"));
+        //}
     }
     CloseHandle(hRegister);
     CloseHandle(hTalk);

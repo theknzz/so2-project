@@ -7,18 +7,18 @@ E:\projects\so2-project\tp-so2\comm.c(275,116): warning C4047: '=': 'HANDLE' dif
 E:\projects\so2-project\tp-so2\comm.c(282,92): warning C4020: 'function through pointer': too many actual parameters
 E:\projects\so2-project\tp-so2\comm.c(285,91): warning C4020: 'function through pointer': too many actual parameters
 E:\projects\so2-project\tp-so2\comm.c(367,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [6][100]'
-E:\projects\so2-project\tp-so2\comm.c(518,91): warning C4047: 'function': 'TCHAR *' differs in levels of indirection from 'TCHAR (*)[25]'
-E:\projects\so2-project\tp-so2\comm.c(518,91): warning C4024: 'GetPassengerStatus': different types for formal and actual parameter 3
-E:\projects\so2-project\tp-so2\comm.c(549,18): warning C4477: '_swprintf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'double'
-E:\projects\so2-project\tp-so2\comm.c(560,18): warning C4477: '_swprintf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'double'
-E:\projects\so2-project\tp-so2\comm.c(651,11): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\tp-so2\comm.c(673,30): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\comm.c(679,30): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\comm.c(688,38): warning C4047: '=': 'BOOL *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\comm.c(702,98): warning C4020: 'function through pointer': too many actual parameters
-E:\projects\so2-project\tp-so2\comm.c(722,11): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\tp-so2\comm.c(740,128): warning C4020: 'function through pointer': too many actual parameters
+E:\projects\so2-project\tp-so2\comm.c(545,91): warning C4047: 'function': 'TCHAR *' differs in levels of indirection from 'TCHAR (*)[25]'
+E:\projects\so2-project\tp-so2\comm.c(545,91): warning C4024: 'GetPassengerStatus': different types for formal and actual parameter 3
+E:\projects\so2-project\tp-so2\comm.c(576,18): warning C4477: '_swprintf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'double'
+E:\projects\so2-project\tp-so2\comm.c(587,18): warning C4477: '_swprintf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'double'
+E:\projects\so2-project\tp-so2\comm.c(678,11): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\tp-so2\comm.c(700,30): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\comm.c(706,30): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\comm.c(715,38): warning C4047: '=': 'BOOL *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\comm.c(729,98): warning C4020: 'function through pointer': too many actual parameters
+E:\projects\so2-project\tp-so2\comm.c(749,11): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\tp-so2\comm.c(767,128): warning C4020: 'function through pointer': too many actual parameters
 E:\projects\so2-project\tp-so2\comm.c(122): warning C4715: 'TalkToTaxi': not all control paths return a value
 E:\projects\so2-project\tp-so2\comm.c(367): warning C4172: returning address of local variable or temporary: command
-E:\projects\so2-project\tp-so2\comm.c(747): warning C4715: 'FindFeatureAndRun': not all control paths return a value
+E:\projects\so2-project\tp-so2\comm.c(774): warning C4715: 'FindFeatureAndRun': not all control paths return a value
   tp-so2.vcxproj -> E:\projects\so2-project\x64\Debug\CenTaxi.exe

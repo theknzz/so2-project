@@ -128,7 +128,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	CDThread cdThread;
 
 	cdThread.hPassPipeRegister = CreateNamedPipe(NP_PASS_REGISTER, PIPE_ACCESS_OUTBOUND | PIPE_ACCESS_DUPLEX, PIPE_WAIT |
-		PIPE_TYPE_BYTE | PIPE_READMODE_BYTE, nrMaxPassengers, sizeof(PassMessage), sizeof(PassMessage), 1000, NULL);
+		PIPE_TYPE_BYTE | PIPE_READMODE_BYTE, nrMaxPassengers, sizeof(PassRegisterMessage), sizeof(PassRegisterMessage), 1000, NULL);
 
 	if (cdThread.hPassPipeRegister == INVALID_HANDLE_VALUE) {
 		_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe) %d"), GetLastError());
