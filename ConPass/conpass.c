@@ -76,6 +76,23 @@ int _tmain(int argc, TCHAR* argv[]) {
 	_setmode(_fileno(stdin), _O_WTEXT);
 	_setmode(_fileno(stdout), _O_WTEXT);
 #endif
+
+    // esperar que o pipe seja criado
+    if (!WaitNamedPipe(NP_PASS_REGISTER, NMPWAIT_WAIT_FOREVER)) {
+        _tprintf(TEXT("[ERRO] Ligar ao pipe '%s'! (WaitNamedPipe)\n"), NP_PASS_REGISTER);
+        exit(-1);
+    }
+    else {
+        _tprintf(_T("NP_REGISTER wait success!\n"));
+    }
+
+    if (!WaitNamedPipe(NP_PASS_TALK, NMPWAIT_WAIT_FOREVER)) {
+        _tprintf(TEXT("[ERRO] Ligar ao pipe '%s'! (WaitNamedPipe)\n"), NP_PASS_TALK);
+        exit(-1);
+    }
+    else {
+        _tprintf(_T("NP_TALK wait success!\n"));
+    }
     
     // criar um handle para conseguir ler do pipe
     hRegister = CreateFile(NP_PASS_REGISTER, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -96,23 +113,6 @@ int _tmain(int argc, TCHAR* argv[]) {
     else {
         _tprintf(_T("NP_TALK create file success!\n"));
     }
-
-    // esperar que o pipe seja criado
-    //if (!WaitNamedPipe(NP_PASS_REGISTER, NMPWAIT_WAIT_FOREVER)) {
-    //    _tprintf(TEXT("[ERRO] Ligar ao pipe '%s'! (WaitNamedPipe)\n"), NP_PASS_REGISTER);
-    //    exit(-1);
-    //}
-    //else {
-    //    _tprintf(_T("NP_REGISTER wait success!\n"));
-    //}
-
-    //if (!WaitNamedPipe(NP_PASS_TALK, NMPWAIT_WAIT_FOREVER)) {
-    //    _tprintf(TEXT("[ERRO] Ligar ao pipe '%s'! (WaitNamedPipe)\n"), NP_PASS_TALK);
-    //    exit(-1);
-    //}
-    //else {
-    //    _tprintf(_T("NP_TALK wait success!\n"));
-    //}
 
     HANDLE cthread = CreateThread(NULL, 0, RecebeNotificacao, hTalk, 0, NULL);
     if (!cthread) {

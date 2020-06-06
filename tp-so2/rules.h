@@ -8,6 +8,7 @@
 #define MAX_PASSENGERS 5
 #define NQ 10
 #define WAIT_TIME 5
+#define CIRCULAR_BUFFER_SIZE 5
 
 // dll indices
 #define MUTEX 1
@@ -41,6 +42,7 @@ enum message_id {
 	NotifySpeedChange,
 	NotifyNQChange,
 	NotifyTaxiLeaving,
+	EstablishNamedPipeComm,
 };
 
 enum response_id {
@@ -108,6 +110,10 @@ enum taxi_direction {
 
 #define EVENT_NEW_PASSENGER _T("event_new_passenger")
 
+#define SMP_CANREAD _T("smp_canread")
+#define SMP_CANWRITE _T("smp_canwrite")
+#define MTX_CENTRAL_PRODCONS _T("mutex_produtor_consumidor_central")
+#define MTX_CONPASS_PRODCONS _T("mutex_produtor_consumidor_conpass")
 
 // Named Pipes
 #define NP_PASS_REGISTER _T("\\\\.\\pipe\\np_passenger_register")

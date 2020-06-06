@@ -20,6 +20,7 @@ typedef struct _TAXI {
 	Passenger client; // taxis' passenger
 	int nq; // taxis's fov
 	enum taxi_direction direction; // taxis's direction
+	HANDLE hNamedPipe;
 } Taxi;
 
 typedef struct MapCell {
@@ -118,6 +119,7 @@ typedef struct _CC_COMMUNICATION_CONTAINER {
 } CC_Comm;
 
 typedef struct _CONTROL_DATA_TAXI_THREAD{
+	HANDLE hNamedPipeComm;
 	CC_Comm comm;						// Communication container
 	Taxi* taxi;							// Information about the taxi himself
 	HANDLE taxiGate;					// Flag that controls the access to the system
@@ -132,7 +134,14 @@ typedef struct _DDL_METHODS {
 	void (*Test)(void);					
 } DLLMethods;
 
+typedef struct Control_Data_PRODUTOR_CONSUMIDOR {
+	HANDLE canCreate, canConsume, mutex;
+	int posW, posR;
+	Passenger* buffer;
+} ProdCons;
+
 typedef struct ThreadControlData {
+	HANDLE hNamedPipe;
 	HANDLE hPassPipeRegister, hPassPipeTalk;
 	BOOL* areTaxisRequestsPause;		// Flag to control if the system is paused or not 
 	int nrMaxTaxis;						// Number of taxis in the system
@@ -146,7 +155,7 @@ typedef struct ThreadControlData {
 	HContainer* hContainer;				// Container of mechanisms names
 	CDLogin_Request* cdLogin_Request;	// Communication login request container
 	CDLogin_Response* cdLogin_Response;	// Communication login response container
-	char charMap[MIN_COL][MIN_LIN];		// Array of chars to pass to the taxi
+	char charMap[MIN_LIN][MIN_COL];		// Array of chars to pass to the taxi
 	SHM_CC_REQUEST* requests;			// Array of requests (to future select the taxi that will transport the new passenger)
 	DLLMethods* dllMethods;
 } CDThread;
@@ -165,3 +174,10 @@ typedef struct NP_MESSAGE_TALK_PASSENGERS {
 	enum response_id resp;
 	Content content;
 } PassMessage;
+
+typedef struct THREAD_ESTABLISH_NAMEDPIPE_CONNECTION_TAXI {
+	int index;
+	CDThread* cd;
+	TCHAR target[9];
+} TENC;
+

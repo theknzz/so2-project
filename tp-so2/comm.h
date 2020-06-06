@@ -22,3 +22,4 @@ DWORD WINAPI TextInterface(LPVOID ptr);
 TCHAR** ParseCommand(TCHAR* cmd);
 DWORD WINAPI GetPassengerRegistration(LPVOID ptr);
 void SendMessageToPassenger(enum response_id resp, Passenger* passenger, Taxi* taxi, CDThread* cd);
+DWORD WINAPI WaitTaxiConnect(LPVOID ptr);

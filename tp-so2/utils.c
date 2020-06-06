@@ -27,13 +27,13 @@ void ClearScreen() {
 }
 
 void PrintMap(Cell* map) {
-	for (int i = 0; i < MIN_LIN; i++) {
+	/*for (int i = 0; i < MIN_LIN; i++) {
 		for (int j = 0; j < MIN_COL; j++) {
 			Cell cell = *(map + (i * MIN_COL) + j);
 			_tprintf(_T("%c"), cell.display);
 		}
 		_tprintf(_T("\n"));
-	}
+	}*/
 	_tprintf(_T("\n"));
 }
 

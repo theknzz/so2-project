@@ -421,6 +421,7 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 	response.action = ERRO;
 	TCHAR log[300];
 	int index, x, y;
+	TENC *box = (TENC*) malloc(sizeof(TENC));
 	enum passanger_state status;
 	//_tprintf(_T("Action request: %d\n"), action);
 	switch (action) {
@@ -606,8 +607,48 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 		_stprintf(log, _T("Taxi '%s' leaving the system!\n"), content.taxi.licensePlate);
 		cd->dllMethods->Log(log);
 		break;
+	case EstablishNamedPipeComm:
+		index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
+		if (index == -1) {
+			response.action = TAXI_KICKED;
+			break;
+		}
+
+		box->cd = cd;
+		CopyMemory(box->target, content.taxi.licensePlate, 9 * sizeof(TCHAR));
+
+		cd->hNamedPipe = CreateNamedPipe(NP_TAXI_NAME, PIPE_ACCESS_OUTBOUND | PIPE_ACCESS_DUPLEX, PIPE_WAIT |
+			PIPE_TYPE_BYTE | PIPE_READMODE_BYTE, cd->nrMaxTaxis, sizeof(PassMessage), sizeof(PassMessage), 1000, NULL);
+
+		if (cd->hNamedPipe == INVALID_HANDLE_VALUE) {
+			_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe) %d"), GetLastError());
+			response.action = ERRO;
+			break;
+		}
+		box->cd->dllMethods->Register(NP_TAXI_NAME, NAMED_PIPE);
+
+		if (!CreateThread(NULL, 0, WaitTaxiConnect, box, 0, NULL)) {
+			_tprintf(_T("Error launching connection thread (%d)\n"), GetLastError());
+			response.action = ERRO; break;
+		}
+		response.action = OK;
+		break;
 	}
 	return response;
+}
+
+DWORD WINAPI WaitTaxiConnect(LPVOID ptr) {
+	TENC* box = (TENC*)ptr;
+
+	if (!ConnectNamedPipe(box->cd->hNamedPipe, NULL)) {
+		_tprintf(TEXT("[ERRO] Ligação ao named pipe do taxi! (ConnectNamedPipe %d).\n"), GetLastError());
+		return -1;
+	}
+	box->index = FindTaxiWithLicense(box->cd->taxis, box->cd->nrMaxTaxis, box->target);
+	if (box->index == -1) {
+		return -1;
+	}
+	box->cd->taxis[box->index].hNamedPipe = box->cd->hNamedPipe;
 }
 
 DWORD WINAPI timer(LPVOID ptr) {

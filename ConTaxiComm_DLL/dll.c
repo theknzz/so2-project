@@ -216,3 +216,29 @@ enum response_id NotifyPassengerDeliever(CC_CDRequest* request, CC_CDResponse* r
 	return res;
 }
 
+enum response_id DLL_EXPORT EstablishNamedPipeComunication(CC_CDRequest* request, CC_CDResponse* response, Taxi* taxi, CD_TAXI_Thread* cd)
+{
+	SHM_CC_REQUEST r;
+	enum response_id res;
+
+	r.action = EstablishNamedPipeComm;
+	CopyMemory(&r.messageContent.taxi, taxi, sizeof(Taxi));
+	RequestAction(request, response, r);
+
+	res = GetCentralResponse(response, request);
+
+	if (res == OK) {
+		// Estabelcer comunicação
+		if (!WaitNamedPipe(NP_TAXI_NAME, NMPWAIT_WAIT_FOREVER)) {
+			_tprintf(TEXT("[ERRO] Ligar ao pipe '%s'! (WaitNamedPipe) %d\n"), NP_TAXI_NAME, GetLastError());
+			res = ERRO;
+			return res;
+		}
+		if ((cd->hNamedPipeComm = CreateFile(NP_TAXI_NAME, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL))==NULL) {
+			_tprintf(TEXT("[ERRO] Ligar ao pipe '%s'! (CreateFile)\n"), NP_PASS_REGISTER);
+			res = ERRO;
+		}
+	}
+	return res;
+}
+
