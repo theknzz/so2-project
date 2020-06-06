@@ -127,41 +127,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 
 	CDThread cdThread;
 
-	//cdThread.hPassPipeRegister = CreateNamedPipe(NP_PASS_REGISTER, PIPE_ACCESS_OUTBOUND | PIPE_ACCESS_DUPLEX, PIPE_WAIT |
-	//	PIPE_TYPE_BYTE | PIPE_READMODE_BYTE, nrMaxPassengers, sizeof(PassRegisterMessage), sizeof(PassRegisterMessage), 1000, NULL);
-
-	//if (cdThread.hPassPipeRegister == INVALID_HANDLE_VALUE) {
-	//	_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe) %d"), GetLastError());
-	//	CloseMyHandles(handles, handleCounter);
-	//	Sleep(2000);
-	//	return -1;
-	//}
-	//dllMethods.Register(NP_PASS_REGISTER, NAMED_PIPE);
-	//cdThread.hPassPipeTalk = CreateNamedPipe(NP_PASS_TALK, PIPE_ACCESS_OUTBOUND | PIPE_ACCESS_DUPLEX, PIPE_WAIT |
-	//	PIPE_TYPE_BYTE | PIPE_READMODE_BYTE, nrMaxPassengers, sizeof(PassMessage), sizeof(PassMessage), 1000, NULL);
-
-	//if (cdThread.hPassPipeTalk == INVALID_HANDLE_VALUE) {
-	//	_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe)"));
-	//	CloseMyHandles(handles, handleCounter);
-	//	return -1;
-	//}
-	//dllMethods.Register(NP_PASS_TALK, NAMED_PIPE);
-
-	//// operação bloqueante (fica à espera da ligação de um cliente)
-	//if (!ConnectNamedPipe(cdThread.hPassPipeRegister, NULL)) {
-	//	_tprintf(TEXT("[ERRO] Ligação ao leitor 1! (ConnectNamedPipe %d).\n"), GetLastError());
-	//	Sleep(20000);
-	//	CloseMyHandles(handles, handleCounter);
-	//	exit(-1);
-	//}
-
-	//if (!ConnectNamedPipe(cdThread.hPassPipeTalk, NULL)) {
-	//	_tprintf(TEXT("[ERRO] Ligação ao leitor 2! (ConnectNamedPipe %d).\n"), GetLastError());
-	//	Sleep(20000);
-	//	CloseMyHandles(handles, handleCounter);
-	//	exit(-1);
-	//}
-	//
 	HANDLE FM_BROADCAST = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
 		NULL,
@@ -177,43 +142,44 @@ int _tmain(int argc, TCHAR* argv[]) {
 	handles[handleCounter++] = FM_BROADCAST;
 	dllMethods.Register(SHM_BROADCAST_PASSENGER_ARRIVE, FILE_MAPPING);
 
-	//ProdCons prodCons;
-	//prodCons.buffer = (Passenger*)malloc(sizeof(Passenger) * CIRCULAR_BUFFER_SIZE);
-	//if (prodCons.buffer == NULL) {
-	//	_tprintf(_T("Erro trying to allocate memory to circular buffer! (%d)\n"), GetLastError());
-	//	Sleep(2000);
-	//	CloseHandles(handles, handleCounter);
-	//	return -1;
-	//}
+	ProdCons prodCons;
+	prodCons.buffer = (Passenger*)malloc(sizeof(Passenger) * CIRCULAR_BUFFER_SIZE);
+	if (prodCons.buffer == NULL) {
+		_tprintf(_T("Erro trying to allocate memory to circular buffer! (%d)\n"), GetLastError());
+		Sleep(2000);
+		CloseMyHandles(handles, handleCounter);
+		return -1;
+	}
 
-	//prodCons.canConsume = CreateSemaphore(NULL, 0, CIRCULAR_BUFFER_SIZE, SMP_CANREAD);
-	//if (prodCons.canConsume == NULL) {
-	//	_tprintf(_T("Error creating can consume smp (%d)\n"), GetLastError());
-	//	CloseMyHandles(handles, handleCounter);
-	//	exit(-1);
-	//}
-	//handles[handleCounter++] = prodCons.canConsume;
-	//dllMethods.Register(SMP_CANREAD, SEMAPHORE);
+	prodCons.canConsume = CreateSemaphore(NULL, 0, CIRCULAR_BUFFER_SIZE, SMP_CANREAD);
+	if (prodCons.canConsume == NULL) {
+		_tprintf(_T("Error creating can consume smp (%d)\n"), GetLastError());
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = prodCons.canConsume;
+	dllMethods.Register(SMP_CANREAD, SEMAPHORE);
 
-	//prodCons.canCreate = CreateSemaphore(NULL, CIRCULAR_BUFFER_SIZE, CIRCULAR_BUFFER_SIZE, SMP_CANWRITE);
-	//if (prodCons.canCreate == NULL) {
-	//	_tprintf(_T("Error creating can create smp (%d)\n"), GetLastError());
-	//	CloseMyHandles(handles, handleCounter);
-	//	exit(-1);
-	//}
-	//handles[handleCounter++] = prodCons.canCreate;
-	//dllMethods.Register(SMP_CANWRITE, SEMAPHORE);
+	prodCons.canCreate = CreateSemaphore(NULL, CIRCULAR_BUFFER_SIZE, CIRCULAR_BUFFER_SIZE, SMP_CANWRITE);
+	if (prodCons.canCreate == NULL) {
+		_tprintf(_T("Error creating can create smp (%d)\n"), GetLastError());
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = prodCons.canCreate;
+	dllMethods.Register(SMP_CANWRITE, SEMAPHORE);
 
-	//prodCons.mutex = CreateMutex(NULL, FALSE, MTX_CENTRAL_PRODCONS);
-	//if (prodCons.mutex == NULL) {
-	//	_tprintf(TEXT("Error creating mutex of circular buffer(%d).\n"), GetLastError());
-	//	CloseMyHandles(handles, handleCounter);
-	//	exit(-1);
-	//}
-	//handles[handleCounter++] = prodCons.mutex;
-	//dllMethods.Register(MTX_CENTRAL_PRODCONS, MUTEX);
+	prodCons.mutex = CreateMutex(NULL, FALSE, MTX_CENTRAL_PRODCONS);
+	if (prodCons.mutex == NULL) {
+		_tprintf(TEXT("Error creating mutex of circular buffer(%d).\n"), GetLastError());
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = prodCons.mutex;
+	dllMethods.Register(MTX_CENTRAL_PRODCONS, MUTEX);
 
-	//cdThread.prod_cons = &prodCons;
+	prodCons.posR = 0; prodCons.posW = 0;
+	cdThread.prod_cons = &prodCons;
 
 	CC_Broadcast broadcast;
 
@@ -280,16 +246,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 	}
-
-	//HANDLE cthread = CreateThread(NULL, 0, GetPassengerRegistration, &cdThread, 0, NULL);
-	//if (!cthread) {
-	//	_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
-	//	WaitAllThreads(threads, threadCounter);
-	//	UnmapAllViews(views, viewCounter);
-	//	CloseMyHandles(handles, handleCounter);
-	//	exit(-1);
-	//}
-	//threads[threadCounter++] = cthread;
 
 	HANDLE consoleThread = CreateThread(NULL, 0, TextInterface, &cdThread, 0, NULL);
 	if (!consoleThread) {
@@ -431,14 +387,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 	cdThread.hContainer = &container;
 	cdThread.dllMethods = &dllMethods;
 
-	//cdThread.hNamedPipe = CreateNamedPipe(NP_TAXI_NAME, PIPE_ACCESS_OUTBOUND | PIPE_ACCESS_DUPLEX, PIPE_WAIT |
-	//	PIPE_TYPE_BYTE | PIPE_READMODE_BYTE, nrMaxTaxis, sizeof(PassMessage), sizeof(PassMessage), 1000, NULL);
-
-	//if (cdThread.hNamedPipe == INVALID_HANDLE_VALUE) {
-	//	_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe) %d"), GetLastError());
-	//	return -1;
-	//}
-
 	HANDLE listenThread = CreateThread(NULL, 0, ListenToLoginRequests, &cdThread, 0, NULL);
 	if (!listenThread) {
 		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
@@ -448,6 +396,51 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	threads[threadCounter++] = listenThread;
+
+	cdThread.hPassPipeRegister = CreateNamedPipe(NP_PASS_REGISTER, PIPE_ACCESS_OUTBOUND | PIPE_ACCESS_DUPLEX, PIPE_WAIT |
+		PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, nrMaxPassengers, sizeof(PassRegisterMessage), sizeof(PassRegisterMessage), 1000, NULL);
+
+	if (cdThread.hPassPipeRegister == INVALID_HANDLE_VALUE) {
+		_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe) %d"), GetLastError());
+		CloseMyHandles(handles, handleCounter);
+		Sleep(2000);
+		return -1;
+	}
+	dllMethods.Register(NP_PASS_REGISTER, NAMED_PIPE);
+	cdThread.hPassPipeTalk = CreateNamedPipe(NP_PASS_TALK, PIPE_ACCESS_OUTBOUND | PIPE_ACCESS_DUPLEX, PIPE_WAIT |
+		PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, nrMaxPassengers, sizeof(PassMessage), sizeof(PassMessage), 1000, NULL);
+
+	if (cdThread.hPassPipeTalk == INVALID_HANDLE_VALUE) {
+		_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe)"));
+		CloseMyHandles(handles, handleCounter);
+		return -1;
+	}
+	dllMethods.Register(NP_PASS_TALK, NAMED_PIPE);
+
+	// operação bloqueante (fica à espera da ligação de um cliente)
+	if (!ConnectNamedPipe(cdThread.hPassPipeRegister, NULL)) {
+		_tprintf(TEXT("[ERRO] Ligação ao leitor 1! (ConnectNamedPipe %d).\n"), GetLastError());
+		Sleep(2000);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+
+	if (!ConnectNamedPipe(cdThread.hPassPipeTalk, NULL)) {
+		_tprintf(TEXT("[ERRO] Ligação ao leitor 2! (ConnectNamedPipe %d).\n"), GetLastError());
+		Sleep(2000);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	
+	HANDLE cthread = CreateThread(NULL, 0, GetPassengerRegistration, &cdThread, 0, NULL);
+	if (!cthread) {
+		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
+		WaitAllThreads(threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	threads[threadCounter++] = cthread;
 
 	WaitAllThreads(threads, threadCounter);
 	UnmapAllViews(views, viewCounter);

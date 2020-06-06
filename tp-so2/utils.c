@@ -235,3 +235,71 @@ char** ConvertMapIntoCharMap(Cell* map) {
 		}
 	return charMap;
 }
+
+void InsertPassengerIntoBuffer(ProdCons* box, Passenger passenger) {
+	WaitForSingleObject(box->canCreate, INFINITE);
+	WaitForSingleObject(box->mutex, INFINITE);
+
+	CopyMemory(&box->buffer[box->posW], &passenger, sizeof(Passenger));
+	box->posW = (box->posW+1) % CIRCULAR_BUFFER_SIZE;
+
+	ReleaseMutex(box->mutex);
+	ReleaseSemaphore(box->canConsume, 1, 0);
+}
+
+Passenger GetPassengerFromBuffer(ProdCons* box) {
+	Passenger passenger;
+
+	WaitForSingleObject(box->canConsume, INFINITE);
+	WaitForSingleObject(box->mutex, INFINITE);
+
+	CopyMemory(&box->buffer[box->posR], &passenger, sizeof(Passenger));
+	box->posR = (box->posR + 1) % CIRCULAR_BUFFER_SIZE;
+
+	ReleaseMutex(box->mutex);
+	ReleaseSemaphore(box->canCreate, 1, 0);
+
+	return passenger;
+}
+
+Taxi ShuffleAndPickTaxi(Taxi* taxis, int size) {
+	return taxis[(rand() % (size + 1))];
+}
+
+BOOL SendMessageToTaxiViaNamePipe(PassMessage message, Taxi *taxi) {
+	DWORD nr;
+	return WriteFile(taxi->hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
+}
+
+int timer(int waitTime) {
+	HANDLE hTimer;
+
+	FILETIME ft, ftUTC;
+	LARGE_INTEGER DueTime;
+	SYSTEMTIME systime;
+	LONG interval = (LONG)waitTime * 1000;
+
+	SystemTimeToFileTime(&systime, &ft);
+	LocalFileTimeToFileTime(&ft, &ftUTC);
+	DueTime.HighPart = ftUTC.dwHighDateTime;
+	DueTime.LowPart = ftUTC.dwLowDateTime;
+	DueTime.QuadPart = -(LONGLONG)interval * 1000 * 10;
+
+	if ((hTimer = CreateWaitableTimer(NULL, TRUE, NULL)) == NULL) {
+		_tprintf(_T("Error (%d) creating the waitable timer.\n"), GetLastError());
+		return -1;
+	}
+
+	if (!SetWaitableTimer(hTimer, &DueTime, 0, NULL, NULL, FALSE)) {
+		_tprintf(_T("Something went wrong! %d"), GetLastError());
+	}
+	WaitForSingleObject(hTimer, INFINITE);
+	CloseHandle(hTimer);
+	return 1;
+}
+
+Taxi getTaxiTransport(CDThread* cd) {
+	/*if (timer(cd->WaitTimeOnTaxiRequest)) {
+		return ShuffleAndPickTaxi(cd->requests, cd->requestsCounter);
+	}*/
+}

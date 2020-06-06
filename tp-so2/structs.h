@@ -141,6 +141,7 @@ typedef struct Control_Data_PRODUTOR_CONSUMIDOR {
 } ProdCons;
 
 typedef struct ThreadControlData {
+	ProdCons* prod_cons;
 	HANDLE hNamedPipe;
 	HANDLE hPassPipeRegister, hPassPipeTalk;
 	BOOL* areTaxisRequestsPause;		// Flag to control if the system is paused or not 
@@ -157,6 +158,7 @@ typedef struct ThreadControlData {
 	CDLogin_Response* cdLogin_Response;	// Communication login response container
 	char charMap[MIN_LIN][MIN_COL];		// Array of chars to pass to the taxi
 	SHM_CC_REQUEST* requests;			// Array of requests (to future select the taxi that will transport the new passenger)
+	int *requestsCounter;
 	DLLMethods* dllMethods;
 } CDThread;
 

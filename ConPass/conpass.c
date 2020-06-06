@@ -104,6 +104,12 @@ int _tmain(int argc, TCHAR* argv[]) {
         _tprintf(_T("NP_REGISTER create file success!\n"));
     }
 
+    DWORD dwMode = PIPE_READMODE_MESSAGE;
+    if (!SetNamedPipeHandleState(hRegister, &dwMode, NULL, NULL)) {
+        _tprintf(_T("SetNamedPipeHandleState failed\n"));
+        exit(-1);
+    }
+
     // criar um handle para conseguir ler do pipe
     hTalk = CreateFile(NP_PASS_TALK, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hTalk == NULL) {
@@ -112,6 +118,11 @@ int _tmain(int argc, TCHAR* argv[]) {
     }
     else {
         _tprintf(_T("NP_TALK create file success!\n"));
+    }
+
+    if (!SetNamedPipeHandleState(hTalk, &dwMode, NULL, NULL)) {
+        _tprintf(_T("SetNamedPipeHandleState failed\n"));
+        exit(-1);
     }
 
     HANDLE cthread = CreateThread(NULL, 0, RecebeNotificacao, hTalk, 0, NULL);

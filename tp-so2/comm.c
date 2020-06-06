@@ -375,6 +375,9 @@ DWORD WINAPI GetPassengerRegistration(LPVOID ptr) {
 
 	while (1) {
 		ret = ReadFile(cd->hPassPipeRegister, &message, sizeof(PassRegisterMessage), &nr, NULL);
+
+		InsertPassengerIntoBuffer(cd->prod_cons, message.passenger);
+
 		_tprintf(_T("%s - {%.2d,%.2d} to {%.2d,%.2d}.\n"), message.passenger.nome, message.passenger.location.x, message.passenger.location.y,
 			message.passenger.destination.x, message.passenger.destination.y);
 		message.resp = OK;
@@ -613,13 +616,10 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 			response.action = TAXI_KICKED;
 			break;
 		}
-
 		box->cd = cd;
 		CopyMemory(box->target, content.taxi.licensePlate, 9 * sizeof(TCHAR));
-
 		cd->hNamedPipe = CreateNamedPipe(NP_TAXI_NAME, PIPE_ACCESS_OUTBOUND | PIPE_ACCESS_DUPLEX, PIPE_WAIT |
-			PIPE_TYPE_BYTE | PIPE_READMODE_BYTE, cd->nrMaxTaxis, sizeof(PassMessage), sizeof(PassMessage), 1000, NULL);
-
+			PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, cd->nrMaxTaxis, sizeof(PassMessage), sizeof(PassMessage), 1000, NULL);
 		if (cd->hNamedPipe == INVALID_HANDLE_VALUE) {
 			_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe) %d"), GetLastError());
 			response.action = ERRO;
@@ -639,7 +639,6 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 
 DWORD WINAPI WaitTaxiConnect(LPVOID ptr) {
 	TENC* box = (TENC*)ptr;
-
 	if (!ConnectNamedPipe(box->cd->hNamedPipe, NULL)) {
 		_tprintf(TEXT("[ERRO] Ligação ao named pipe do taxi! (ConnectNamedPipe %d).\n"), GetLastError());
 		return -1;
@@ -649,34 +648,6 @@ DWORD WINAPI WaitTaxiConnect(LPVOID ptr) {
 		return -1;
 	}
 	box->cd->taxis[box->index].hNamedPipe = box->cd->hNamedPipe;
-}
-
-DWORD WINAPI timer(LPVOID ptr) {
-	int* waitTime = (int*)ptr;
-	HANDLE hTimer;
-
-	FILETIME ft, ftUTC;
-	LARGE_INTEGER DueTime;
-	SYSTEMTIME systime;
-	LONG interval = (LONG)*waitTime * 1000;
-
-	SystemTimeToFileTime(&systime, &ft);
-	LocalFileTimeToFileTime(&ft, &ftUTC);
-	DueTime.HighPart = ftUTC.dwHighDateTime;
-	DueTime.LowPart = ftUTC.dwLowDateTime;
-	DueTime.QuadPart = -(LONGLONG)interval * 1000 * 10;
-
-	if ((hTimer = CreateWaitableTimer(NULL, TRUE, NULL)) == NULL) {
-		_tprintf(_T("Error (%d) creating the waitable timer.\n"), GetLastError());
-		return -1;
-	}
-
-	if (!SetWaitableTimer(hTimer, &DueTime, 0, NULL, NULL, FALSE)) {
-		_tprintf(_T("Something went wrong! %d"), GetLastError());
-	}
-	WaitForSingleObject(hTimer, INFINITE);
-	CloseHandle(hTimer);
-	return 0;
 }
 
 void SendBroadCastMessage(CC_Broadcast* broadcast, SHM_BROADCAST* message, int nr) {

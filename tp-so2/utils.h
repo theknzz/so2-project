@@ -31,3 +31,8 @@ int NumberOfActiveTaxis(Taxi* taxis, int size);
 void LoadMapa(Cell* map, char* buffer, int nrTaxis, int nrPassangers);
 char* ReadFileToCharArray(TCHAR* mapName);
 char** ConvertMapIntoCharMap(Cell* map);
+void InsertPassengerIntoBuffer(ProdCons* box, Passenger passenger);
+Passenger GetPassengerFromBuffer(ProdCons* box);
+Taxi ShuffleAndPickTaxi(Taxi* taxis, int size);
+BOOL SendMessageToTaxiViaNamePipe(PassMessage message, Taxi* taxi);
+int timer(int waitTime);
