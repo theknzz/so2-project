@@ -262,7 +262,7 @@ Passenger GetPassengerFromBuffer(ProdCons* box) {
 	return passenger;
 }
 
-Taxi ShuffleAndPickTaxi(Taxi* taxis, int size) {
+Taxi PickRandomTransport(Taxi* taxis, int size) {
 	return taxis[(rand() % (size + 1))];
 }
 
@@ -298,8 +298,16 @@ int timer(int waitTime) {
 	return 1;
 }
 
-Taxi getTaxiTransport(CDThread* cd) {
+Taxi WaitAndPickWinner(CDThread* cd) {
 	/*if (timer(cd->WaitTimeOnTaxiRequest)) {
-		return ShuffleAndPickTaxi(cd->requests, cd->requestsCounter);
+		return PickRandomTransport(cd->requests, cd->requestsCounter);
 	}*/
+}
+
+BOOL AddRequestToBuffer(CDThread *cd,Taxi taxi) {
+	if ((*cd->requestsCounter) == cd->nrMaxTaxis) return FALSE;
+	for (unsigned int i = 0; i < cd->requestsCounter; i++)
+		if (_tcscmp(cd->requests[i].licensePlate, taxi.licensePlate) == 0) return FALSE;
+	CopyMemory(&cd->requests[(*cd->requestsCounter)++], &taxi, sizeof(Taxi));
+	return TRUE;
 }

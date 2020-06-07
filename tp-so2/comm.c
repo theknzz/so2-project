@@ -7,20 +7,11 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 	CC_CDResponse* response = &ind->comm.response;
 	SHM_CC_REQUEST shm_request;
 	SHM_CC_RESPONSE shm_response;
-	BOOL isTimerLaunched = FALSE;
-	SHM_CC_REQUEST* requestPassengerList;
-	int index = 0;
-	//HANDLE timerHandle = NULL;
-
-	requestPassengerList = (SHM_CC_REQUEST*)malloc(cd->nrMaxTaxis * sizeof(SHM_CC_REQUEST));
-	if (requestPassengerList == NULL)
-		return -1;
 
 	while (!cd->isSystemClosing) {
 		// Receber request
 		WaitForSingleObject(response->new_request, INFINITE);
 		WaitForSingleObject(request->mutex, INFINITE);
-		//_tprintf(_T("Got resquest done!\n"));
 		// Guardar o conteudo da mensagem
 		CopyMemory(&shm_request.messageContent, &request->shared->messageContent, sizeof(Content));
 		shm_request.action = request->shared->action;
@@ -28,41 +19,7 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 
 		cd->dllMethods->Log(_T("Central got request from %s.\n"), shm_request.messageContent.taxi.licensePlate);
 
-		//if (shm_request.action == RequestPassenger) {
-			/*CopyMemory(&requestPassengerList[index++], &shm_request, sizeof(SHM_CC_REQUEST));
-			if (!isTimerLaunched) {
-				if ( (timerHandle = CreateThread(NULL, 0, timer, cd->WaitTimeOnTaxiRequest, 0, NULL)) == NULL) {
-					_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
-					exit(-1);
-				}
-				isTimerLaunched = TRUE;
-			}
-			if (timerHandle != NULL) {
-				WaitForSingleObject(timerHandle, INFINITE);
-			}
-
-			int nr = (rand() % index - 0) + 0;
-			isTimerLaunched = FALSE;
-
-			for (unsigned int i = 0; i < cd->nrMaxTaxis; i++) {
-				if (i == nr) {
-					_tprintf(_T("%s - ok!\n"), request->shared->messageContent.taxi);*/
-					//shm_response = ParseAndExecuteOperation(cd, shm_request.action, shm_request.messageContent);
-				//}
-				//else
-				//	shm_response.action = PASSENGER_ALREADY_TAKEN;
-
-				// Enviar resposta
-				//WaitForSingleObject(response->mutex, INFINITE);
-				//response->shared->action = shm_response.action;
-				//CopyMemory(&response->shared->passenger, &shm_response.passenger, sizeof(Passenger));
-				//ReleaseMutex(response->mutex);
-				//SetEvent(request->new_response);
-			//}
-		//}
-		//else {
-
-			// Tratar mensagem
+		// Tratar mensagem
 		shm_response = ParseAndExecuteOperation(cd, shm_request.action, shm_request.messageContent);
 
 		// Enviar resposta
@@ -83,42 +40,7 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 		cd->dllMethods->Log(_T("Central sent response to %s.\n"), shm_request.messageContent.taxi.licensePlate);
 		PrintMap(cd->map);
 	}
-	//}
 	free(ind);
-
-	//CDThread* cd = (CDThread*)ptr;
-	//CC_CDRequest* request = cd->comm->request;
-	//CC_CDResponse* response = cd->comm->response;
-	//SHM_CC_REQUEST shm_request;
-	//SHM_CC_RESPONSE shm_response;
-
-	//while (!cd->isSystemClosing) {
-
-	//	WaitForSingleObject(response->new_request, INFINITE);
-	//	WaitForSingleObject(request->mutex, INFINITE);
-
-	//	// Guardar o conteudo da mensagem
-	//	CopyMemory(&shm_request.messageContent, &request->shared->messageContent, sizeof(Content));
-	//	shm_request.action = request->shared->action;
-	//	ReleaseMutex(request->mutex);
-
-	//	// Tratar mensagem
-	//	shm_response = ParseAndExecuteOperation(cd, shm_request.action, shm_request.messageContent);
-
-	//	WaitForSingleObject(response->mutex, INFINITE);
-
-	//	if (shm_request.action == GetCityMap) {
-	//		CopyMemory(&response->shared->map, &shm_response.map, sizeof(char) * MIN_LIN * MIN_COL);
-	//	}
-	//	else if (shm_request.action == RequestPassenger) {
-	//		CopyMemory(&response->shared->passenger, &shm_response.passenger, sizeof(Passenger));
-	//	}
-	//	response->shared->action = shm_response.action;
-
-	//	ReleaseMutex(response->mutex);
-	//	SetEvent(request->new_response);
-	//	PrintMap(cd->map);
-	//}
 }
 
 void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* container, enum response_id resp) {
@@ -797,4 +719,20 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 		_gettchar();
 	} while (!cdata->isSystemClosing);
 	return 0;
+}
+
+void SendTransportRequestResponse(Taxi* requests, Passenger client, int size, int winner) {
+	PassMessage message;
+	DWORD nr;
+	for (unsigned int i = 0; i < size; i++) {
+		if (i == winner) {
+			message.resp = OK;
+			CopyMemory(&message.content.passenger, &client, sizeof(Passenger));
+			WriteFile(requests[i].hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
+		}
+		else {
+			message.resp = ERRO;
+			WriteFile(requests[i].hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
+		}
+	}
 }
