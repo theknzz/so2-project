@@ -240,7 +240,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	cdThread.areTaxisRequestsPause = FALSE;
 	cdThread.isSystemClosing = FALSE;
 
-	if ((cdThread.requests = (SHM_CC_REQUEST*)malloc(nrMaxTaxis * sizeof(SHM_CC_REQUEST)) == NULL)) {
+	if ((cdThread.requests = (Taxi*)malloc(nrMaxTaxis * sizeof(Taxi)) == NULL)) {
 		_tprintf(_T("Error allocating memory for requests's array.\n"));
 		WaitAllThreads(threads, threadCounter);
 		UnmapAllViews(views, viewCounter);

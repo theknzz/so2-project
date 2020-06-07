@@ -247,19 +247,15 @@ void InsertPassengerIntoBuffer(ProdCons* box, Passenger passenger) {
 	ReleaseSemaphore(box->canConsume, 1, 0);
 }
 
-Passenger GetPassengerFromBuffer(ProdCons* box) {
-	Passenger passenger;
-
+void GetPassengerFromBuffer(ProdCons* box, Passenger *passenger) {
 	WaitForSingleObject(box->canConsume, INFINITE);
 	WaitForSingleObject(box->mutex, INFINITE);
 
-	CopyMemory(&box->buffer[box->posR], &passenger, sizeof(Passenger));
+	CopyMemory(&box->buffer[box->posR], passenger, sizeof(Passenger));
 	box->posR = (box->posR + 1) % CIRCULAR_BUFFER_SIZE;
 
 	ReleaseMutex(box->mutex);
 	ReleaseSemaphore(box->canCreate, 1, 0);
-
-	return passenger;
 }
 
 Taxi PickRandomTransport(Taxi* taxis, int size) {
@@ -298,7 +294,7 @@ int timer(int waitTime) {
 	return 1;
 }
 
-Taxi WaitAndPickWinner(CDThread* cd) {
+void WaitAndPickWinner(CDThread* cd, Taxi* taxi) {
 	/*if (timer(cd->WaitTimeOnTaxiRequest)) {
 		return PickRandomTransport(cd->requests, cd->requestsCounter);
 	}*/
@@ -311,3 +307,158 @@ BOOL AddRequestToBuffer(CDThread *cd,Taxi taxi) {
 	CopyMemory(&cd->requests[(*cd->requestsCounter)++], &taxi, sizeof(Taxi));
 	return TRUE;
 }
+
+BOOL SendTransportRequestResponse(Taxi* requests, Passenger client, int size, Taxi winner) {
+	PassMessage message;
+	DWORD nr;
+	if (size == 0) return FALSE;
+	for (unsigned int i = 0; i < size; i++) {
+		if (_tcscmp(requests[i].licensePlate, winner.licensePlate) == 0) {
+			message.resp = OK;
+			CopyMemory(&message.content.passenger, &client, sizeof(Passenger));
+			WriteFile(requests[i].hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
+		}
+		else {
+			message.resp = ERRO;
+			WriteFile(requests[i].hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
+		}
+	}
+	return TRUE;
+}
+
+
+enum response_action UpdateTaxiPosition(CDThread* cd, Content content) {
+	int index, x, y;
+	// encontrar o taxi na tabela de taxis ativos
+	index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
+	// se nao encontrar devolve erro
+	if (index == -1)
+		return TAXI_KICKED;
+	// guarda a posição atual no mapa em variaveis auxiliares
+	x = (*(cd->taxis + index)).location.x;
+	y = (*(cd->taxis + index)).location.y;
+	// atualizar o display da célula atual
+	(*(cd->map + (x + y * MIN_COL))).display = S_DISPLAY;
+	// remover o taxi desta célula
+	RemoveTaxiFromMapCell((cd->map + (x + y * MIN_COL)), content.taxi.licensePlate, cd->nrMaxTaxis);
+	// atualizar variaveis auxiliares com as coordenadas destino do taxi
+	x = content.taxi.location.x;
+	y = content.taxi.location.y;
+	// alterar o display da célula nova para taxi
+	(*(cd->map + (x + y * MIN_LIN))).display = T_DISPLAY;
+	// inserir o taxi na célula nova
+	Cell* cell = &cd->map[x + y * MIN_COL];
+	InsertTaxiIntoMapCell(cell, content.taxi, cd->nrMaxTaxis);
+	// atualizar tabela de taxis ativos
+	(cd->taxis + index)->location.x = content.taxi.location.x;
+	(cd->taxis + index)->location.y = content.taxi.location.y;
+	(cd->taxis + index)->autopilot = content.taxi.autopilot;
+	(cd->taxis + index)->velocity = content.taxi.velocity;
+	// update the passengers position
+	if (content.taxi.client.location.x >= 0) {
+		cd->taxis[index].client.location.x = content.taxi.location.x;
+		cd->taxis[index].client.location.y = content.taxi.location.y;
+		// update the passenger position inside the map cell
+		index = FindTaxiIndex(cd->map[x + y * MIN_LIN].taxis, cd->nrMaxTaxis, content.taxi);
+		if (index == -1) return ERRO;
+		cd->map[x + y * MIN_LIN].taxis[index].client.location.x = x;
+		cd->map[x + y * MIN_LIN].taxis[index].client.location.y = y;
+		// update the passenger position inside the list of passengers
+		index = GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, content.taxi.client.nome);
+		if (index == -1) return ERRO;
+		cd->passengers[index].location.x = x;
+		cd->passengers[index].location.y = y;
+	}
+	return OK;
+}
+
+enum response_action CatchPassenger(CDThread* cd, Content content) {
+	int index, x, y;
+	// change the state of the taxi's client
+	index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
+	if (index == -1)
+		return TAXI_KICKED;
+	x = (*(cd->taxis + index)).location.x;
+	y = (*(cd->taxis + index)).location.y;
+	cd->taxis[index].client.state = OnDrive;
+
+	// update state of the passenger in the list of passengers
+	index = GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, content.taxi.client.nome);
+	if (index == -1) return ERRO;
+	cd->passengers[index].state = OnDrive;
+
+	// update the state of the passenger in the map cell
+	index = FindTaxiIndex(cd->map[x + y * MIN_LIN].taxis, cd->nrMaxTaxis, content.taxi);
+	if (index == -1) return ERRO;
+	cd->map[x + y * MIN_LIN].taxis[index].client.state = OnDrive;
+	return OK;
+}
+
+enum response_id DeliverPassenger(CDThread* cd, Content content) {
+	int index, x, y;
+	index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
+	if (index == -1)
+		return TAXI_KICKED;
+	x = cd->taxis[index].location.x;
+	y = cd->taxis[index].location.y;
+	cd->taxis[index].client.state = Done;
+
+	// remove passenger from the taxi
+	ZeroMemory(&cd->taxis[index].client, sizeof(Passenger));
+	cd->taxis[index].client.location.x = -1;
+	cd->taxis[index].client.location.y = -1;
+
+	index = GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, content.taxi.client.nome);
+	if (index == -1) return ERRO;
+
+	// remove passenger from the list of passengers
+	ZeroMemory(&cd->passengers[index], sizeof(Passenger));
+
+	// remove passenger from the map cell and taxi ownership
+	index = FindTaxiIndex(cd->map[x + y * MIN_LIN].taxis, cd->nrMaxTaxis, content.taxi);
+	if (index == -1) return ERRO;
+	ZeroMemory(&cd->map[x + y * MIN_LIN].taxis[index].client, sizeof(Passenger));
+	cd->map[x + y * MIN_LIN].taxis[index].client.location.x = -1;
+	cd->map[x + y * MIN_LIN].taxis[index].client.location.y = -1;
+	return OK;
+}
+
+enum response_id AssignPassengerToTaxi(CDThread* cd, Content content) {
+	int index, x, y;
+	enum passanger_state status;
+	index = FindTaxiWithLicense(cd->taxis, cd->nrMaxTaxis, content.taxi.licensePlate);
+	if (index == -1)
+		return TAXI_KICKED;
+	status = GetPassengerStatus(cd->passengers, cd->nrMaxPassengers, &content.passenger.nome);
+	if (status == NotFound)
+		return PASSENGER_DOESNT_EXIST;
+	else if (status != Waiting)
+		return PASSENGER_ALREADY_TAKEN;
+	CopyMemory(&cd->taxis[index].client, &cd->passengers[GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, content.passenger.nome)], sizeof(Passenger));
+	// Update passenger info
+	index = GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, content.passenger.nome);
+	cd->passengers[index].state = Taken;
+	return OK;
+}
+
+void AddPassengerToCentral(CDThread *cdata, TCHAR* nome, int x, int y, int dest_x, int dest_y) {
+	int index = GetLastPassengerIndex(cdata->passengers, cdata->nrMaxPassengers);
+	CopyMemory(cdata->passengers[index + 1].nome, nome, sizeof(TCHAR) * 25);
+	if (cdata->map[x + y * MIN_COL].cellType == Building || cdata->map[dest_x + dest_y * MIN_COL].cellType == Building) {
+		_tprintf(_T("Passenger can't use the system inside buildings!\n"));
+		return;
+	}
+	cdata->passengers[index + 1].location.x = x;
+	cdata->passengers[index + 1].location.y = y;
+	cdata->passengers[index + 1].destination.x = dest_x;
+	cdata->passengers[index + 1].destination.y = dest_y;
+	cdata->passengers[index + 1].state = Waiting;
+	index = GetLastPassengerIndex(cdata->map[x + y * MIN_COL].passengers, cdata->nrMaxPassengers);
+	CopyMemory(cdata->map[x + y * MIN_COL].passengers[index + 1].nome, nome, sizeof(TCHAR) * 25);
+	cdata->map[x + y * MIN_COL].passengers[index + 1].location.x = x;
+	cdata->map[x + y * MIN_COL].passengers[index + 1].location.y = y;
+	cdata->map[x + y * MIN_COL].passengers[index + 1].destination.x = dest_x;
+	cdata->map[x + y * MIN_COL].passengers[index + 1].destination.y = dest_y;
+	cdata->map[x + y * MIN_COL].passengers[index + 1].state = Waiting;
+}
+

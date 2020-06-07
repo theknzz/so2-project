@@ -150,6 +150,8 @@ typedef struct ThreadControlData {
 	Cell* map;							// Cell 
 	Taxi* taxis;						// Array of taxis in the system
 	BOOL isSystemClosing;				// Flag to control if the system is closing (exit cycles, ...)
+	BOOL isTimerLaunched;
+	HANDLE timerThread;
 	CC_Broadcast* broadcast;			// Communication broadcast container
 	int* WaitTimeOnTaxiRequest;			// Time to wait in passenger requests
 	Passenger* passengers;				// Array of passengers in the system
