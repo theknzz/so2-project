@@ -10,6 +10,8 @@ typedef struct _Passenger {
 	TCHAR nome[25]; // passenger name
 	Coords location; // passenger location
 	Coords destination; // passenger destination
+	HANDLE* requests;  // buffer de requests de transports
+	int* requestsCounter;
 } Passenger;
 
 typedef struct _TAXI {
@@ -159,8 +161,8 @@ typedef struct ThreadControlData {
 	CDLogin_Request* cdLogin_Request;	// Communication login request container
 	CDLogin_Response* cdLogin_Response;	// Communication login response container
 	char charMap[MIN_LIN][MIN_COL];		// Array of chars to pass to the taxi
-	Taxi* requests;			// Array of requests (to future select the taxi that will transport the new passenger)
-	int *requestsCounter;
+	//Taxi* requests;					// Array of requests (to future select the taxi that will transport the new passenger)
+	//int *requestsCounter;
 	DLLMethods* dllMethods;
 } CDThread;
 

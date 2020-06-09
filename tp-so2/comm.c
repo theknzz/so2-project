@@ -9,7 +9,6 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 	SHM_CC_RESPONSE shm_response;
 
 	while (!cd->isSystemClosing) {
-		
 		// Receber request
 		WaitForSingleObject(response->new_request, INFINITE);
 		WaitForSingleObject(request->mutex, INFINITE);
@@ -39,7 +38,12 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 			SetEvent(request->new_response);
 		}
 		else {
-			//##TODO : Inserir request no buffer
+			_tprintf(_T("\npassenger request by %s\n"), shm_request.messageContent.taxi.licensePlate);
+			int passenger_index = GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, shm_request.messageContent.passenger.nome);
+			int taxi_index = FindTaxiWithLicense(cd->taxis, cd->nrMaxTaxis, shm_request.messageContent.taxi.licensePlate);
+			// Inserir o request no buffer de requests
+			if (!isInRequestBuffer(cd->passengers[passenger_index].requests, *cd->passengers[passenger_index].requestsCounter, cd->taxis[taxi_index]))
+				cd->passengers[passenger_index].requests[(*cd->passengers[passenger_index].requestsCounter)++] = cd->taxis[taxi_index].hNamedPipe;
 		}
 		cd->dllMethods->Log(_T("Central sent response to %s.\n"), shm_request.messageContent.taxi.licensePlate);
 		PrintMap(cd->map);
@@ -299,37 +303,43 @@ DWORD WINAPI GetPassengerRegistration(LPVOID ptr) {
 	PassRegisterMessage message;
 	DWORD nr;
 	SHM_BROADCAST broadcast;
+	BOOL WrongCase = FALSE;
 
-	while (1) {
+	while (!cd->isSystemClosing) {
 		ret = ReadFile(cd->hPassPipeRegister, &message, sizeof(PassRegisterMessage), &nr, NULL);
 
+		//## TODO : Proteger de leituras invalidas
+		
+		if (isValidCoords(cd, message.passenger.location) && isValidCoords(cd, message.passenger.destination)) {
 
-		// ## TODO : Fazer validação das posições do passageiro (localizacao e destino)
-		// if (correto)
-		InsertPassengerIntoBuffer(cd->prod_cons, message.passenger);
+			InsertPassengerIntoBuffer(cd->prod_cons, message.passenger);
 
-		_tprintf(_T("%s - {%.2d,%.2d} to {%.2d,%.2d}.\n"), message.passenger.nome, message.passenger.location.x, message.passenger.location.y,
-			message.passenger.destination.x, message.passenger.destination.y);
-		message.resp = OK;
+			AddPassengerToCentral(cd, message.passenger.nome, message.passenger.location.x, message.passenger.location.y, message.passenger.destination.x, message.passenger.destination.y);
+
+			_tprintf(_T("%s - {%.2d,%.2d} to {%.2d,%.2d}.\n"), message.passenger.nome, message.passenger.location.x, message.passenger.location.y,
+				message.passenger.destination.x, message.passenger.destination.y);
+			message.resp = OK;
+		}
+		else {
+			message.resp = COORDINATES_FROM_OTHER_CITY;
+			WrongCase = TRUE;
+		}
 
 		if (!WriteFile(cd->hPassPipeRegister, &message, sizeof(PassRegisterMessage), &nr, NULL)) {
 			_tprintf(TEXT("[ERRO] Escrever no pipe! (WriteFile)\n"));
 			Sleep(2000);
 			exit(-1);
 		}
-
-		//Passenger p;
-		//CopyMemory(&p, &message.passenger, sizeof(Passenger));
-		//Taxi taxi;
-		//CopyMemory(taxi.licensePlate, _T("aa-aa-aa\0"), sizeof(TCHAR) * 9);
-		//SendMessageToPassenger(PASSENGER_GOT_TAXI_ASSIGNED, &p, &taxi, cd);
+		if (WrongCase) {
+			WrongCase = FALSE;
+			continue;
+		}
 
 		CopyMemory(&broadcast.passenger, &message.passenger, sizeof(Passenger));
+		broadcast.isSystemClosing = FALSE;
 		SendBroadCastMessage(cd->broadcast, &broadcast, NumberOfActiveTaxis(cd->taxis, cd->nrMaxTaxis));
 
-		// lançar timer thread
-		// devo mandar o passageiro atual
-		// retirar do buffer circular soluciona (?)
+		HANDLE cthread = CreateThread(NULL, 0, RequestWaitTimeFeature, cd, 0, NULL);
 
 		ZeroMemory(&message, sizeof(PassRegisterMessage));
 		ZeroMemory(&broadcast, sizeof(SHM_BROADCAST));
@@ -369,6 +379,8 @@ DWORD WINAPI WaitTaxiConnect(LPVOID ptr) {
 		return -1;
 	}
 	box->cd->taxis[box->index].hNamedPipe = box->cd->hNamedPipe;
+	PassMessage message;
+	WriteFile(box->cd->hNamedPipe, &message, sizeof(PassMessage), NULL, NULL);
 	free(box);
 }
 
@@ -615,6 +627,7 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 			response.action = ERRO; break;
 		}
 		response.action = OK;
+
 		break;
 	}
 	return response;
@@ -624,19 +637,27 @@ DWORD WINAPI RequestWaitTimeFeature(LPVOID ptr) {
 	CDThread* cd = (CDThread*)ptr;
 	Content content;
 
-	WaitAndPickWinner(cd, &content.taxi);
-	GetPassengerFromBuffer(cd, &content.passenger);
+	timer(*cd->WaitTimeOnTaxiRequest);
+
+	GetPassengerFromBuffer(cd->prod_cons, &content.passenger);
+
+	int winner = WaitAndPickWinner(cd, content.passenger);
+	int passenger_index = GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, content.passenger.nome);
 
 	// if passenger has zero transport requests the passenger must be notified
-	if (!SendTransportRequestResponse(cd->requests, content.passenger, *cd->requestsCounter, content.taxi))
+	if (!SendTransportRequestResponse(cd->passengers[passenger_index].requests, content.passenger, *cd->passengers[passenger_index].requestsCounter, winner)) {
 		SendMessageToPassenger(NO_TRANSPORT_AVAILABLE, &content.passenger, NULL, cd);
-
-	AddPassengerToCentral(cd, content.passenger.nome, content.passenger.location.x, content.passenger.location.y, content.passenger.destination.x, content.passenger.destination.y);
-
-	// fazer assign do passageiro ao taxi nos dados da central (?)
-	AssignPassengerToTaxi(cd, content);
-
-	// limpar o buffer
-	for (unsigned int i = 0; i < *cd->requestsCounter; i++)
-		ZeroMemory(&cd->requests[i], sizeof(Taxi));
+		RemovePassengerFromCentral(content.passenger.nome, cd->passengers, cd->nrMaxPassengers);
+	}
+	else {
+		CopyMemory(&content.taxi, &cd->taxis[FindTaxiWithNamedPipeHandle(cd->taxis, cd->nrMaxTaxis, cd->passengers[passenger_index].requests[winner])], sizeof(Taxi));
+		// fazer assign do passageiro ao taxi nos dados da central (?)
+		AssignPassengerToTaxi(cd, content);
+	
+		// limpar o buffer
+		for (unsigned int i = 0; i < *cd->passengers[passenger_index].requestsCounter; i++)
+			ZeroMemory(&cd->passengers[passenger_index].requests[i], sizeof(Taxi));
+		*cd->passengers[passenger_index].requestsCounter = 0;
+	}
+	_tprintf(_T("i am done, bye.\n"));
 }

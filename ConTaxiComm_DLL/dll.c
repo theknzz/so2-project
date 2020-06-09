@@ -235,12 +235,14 @@ enum response_id DLL_EXPORT EstablishNamedPipeComunication(CC_CDRequest* request
 			return res;
 		}
 		Sleep(2000);
-		DWORD dwMode = PIPE_READMODE_MESSAGE;
+		//DWORD dwMode = PIPE_READMODE_MESSAGE;
 		if ((cd->hNamedPipeComm = CreateFile(NP_TAXI_NAME, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL))==NULL) {
 			_tprintf(TEXT("[ERRO] Ligar ao pipe '%s'! (CreateFile)\n"), NP_PASS_REGISTER);
 			res = ERRO;
 			return res;
 		}
+		if (CreateThread(NULL, 0, ListenToCentral, cd, 0, NULL) == NULL)
+			_tprintf(_T("well rip\n"));
 		//else if (!SetNamedPipeHandleState(cd->hNamedPipeComm, &dwMode, NULL, NULL)) {
 		//	_tprintf(_T("SetNamedPipeHandleState failed! (%d)\n"), GetLastError());
 		//	res = ERRO;
@@ -249,3 +251,18 @@ enum response_id DLL_EXPORT EstablishNamedPipeComunication(CC_CDRequest* request
 	return res;
 }
 
+DWORD WINAPI ListenToCentral(LPVOID* ptr) {
+	CD_TAXI_Thread* cd = (CD_TAXI_Thread*)ptr;
+	PassMessage message;
+	DWORD nr;
+	BOOL ret;
+	while (!cd->isTaxiKicked) {
+		ret = ReadFile(cd->hNamedPipeComm, &message, sizeof(PassMessage), &nr, NULL);
+		
+		if (message.resp == OK)
+			_tprintf(_T("U are working with %s\n"), message.content.passenger.nome);
+		else
+			_tprintf(_T("better luck next time\n"));
+	}
+	return 0;
+}

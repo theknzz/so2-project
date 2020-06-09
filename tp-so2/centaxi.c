@@ -119,6 +119,9 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	for (unsigned int i = 0; i < nrMaxPassengers; i++) {
+		int nr = 0;
+		passengers->requestsCounter = &nr;
+		passengers->requests = (HANDLE*)malloc(nrMaxTaxis * sizeof(HANDLE));
 		ZeroMemory(passengers[i].nome, sizeof(passengers[i].nome));
 		passengers[i].location.x = -1;
 		passengers[i].location.y = -1;
@@ -240,12 +243,15 @@ int _tmain(int argc, TCHAR* argv[]) {
 	cdThread.areTaxisRequestsPause = FALSE;
 	cdThread.isSystemClosing = FALSE;
 
-	if ((cdThread.requests = (Taxi*)malloc(nrMaxTaxis * sizeof(Taxi)) == NULL)) {
-		_tprintf(_T("Error allocating memory for requests's array.\n"));
-		WaitAllThreads(threads, threadCounter);
-		UnmapAllViews(views, viewCounter);
-		CloseMyHandles(handles, handleCounter);
-	}
+
+	//if ((cdThread.requests = (Taxi*)malloc(nrMaxTaxis * sizeof(Taxi))) == NULL) {
+	//	_tprintf(_T("Error allocating memory for requests's array.\n"));
+	//	WaitAllThreads(threads, threadCounter);
+	//	UnmapAllViews(views, viewCounter);
+	//	CloseMyHandles(handles, handleCounter);
+	//}
+	//int requestsCounter = 0;
+	//cdThread.requestsCounter = &requestsCounter;
 
 	HANDLE consoleThread = CreateThread(NULL, 0, TextInterface, &cdThread, 0, NULL);
 	if (!consoleThread) {

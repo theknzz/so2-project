@@ -64,7 +64,7 @@ void RemoveTaxiFromMapCell(Cell* cell, TCHAR* lcPlate, int size) {
 int GetLastPassengerIndex(Passenger* passengers, int size) {
 	int aux = -1;
 	for (unsigned int i = 0; i < size; i++) {
-		if (passengers[i].location.x == -1) return aux;
+		if (passengers[i].location.x < 0) return aux;
 		aux = i;
 	}
 	return aux;
@@ -249,17 +249,19 @@ void InsertPassengerIntoBuffer(ProdCons* box, Passenger passenger) {
 
 void GetPassengerFromBuffer(ProdCons* box, Passenger *passenger) {
 	WaitForSingleObject(box->canConsume, INFINITE);
-	WaitForSingleObject(box->mutex, INFINITE);
+	WaitForSingleObject(box->mutex, 1000);
 
-	CopyMemory(&box->buffer[box->posR], passenger, sizeof(Passenger));
+	CopyMemory(passenger, &box->buffer[box->posR], sizeof(Passenger));
 	box->posR = (box->posR + 1) % CIRCULAR_BUFFER_SIZE;
 
 	ReleaseMutex(box->mutex);
 	ReleaseSemaphore(box->canCreate, 1, 0);
 }
 
-Taxi PickRandomTransport(Taxi* taxis, int size) {
-	return taxis[(rand() % (size + 1))];
+int PickRandomTransportIndex(int size) {
+	srand(time(0));
+	if (size == 0) return NULL;
+	return (rand() % size) ;
 }
 
 BOOL SendMessageToTaxiViaNamePipe(PassMessage message, Taxi *taxi) {
@@ -294,33 +296,25 @@ int timer(int waitTime) {
 	return 1;
 }
 
-void WaitAndPickWinner(CDThread* cd, Taxi* taxi) {
-	/*if (timer(cd->WaitTimeOnTaxiRequest)) {
-		return PickRandomTransport(cd->requests, cd->requestsCounter);
-	}*/
+int WaitAndPickWinner(CDThread* cd, Passenger passenger) {
+	int index = GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, passenger.nome);
+	return PickRandomTransportIndex(*cd->passengers[index].requestsCounter);
 }
 
-BOOL AddRequestToBuffer(CDThread *cd,Taxi taxi) {
-	if ((*cd->requestsCounter) == cd->nrMaxTaxis) return FALSE;
-	for (unsigned int i = 0; i < cd->requestsCounter; i++)
-		if (_tcscmp(cd->requests[i].licensePlate, taxi.licensePlate) == 0) return FALSE;
-	CopyMemory(&cd->requests[(*cd->requestsCounter)++], &taxi, sizeof(Taxi));
-	return TRUE;
-}
-
-BOOL SendTransportRequestResponse(Taxi* requests, Passenger client, int size, Taxi winner) {
+BOOL SendTransportRequestResponse(HANDLE* requests, Passenger client, int size, int winner) {
 	PassMessage message;
 	DWORD nr;
 	if (size == 0) return FALSE;
 	for (unsigned int i = 0; i < size; i++) {
-		if (_tcscmp(requests[i].licensePlate, winner.licensePlate) == 0) {
+		if (i == winner) {
 			message.resp = OK;
 			CopyMemory(&message.content.passenger, &client, sizeof(Passenger));
-			WriteFile(requests[i].hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
+			WriteFile(requests[i], &message, sizeof(PassMessage), &nr, NULL);
+			ZeroMemory(&message.content.passenger, sizeof(Passenger));
 		}
 		else {
 			message.resp = ERRO;
-			WriteFile(requests[i].hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
+			WriteFile(requests[i], &message, sizeof(PassMessage), &nr, NULL);
 		}
 	}
 	return TRUE;
@@ -434,6 +428,7 @@ enum response_id AssignPassengerToTaxi(CDThread* cd, Content content) {
 		return PASSENGER_DOESNT_EXIST;
 	else if (status != Waiting)
 		return PASSENGER_ALREADY_TAKEN;
+	content.passenger.state = Taken;
 	CopyMemory(&cd->taxis[index].client, &cd->passengers[GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, content.passenger.nome)], sizeof(Passenger));
 	// Update passenger info
 	index = GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, content.passenger.nome);
@@ -462,3 +457,28 @@ void AddPassengerToCentral(CDThread *cdata, TCHAR* nome, int x, int y, int dest_
 	cdata->map[x + y * MIN_COL].passengers[index + 1].state = Waiting;
 }
 
+BOOL isInRequestBuffer(Taxi* requests, int size, Taxi taxi) {
+	for (unsigned int i = 0; i < size; i++)
+		if (_tcscmp(requests[i].licensePlate, taxi.licensePlate) == 0) return TRUE;
+	return FALSE;
+}
+
+void RemovePassengerFromCentral(TCHAR* nome, Passenger* passengers, int size) {
+	for (unsigned int i = 0; i < size; i++) {
+		if (_tcscmp(passengers[i].nome, nome) == 0) {
+			ZeroMemory(&passengers[i], sizeof(Passenger));
+		}
+	}
+}
+
+BOOL isValidCoords(CDThread* cd, Coords c) {
+	return cd->charMap[c.x][c.y] == S_DISPLAY ? TRUE : FALSE;
+}
+
+int FindTaxiWithNamedPipeHandle(Taxi* taxis, int size, HANDLE handle) {
+	for (unsigned int i = 0; i < size; i++) {
+		if (taxis[i].hNamedPipe == handle)
+			return i;
+	}
+	return -1;
+}

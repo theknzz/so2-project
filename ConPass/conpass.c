@@ -30,13 +30,19 @@ TCHAR** ParseCommand(TCHAR* cmd, int *argc) {
     return command;
 }
 
-void GetOutput(enum response_id resp, Passenger passenger, Taxi taxi) {
+void GetOutput(enum response_id resp, Passenger* passenger, Taxi* taxi) {
     switch (resp) {
     case PASSENGER_GOT_TAXI_ASSIGNED:
-        _tprintf(_T("%s was assigned to %s.\n"), passenger.nome, taxi.licensePlate);
+        _tprintf(_T("%s was assigned to %s.\n"), passenger->nome, taxi->licensePlate);
         break;
     case PASSENGER_CAUGHT:
-        _tprintf(_T("%s was caught by %s.\n"), passenger.nome, taxi.licensePlate);
+        _tprintf(_T("%s was caught by %s.\n"), passenger->nome, taxi->licensePlate);
+        break;
+    case NO_TRANSPORT_AVAILABLE:
+        _tprintf(_T("Central has no taxi available at the moment.\n"));
+        break;
+    case COORDINATES_FROM_OTHER_CITY:
+        _tprintf(_T("You can't choose other city's coordinates.\n"));
         break;
     }
 }
@@ -50,7 +56,7 @@ DWORD WINAPI RecebeNotificacao(LPVOID ptr) {
     while (1) {
         ret = ReadFile(hPipe, &message, sizeof(PassMessage), &nr, NULL);
 
-        GetOutput(message.resp, message.content.passenger, message.content.taxi);
+        GetOutput(message.resp, &message.content.passenger, &message.content.taxi);
 
         message.resp = OK;
         if (!WriteFile(hPipe, &message, sizeof(PassMessage), &nr, NULL)) {
@@ -104,11 +110,11 @@ int _tmain(int argc, TCHAR* argv[]) {
         _tprintf(_T("NP_REGISTER create file success!\n"));
     }
 
-    DWORD dwMode = PIPE_READMODE_MESSAGE;
-    if (!SetNamedPipeHandleState(hRegister, &dwMode, NULL, NULL)) {
-        _tprintf(_T("SetNamedPipeHandleState failed\n"));
-        exit(-1);
-    }
+    //DWORD dwMode = PIPE_READMODE_MESSAGE;
+    //if (!SetNamedPipeHandleState(hRegister, &dwMode, NULL, NULL)) {
+    //    _tprintf(_T("SetNamedPipeHandleState failed\n"));
+    //    exit(-1);
+    //}
 
     // criar um handle para conseguir ler do pipe
     hTalk = CreateFile(NP_PASS_TALK, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -120,10 +126,10 @@ int _tmain(int argc, TCHAR* argv[]) {
         _tprintf(_T("NP_TALK create file success!\n"));
     }
 
-    if (!SetNamedPipeHandleState(hTalk, &dwMode, NULL, NULL)) {
-        _tprintf(_T("SetNamedPipeHandleState failed\n"));
-        exit(-1);
-    }
+    //if (!SetNamedPipeHandleState(hTalk, &dwMode, NULL, NULL)) {
+    //    _tprintf(_T("SetNamedPipeHandleState failed\n"));
+    //    exit(-1);
+    //}
 
     HANDLE cthread = CreateThread(NULL, 0, RecebeNotificacao, hTalk, 0, NULL);
     if (!cthread) {
@@ -170,6 +176,7 @@ int _tmain(int argc, TCHAR* argv[]) {
         }
 
         ret = ReadFile(hRegister, &resgMessage, sizeof(PassRegisterMessage), &nr, NULL);
+        GetOutput(resgMessage.resp, NULL, NULL);
         //if (message.resp == OK) {
         //    _tprintf(_T("Passenger added to central of taxis!\n"));
         //}
