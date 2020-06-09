@@ -143,6 +143,7 @@ typedef struct Control_Data_PRODUTOR_CONSUMIDOR {
 } ProdCons;
 
 typedef struct ThreadControlData {
+	HANDLE mtx_access_control;
 	ProdCons* prod_cons;
 	HANDLE hNamedPipe;
 	HANDLE hPassPipeRegister, hPassPipeTalk;
@@ -161,8 +162,6 @@ typedef struct ThreadControlData {
 	CDLogin_Request* cdLogin_Request;	// Communication login request container
 	CDLogin_Response* cdLogin_Response;	// Communication login response container
 	char charMap[MIN_LIN][MIN_COL];		// Array of chars to pass to the taxi
-	//Taxi* requests;					// Array of requests (to future select the taxi that will transport the new passenger)
-	//int *requestsCounter;
 	DLLMethods* dllMethods;
 } CDThread;
 
@@ -179,6 +178,7 @@ typedef struct NP_MESSAGE_REGISTER_PASSENGERS{
 typedef struct NP_MESSAGE_TALK_PASSENGERS {
 	enum response_id resp;
 	Content content;
+	BOOL isSystemClosing;
 } PassMessage;
 
 typedef struct THREAD_ESTABLISH_NAMEDPIPE_CONNECTION_TAXI {

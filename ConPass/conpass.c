@@ -44,6 +44,9 @@ void GetOutput(enum response_id resp, Passenger* passenger, Taxi* taxi) {
     case COORDINATES_FROM_OTHER_CITY:
         _tprintf(_T("You can't choose other city's coordinates.\n"));
         break;
+    case PASSENGER_DELIVERED:
+        _tprintf(_T("%s as arrived destination. Remember to tip %s"), passenger->nome, taxi->licensePlate);
+        break;
     }
 }
 

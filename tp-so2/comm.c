@@ -10,7 +10,7 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 
 	while (!cd->isSystemClosing) {
 		// Receber request
-		WaitForSingleObject(response->new_request, INFINITE);
+		if (WaitForSingleObject(response->new_request, 2000) == WAIT_TIMEOUT) continue;
 		WaitForSingleObject(request->mutex, INFINITE);
 
 		// Guardar o conteudo da mensagem
@@ -22,8 +22,10 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 
 		if (shm_request.action != RequestPassenger) {
 
+			WaitForSingleObject(cd->mtx_access_control, INFINITE);
 			// Tratar mensagem
 			shm_response = ParseAndExecuteOperation(cd, shm_request.action, shm_request.messageContent);
+			ReleaseMutex(cd->mtx_access_control);
 
 			// Enviar resposta
 			WaitForSingleObject(response->mutex, INFINITE);
@@ -49,6 +51,7 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 		PrintMap(cd->map);
 	}
 	free(ind);
+	_tprintf(_T("bye talk to taxi\n"));
 }
 
 void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* container, enum response_id resp) {
@@ -101,7 +104,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			request_shm_name);
 		if (FM_REQUEST == NULL) {
 			_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
-			WaitAllThreads(container->threads, (*container->threadCounter));
+			WaitAllThreads(cdThread, container->threads, (*container->threadCounter));
 			CloseMyHandles(container->handles, (*container->handleCounter));
 			exit(-1);
 		}
@@ -115,7 +118,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			sizeof(SHM_CC_REQUEST));
 		if (cdRequest.shared == NULL) {
 			_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
-			WaitAllThreads(container->threads, (*container->threadCounter));
+			WaitAllThreads(cdThread, container->threads, (*container->threadCounter));
 			CloseMyHandles(container->handles, (*container->handleCounter));
 			exit(-1);
 		}
@@ -125,7 +128,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 		cdRequest.mutex = CreateMutex(NULL, FALSE, request_mutex_name);
 		if (cdRequest.mutex == NULL) {
 			_tprintf(TEXT("Error creating cdLogin mutex mutex (%d).\n"), GetLastError());
-			WaitAllThreads(container->threads, (*container->threadCounter));
+			WaitAllThreads(cdThread, container->threads, (*container->threadCounter));
 			UnmapAllViews(container->views, (*container->viewCounter));
 			CloseMyHandles(container->handles, (*container->handleCounter));
 			exit(-1);
@@ -136,7 +139,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 		cdRequest.new_response = CreateEvent(NULL, FALSE, FALSE, response_event_name);
 		if (request->new_response == NULL) {
 			_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
-			WaitAllThreads(container->threads, (*container->threadCounter));
+			WaitAllThreads(cdThread, container->threads, (*container->threadCounter));
 			UnmapAllViews(container->views, (*container->viewCounter));
 			CloseMyHandles(container->handles, (*container->handleCounter));
 			exit(-1);
@@ -153,7 +156,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			response_shm_name);
 		if (FM_RESPONSE == NULL) {
 			_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
-			WaitAllThreads(container->threads, (*container->threadCounter));
+			WaitAllThreads(cdThread, container->threads, (*container->threadCounter));
 			CloseMyHandles(container->handles, (*container->handleCounter));
 			exit(-1);
 		}
@@ -167,7 +170,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 			sizeof(SHM_CC_RESPONSE));
 		if (cdResponse.shared == NULL) {
 			_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
-			WaitAllThreads(container->threads, (*container->threadCounter));
+			WaitAllThreads(cdThread, container->threads, (*container->threadCounter));
 			CloseMyHandles(container->handles, (*container->handleCounter));
 			exit(-1);
 		}
@@ -177,7 +180,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 		cdResponse.mutex = CreateMutex(NULL, FALSE, response_mutex_name);
 		if (cdResponse.mutex == NULL) {
 			_tprintf(TEXT("Error creating cdLogin mutex mutex (%d).\n"), GetLastError());
-			WaitAllThreads(container->threads, (*container->threadCounter));
+			WaitAllThreads(cdThread, container->threads, (*container->threadCounter));
 			UnmapAllViews(container->views, (*container->viewCounter));
 			CloseMyHandles(container->handles, (*container->handleCounter));
 			exit(-1);
@@ -188,7 +191,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 		cdResponse.new_request = CreateEvent(NULL, FALSE, FALSE, request_event_name);
 		if (cdResponse.new_request == NULL) {
 			_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
-			WaitAllThreads(container->threads, (*container->threadCounter));
+			WaitAllThreads(cdThread, container->threads, (*container->threadCounter));
 			UnmapAllViews(container->views, (*container->viewCounter));
 			CloseMyHandles(container->handles, (*container->handleCounter));
 			exit(-1);
@@ -204,7 +207,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 
 		if (container->threads[(*container->threadCounter)++] = CreateThread(NULL, 0, TalkToTaxi, indCD, 0, NULL) == NULL) {
 			_tprintf(_T("Error launching comm thread (%d)\n"), GetLastError());
-			WaitAllThreads(container->threads, (*container->threadCounter));
+			WaitAllThreads(cdThread, container->threads, (*container->threadCounter));
 			UnmapAllViews(container->views, (*container->viewCounter));
 			CloseMyHandles(container->handles, (*container->handleCounter));
 			exit(-1);
@@ -224,7 +227,7 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 	SHM_LOGIN_REQUEST shared;
 
 	while (!cd->isSystemClosing) {
-		if (WaitForSingleObject(cdResponse->new_request, 3000) == WAIT_TIMEOUT)
+		if (WaitForSingleObject(cdResponse->new_request, 2000) == WAIT_TIMEOUT)
 			continue;
 
 		WaitForSingleObject(cdata->login_m, INFINITE);
@@ -275,6 +278,7 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 			}
 		}
 	}
+	_tprintf(_T("Bye listen to login requests\n"));
 	return 0;
 }
 
@@ -308,7 +312,7 @@ DWORD WINAPI GetPassengerRegistration(LPVOID ptr) {
 	while (!cd->isSystemClosing) {
 		ret = ReadFile(cd->hPassPipeRegister, &message, sizeof(PassRegisterMessage), &nr, NULL);
 
-		//## TODO : Proteger de leituras invalidas
+		if (message.resp == CENTRAL_GOING_OFFLINE) continue;
 		
 		if (isValidCoords(cd, message.passenger.location) && isValidCoords(cd, message.passenger.destination)) {
 
@@ -344,28 +348,8 @@ DWORD WINAPI GetPassengerRegistration(LPVOID ptr) {
 		ZeroMemory(&message, sizeof(PassRegisterMessage));
 		ZeroMemory(&broadcast, sizeof(SHM_BROADCAST));
 	}
+	_tprintf(_T("bye get registration\n"));
 	return 0;
-}
-
-void SendMessageToPassenger(enum response_id resp, Passenger* passenger, Taxi* taxi, CDThread* cd) {
-	PassMessage message;
-	DWORD nr;
-	BOOL ret;
-
-	CopyMemory(&message.content.passenger, passenger, sizeof(Passenger));
-	message.resp = resp;
-
-	if (taxi != NULL) {
-		CopyMemory(&message.content.taxi, taxi, sizeof(Taxi));
-	}
-
-	if (!WriteFile(cd->hPassPipeTalk, &message, sizeof(PassMessage), &nr, NULL)) {
-		_tprintf(TEXT("[ERRO] Escrever no pipe! (WriteFile)\n"));
-		Sleep(2000);
-		exit(-1);
-	}
-
-	ret = ReadFile(cd->hPassPipeTalk, &message, sizeof(PassMessage), &nr, NULL);
 }
 
 DWORD WINAPI WaitTaxiConnect(LPVOID ptr) {
@@ -434,10 +418,16 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 	}
 	else if (_tcscmp(cmd[0], ADM_CLOSE) == 0) {
 		_tprintf(_T("System is closing.\n"));
-		SHM_BROADCAST b;
 		cdata->isSystemClosing = TRUE;
+		/*SHM_BROADCAST b;
 		b.isSystemClosing = TRUE;
-		SendBroadCastMessage(cdata->broadcast, &b, NumberOfActiveTaxis(cdata->taxis, cdata->nrMaxTaxis));
+		SendBroadCastMessage(cdata->broadcast, &b, NumberOfActiveTaxis(cdata->taxis, cdata->nrMaxTaxis));*/
+		PassMessage message;
+		message.isSystemClosing = TRUE;
+		message.resp = CENTRAL_GOING_OFFLINE;
+		BroadcastViaNamedPipeToTaxi(cdata->taxis, cdata->nrMaxTaxis, message);
+		DWORD nr;
+
 		cdata->dllMethods->Log(_T("Central sent a broadcast message!.\n"));
 		cdata->dllMethods->Log(_T("Central is shutting down.\n"));
 		return -1;
@@ -480,7 +470,7 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 		for (int i = 0; i < 7; i++)
 			_tprintf(_T("%s"), commands[i]);
 	}
-	else if (_tcscmp(cmd[0], DBG_ADD_PASSENGER) == 0) {
+	/*else if (_tcscmp(cmd[0], DBG_ADD_PASSENGER) == 0) {
 		if (argc < 6)
 			_tprintf(_T("To few arguments!\n"));
 		else {
@@ -497,7 +487,7 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 			cdata->dllMethods->Log(_T("New passenger added to the system: %s at {%.2d,%.2d} with {%.2d,%.2d} as destination!\n"), cmd[1], x, y, dest_x, dest_y);
 			cdata->dllMethods->Log(_T("Central sent a broadcast message!.\n"));
 		}
-	}
+	}*/
 	else {
 		_tprintf(_T("System doesn't recognize the command, type 'help' to view all the commands.\n"));
 	}
@@ -507,13 +497,23 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 DWORD WINAPI TextInterface(LPVOID ptr) {
 	CDThread* cdata = (CDThread*)ptr;
 	TCHAR command[100];
+	_tprintf(_T("yoo text interface\n"));
 	do {
 		PrintMap(cdata->map);
 		_tprintf(_T("Command: "));
 		_tscanf(_T(" %[^\n]"), command);
 		if (FindFeatureAndRun(command, cdata) == -1) break;
-		_gettchar();
 	} while (!cdata->isSystemClosing);
+	//HANDLE hRegister = CreateFile(NP_PASS_REGISTER, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	//PassRegisterMessage m;
+	//m.resp = CENTRAL_GOING_OFFLINE;
+	//if (hRegister == NULL) {
+	//	_tprintf(TEXT("[ERRO] Ligar ao pipe '%s'! (CreateFile)\n"), NP_PASS_REGISTER);
+	//	exit(-1);
+	//}
+	//DWORD nr;
+	//WriteFile(hRegister, &m, sizeof(PassRegisterMessage), &nr, NULL);
+	_tprintf(_T("bye text interface\n"));
 	return 0;
 }
 
@@ -651,13 +651,19 @@ DWORD WINAPI RequestWaitTimeFeature(LPVOID ptr) {
 	}
 	else {
 		CopyMemory(&content.taxi, &cd->taxis[FindTaxiWithNamedPipeHandle(cd->taxis, cd->nrMaxTaxis, cd->passengers[passenger_index].requests[winner])], sizeof(Taxi));
-		// fazer assign do passageiro ao taxi nos dados da central (?)
 		AssignPassengerToTaxi(cd, content);
-	
+		// notify conpass
+		SendMessageToPassenger(PASSENGER_GOT_TAXI_ASSIGNED, &content.passenger, &content.taxi, cd);
 		// limpar o buffer
 		for (unsigned int i = 0; i < *cd->passengers[passenger_index].requestsCounter; i++)
 			ZeroMemory(&cd->passengers[passenger_index].requests[i], sizeof(Taxi));
 		*cd->passengers[passenger_index].requestsCounter = 0;
 	}
 	_tprintf(_T("i am done, bye.\n"));
+}
+
+void BroadcastViaNamedPipeToTaxi(Taxi* taxis, int size, PassMessage message) {
+	DWORD nr;
+	for (unsigned int i = 0; i < size; i++)
+		WriteFile(taxis[i].hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
 }

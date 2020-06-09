@@ -1,69 +1,30 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(467,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (tp-so2.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-  centaxi.c
-E:\projects\so2-project\tp-so2\centaxi.c(28,12): warning C4013: 'time' undefined; assuming extern returning int
-E:\projects\so2-project\tp-so2\centaxi.c(71,41): warning C4047: 'function': 'int' differs in levels of indirection from 'int *'
-E:\projects\so2-project\tp-so2\centaxi.c(71,41): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(78,41): warning C4047: 'function': 'int' differs in levels of indirection from 'int *'
-E:\projects\so2-project\tp-so2\centaxi.c(78,41): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(85,41): warning C4047: 'function': 'int' differs in levels of indirection from 'int *'
-E:\projects\so2-project\tp-so2\centaxi.c(85,41): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(92,41): warning C4047: 'function': 'int' differs in levels of indirection from 'int *'
-E:\projects\so2-project\tp-so2\centaxi.c(92,41): warning C4024: 'CloseMyHandles': different types for formal and actual parameter 2
-E:\projects\so2-project\tp-so2\centaxi.c(105,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\centaxi.c(121,29): warning C4018: '<': signed/unsigned mismatch
   comm.c
 E:\projects\so2-project\tp-so2\comm.c(21,105): warning C4020: 'function through pointer': too many actual parameters
-E:\projects\so2-project\tp-so2\comm.c(45,67): warning C4047: 'function': 'Taxi *' differs in levels of indirection from 'HANDLE *'
-E:\projects\so2-project\tp-so2\comm.c(45,67): warning C4024: 'isInRequestBuffer': different types for formal and actual parameter 1
-E:\projects\so2-project\tp-so2\comm.c(48,105): warning C4020: 'function through pointer': too many actual parameters
-E:\projects\so2-project\tp-so2\comm.c(167,28): warning C4133: '=': incompatible types - from 'SHM_CC_REQUEST *' to 'SHM_CC_RESPONSE *'
-E:\projects\so2-project\tp-so2\comm.c(205,116): warning C4047: '=': 'HANDLE' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\comm.c(212,92): warning C4020: 'function through pointer': too many actual parameters
-E:\projects\so2-project\tp-so2\comm.c(215,91): warning C4020: 'function through pointer': too many actual parameters
-E:\projects\so2-project\tp-so2\comm.c(297,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [6][100]'
-E:\projects\so2-project\tp-so2\comm.c(424,11): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\tp-so2\comm.c(446,30): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\comm.c(452,30): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\comm.c(461,38): warning C4047: '=': 'BOOL *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\comm.c(475,98): warning C4020: 'function through pointer': too many actual parameters
-E:\projects\so2-project\tp-so2\comm.c(497,128): warning C4020: 'function through pointer': too many actual parameters
+E:\projects\so2-project\tp-so2\comm.c(47,67): warning C4047: 'function': 'Taxi *' differs in levels of indirection from 'HANDLE *'
+E:\projects\so2-project\tp-so2\comm.c(47,67): warning C4024: 'isInRequestBuffer': different types for formal and actual parameter 1
+E:\projects\so2-project\tp-so2\comm.c(50,105): warning C4020: 'function through pointer': too many actual parameters
+E:\projects\so2-project\tp-so2\comm.c(170,28): warning C4133: '=': incompatible types - from 'SHM_CC_REQUEST *' to 'SHM_CC_RESPONSE *'
+E:\projects\so2-project\tp-so2\comm.c(208,116): warning C4047: '=': 'HANDLE' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\comm.c(215,92): warning C4020: 'function through pointer': too many actual parameters
+E:\projects\so2-project\tp-so2\comm.c(218,91): warning C4020: 'function through pointer': too many actual parameters
+E:\projects\so2-project\tp-so2\comm.c(301,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [6][100]'
+E:\projects\so2-project\tp-so2\comm.c(408,11): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\tp-so2\comm.c(436,30): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\comm.c(442,30): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\comm.c(451,38): warning C4047: '=': 'BOOL *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\comm.c(465,98): warning C4020: 'function through pointer': too many actual parameters
+E:\projects\so2-project\tp-so2\comm.c(429,9): warning C4101: 'nr': unreferenced local variable
 E:\projects\so2-project\tp-so2\comm.c(575,18): warning C4477: '_swprintf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'double'
 E:\projects\so2-project\tp-so2\comm.c(586,18): warning C4477: '_swprintf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'double'
 E:\projects\so2-project\tp-so2\comm.c(526,23): warning C4101: 'status': unreferenced local variable
 E:\projects\so2-project\tp-so2\comm.c(524,16): warning C4101: 'y': unreferenced local variable
 E:\projects\so2-project\tp-so2\comm.c(524,13): warning C4101: 'x': unreferenced local variable
 E:\projects\so2-project\tp-so2\comm.c(658,30): warning C4018: '<': signed/unsigned mismatch
-  utils.c
-E:\projects\so2-project\tp-so2\utils.c(55,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(66,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(74,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(80,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(88,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(100,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(107,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(115,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(137,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(160,32): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(166,32): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(178,32): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(184,32): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(236,16): warning C4047: 'return': 'char **' differs in levels of indirection from 'char [50][50]'
-E:\projects\so2-project\tp-so2\utils.c(262,12): warning C4013: 'time' undefined; assuming extern returning int
-E:\projects\so2-project\tp-so2\utils.c(263,28): warning C4047: 'return': 'int' differs in levels of indirection from 'void *'
-E:\projects\so2-project\tp-so2\utils.c(308,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(426,90): warning C4047: 'function': 'TCHAR *' differs in levels of indirection from 'TCHAR (*)[25]'
-E:\projects\so2-project\tp-so2\utils.c(426,90): warning C4024: 'GetPassengerStatus': different types for formal and actual parameter 3
-E:\projects\so2-project\tp-so2\utils.c(421,16): warning C4101: 'y': unreferenced local variable
-E:\projects\so2-project\tp-so2\utils.c(421,13): warning C4101: 'x': unreferenced local variable
-E:\projects\so2-project\tp-so2\utils.c(460,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(466,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\utils.c(478,29): warning C4018: '<': signed/unsigned mismatch
-  Generating Code...
-E:\projects\so2-project\tp-so2\utils.c(133): warning C4715: 'ParseStateToString': not all control paths return a value
-E:\projects\so2-project\tp-so2\utils.c(236): warning C4172: returning address of local variable or temporary: charMap
-E:\projects\so2-project\tp-so2\comm.c(52): warning C4716: 'TalkToTaxi': must return a value
-E:\projects\so2-project\tp-so2\comm.c(297): warning C4172: returning address of local variable or temporary: command
-E:\projects\so2-project\tp-so2\comm.c(385): warning C4715: 'WaitTaxiConnect': not all control paths return a value
+E:\projects\so2-project\tp-so2\comm.c(667,29): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\comm.c(55): warning C4716: 'TalkToTaxi': must return a value
+E:\projects\so2-project\tp-so2\comm.c(301): warning C4172: returning address of local variable or temporary: command
+E:\projects\so2-project\tp-so2\comm.c(369): warning C4715: 'WaitTaxiConnect': not all control paths return a value
+E:\projects\so2-project\tp-so2\comm.c(494): warning C4715: 'FindFeatureAndRun': not all control paths return a value
 E:\projects\so2-project\tp-so2\comm.c(663): warning C4716: 'RequestWaitTimeFeature': must return a value
-E:\projects\so2-project\tp-so2\comm.c(504): warning C4715: 'FindFeatureAndRun': not all control paths return a value
   tp-so2.vcxproj -> E:\projects\so2-project\x64\Debug\CenTaxi.exe

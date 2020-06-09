@@ -93,11 +93,12 @@ int _tmain(int argc, TCHAR* argv[]) {
 		exit(-1);
 	}
 	// ====================================================================================================
+	CDThread cdThread;
 
 	Taxi* taxis = (Taxi*)malloc(nrMaxTaxis * sizeof(Taxi));
 	if (taxis == NULL) {
 		_tprintf(_T("Error allocating memory (%d)\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
@@ -113,7 +114,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	Passenger* passengers = (Passenger*)malloc(nrMaxPassengers * sizeof(Passenger));
 	if (passengers == NULL) {
 		_tprintf(_T("Error allocating memory (%d)\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
@@ -127,8 +128,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 		passengers[i].location.y = -1;
 	}
 	// ====================================================================================================
-
-	CDThread cdThread;
 
 	HANDLE FM_BROADCAST = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
@@ -223,7 +222,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	// Le conteudo do ficheiro para array de chars
 	if ((fileContent = ReadFileToCharArray(_T(/*".\\..\\..\\maps\\mapa.txt"*/"E:\\projects\\so2-project\\maps\\mapa.txt"))) == NULL) {
 		_tprintf(_T("Error reading the file (%d)\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
@@ -270,7 +269,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		SHM_LOGIN_REQUEST_NAME);
 	if (FM_CC_LOGIN_REQUEST == NULL) {
 		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
@@ -286,7 +285,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		SHM_LOGIN_RESPONSE_NAME);
 	if (FM_CC_LOGIN_RESPONSE == NULL) {
 		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
@@ -303,7 +302,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		sizeof(SHM_LOGIN_REQUEST));
 	if (CDLogin_Request.request == NULL) {
 		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
@@ -317,7 +316,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 		sizeof(SHM_LOGIN_RESPONSE));
 	if (CDLogin_Response.response == NULL) {
 		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
@@ -327,7 +326,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	CDLogin_Request.login_m = CreateMutex(NULL, FALSE, LOGIN_REQUEST_MUTEX);
 	if (CDLogin_Request.login_m == NULL) {
 		_tprintf(TEXT("Error creating cdLogin mutex mutex (%d).\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
@@ -338,7 +337,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	CDLogin_Response.login_m = CreateMutex(NULL, FALSE, LOGIN_RESPONSE_MUTEX);
 	if (CDLogin_Response.login_m == NULL) {
 		_tprintf(TEXT("Error creating cdLogin mutex mutex (%d).\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
@@ -349,7 +348,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	CDLogin_Request.login_write_m = CreateMutex(NULL, FALSE, LOGIN_TAXI_WRITE_MUTEX);
 	if (CDLogin_Request.login_write_m == NULL) {
 		_tprintf(TEXT("Error creating cdLogin mutex mutex (%d).\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
@@ -360,7 +359,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	CDLogin_Request.new_response = CreateEvent(NULL, FALSE, FALSE, EVENT_WRITE_FROM_TAXIS);
 	if (CDLogin_Request.new_response == NULL) {
 		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
@@ -371,7 +370,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	CDLogin_Response.new_request = CreateEvent(NULL, FALSE, FALSE, EVENT_READ_FROM_TAXIS);
 	if (CDLogin_Response.new_request == NULL) {
 		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
@@ -396,7 +395,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	HANDLE listenThread = CreateThread(NULL, 0, ListenToLoginRequests, &cdThread, 0, NULL);
 	if (!listenThread) {
 		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
@@ -408,8 +407,9 @@ int _tmain(int argc, TCHAR* argv[]) {
 
 	if (cdThread.hPassPipeRegister == INVALID_HANDLE_VALUE) {
 		_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe) %d"), GetLastError());
+		WaitAllThreads(&cdThread, threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
-		Sleep(2000);
 		return -1;
 	}
 	dllMethods.Register(NP_PASS_REGISTER, NAMED_PIPE);
@@ -418,15 +418,26 @@ int _tmain(int argc, TCHAR* argv[]) {
 
 	if (cdThread.hPassPipeTalk == INVALID_HANDLE_VALUE) {
 		_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe)"));
+		WaitAllThreads(&cdThread, threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		return -1;
 	}
 	dllMethods.Register(NP_PASS_TALK, NAMED_PIPE);
 
+	if ((cdThread.mtx_access_control = CreateMutex(NULL, FALSE, MTX_ACCESS_CONTROL)) == NULL) {
+		WaitAllThreads(&cdThread, threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+	}
+	dllMethods.Register(MTX_ACCESS_CONTROL, MUTEX);
+
 	// operação bloqueante (fica à espera da ligação de um cliente)
 	if (!ConnectNamedPipe(cdThread.hPassPipeRegister, NULL)) {
 		_tprintf(TEXT("[ERRO] Ligação ao leitor 1! (ConnectNamedPipe %d).\n"), GetLastError());
 		Sleep(2000);
+		WaitAllThreads(&cdThread, threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
@@ -434,6 +445,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 	if (!ConnectNamedPipe(cdThread.hPassPipeTalk, NULL)) {
 		_tprintf(TEXT("[ERRO] Ligação ao leitor 2! (ConnectNamedPipe %d).\n"), GetLastError());
 		Sleep(2000);
+		WaitAllThreads(&cdThread, threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
@@ -441,14 +454,14 @@ int _tmain(int argc, TCHAR* argv[]) {
 	HANDLE cthread = CreateThread(NULL, 0, GetPassengerRegistration, &cdThread, 0, NULL);
 	if (!cthread) {
 		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
-		WaitAllThreads(threads, threadCounter);
+		WaitAllThreads(&cdThread, threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 		exit(-1);
 	}
 	threads[threadCounter++] = cthread;
 
-	WaitAllThreads(threads, threadCounter);
+	WaitAllThreads(&cdThread, threads, threadCounter);
 	UnmapAllViews(views, viewCounter);
 	CloseMyHandles(handles, handleCounter);
 

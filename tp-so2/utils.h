@@ -11,7 +11,7 @@
 #include "rules.h"
 #include "structs.h"
 
-void WaitAllThreads(HANDLE* threads, int nr);
+void WaitAllThreads(CDThread* cd, HANDLE* threads, int nr);
 void CloseMyHandles(HANDLE* handles, int nr);
 void UnmapAllViews(HANDLE* views, int nr);
 void ClearScreen();
@@ -47,3 +47,4 @@ BOOL isInRequestBuffer(Taxi* requests, int size, Taxi taxi);
 void RemovePassengerFromCentral(TCHAR* nome, Passenger* passengers, int size);
 BOOL isValidCoords(CDThread* cd, Coords c);
 int FindTaxiWithNamedPipeHandle(Taxi* taxis, int size, HANDLE handle);
+void SendMessageToPassenger(enum response_id resp, Passenger* passenger, Taxi* taxi, CDThread* cd);

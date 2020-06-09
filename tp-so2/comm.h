@@ -19,7 +19,7 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata);
 DWORD WINAPI TextInterface(LPVOID ptr);
 TCHAR** ParseCommand(TCHAR* cmd);
 DWORD WINAPI GetPassengerRegistration(LPVOID ptr);
-void SendMessageToPassenger(enum response_id resp, Passenger* passenger, Taxi* taxi, CDThread* cd);
 DWORD WINAPI WaitTaxiConnect(LPVOID ptr);
 SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, Content content);
 DWORD WINAPI RequestWaitTimeFeature(LPVOID ptr);
+void BroadcastViaNamedPipeToTaxi(Taxi* taxis, int size, PassMessage message);

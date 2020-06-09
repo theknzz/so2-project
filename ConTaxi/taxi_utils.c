@@ -62,10 +62,10 @@ int CalculateDistanceTo(Coords org, Coords dest) {
 enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* response, Taxi* taxi, Coords dest, char map[MIN_LIN][MIN_COL]) {
 	Coords org = taxi->location;
 	// bottom, left, top, right
-	int positions[4];
+	int positions[4], count = 0;
 	Coords coords[4];
 
-	// bottom
+	// down
 	coords[0].x = org.x;
 	coords[0].y = org.y + 1;
 
@@ -73,7 +73,7 @@ enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* r
 	coords[1].x = org.x - 1;
 	coords[1].y = org.y;
 
-	// top
+	// up
 	coords[2].x = org.x;
 	coords[2].y = org.y - 1;
 
@@ -87,6 +87,7 @@ enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* r
 	}
 	else {
 		positions[0] = CalculateDistanceTo(coords[0], dest);
+		count++;
 	}
 
 	if (taxi->direction == RIGHT || coords[1].x < 0 || map[coords[1].x][coords[1].y] == B_DISPLAY) {
@@ -94,6 +95,7 @@ enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* r
 	}
 	else {
 		positions[1] = CalculateDistanceTo(coords[1], dest);
+		count++;
 	}
 
 	if (taxi->direction == DOWN || coords[2].y < 0 || map[coords[2].x][coords[2].y] == B_DISPLAY) {
@@ -101,6 +103,7 @@ enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* r
 	}
 	else {
 		positions[2] = CalculateDistanceTo(coords[2], dest);
+		count++;
 	}
 
 	if (taxi->direction == LEFT || coords[3].y > MIN_COL || map[coords[3].x][coords[3].y] == B_DISPLAY) {
@@ -108,15 +111,34 @@ enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* r
 	}
 	else {
 		positions[3] = CalculateDistanceTo(coords[3], dest);
+		count++;
 	}
 
-	// select the best position (less distance)
 	int optimal = positions[0];
 	int nr = 0;
-	for (unsigned int i = 1; i < 4; i++) {
-		if (positions[i] < optimal) {
-			optimal = positions[i];
-			nr = i;
+	if (count == 0) {
+		// select the best position (less distance)
+		for (unsigned int i = 1; i < 4; i++) {
+			if (positions[i] < optimal) {
+				optimal = positions[i];
+				nr = i;
+			}
+		}
+	}
+	else {
+		switch (getOppositeDirection(taxi->direction)) {
+		case DOWN:
+			nr = 0;
+			break;
+		case UP:
+			nr = 2;
+			break;
+		case LEFT:
+			nr = 1;
+			break;
+		case RIGHT:
+			nr = 3;
+			break;
 		}
 	}
 
@@ -217,11 +239,14 @@ enum response_id MoveAleatorio(CC_CDRequest* request, CC_CDResponse* response, T
 			nr++;
 		}
 	}
-	int dir = (rand() % nr - 0) + 0;
-	if ((res = UpdateMyLocation(request, response, taxi, finals[dir])) == OK) {
-		CopyMemory(&taxi->location, &finals[dir], sizeof(Coords));
-		taxi->direction = getTaxiDirection(org, finals[dir]);
+	if (nr != 0) {
+		int dir = (rand() % nr - 0) + 0;
+		if ((res = UpdateMyLocation(request, response, taxi, finals[dir])) == OK) {
+			CopyMemory(&taxi->location, &finals[dir], sizeof(Coords));
+			taxi->direction = getTaxiDirection(org, finals[dir]);
+		}
 	}
+	else res = ERRO;
 	return res;
 }
 

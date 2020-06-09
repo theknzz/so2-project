@@ -62,6 +62,8 @@ enum response_id {
 	PASSENGER_REACHED_DESTINATION,
 	NO_TRANSPORT_AVAILABLE,
 	COORDINATES_FROM_OTHER_CITY,
+	PASSENGER_DELIVERED,
+	CENTRAL_GOING_OFFLINE
 };
 
 enum passanger_state {
@@ -116,6 +118,7 @@ enum taxi_direction {
 #define SMP_CANWRITE _T("smp_canwrite")
 #define MTX_CENTRAL_PRODCONS _T("mutex_produtor_consumidor_central")
 #define MTX_CONPASS_PRODCONS _T("mutex_produtor_consumidor_conpass")
+#define MTX_ACCESS_CONTROL _T("mutex_control")
 
 // Named Pipes
 #define NP_PASS_REGISTER _T("\\\\.\\pipe\\np_passenger_register")

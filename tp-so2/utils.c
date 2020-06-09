@@ -1,7 +1,8 @@
 #include "utils.h"
 
 // Wait for all the threads to stop
-void WaitAllThreads(HANDLE* threads, int nr) {
+void WaitAllThreads(CDThread* cd, HANDLE* threads, int nr) {
+	cd->isSystemClosing = TRUE;
 	for (int i = 0; i < nr; i++)
 		WaitForSingleObject(threads[i], INFINITE);
 	nr = 0;
@@ -305,12 +306,11 @@ BOOL SendTransportRequestResponse(HANDLE* requests, Passenger client, int size, 
 	PassMessage message;
 	DWORD nr;
 	if (size == 0) return FALSE;
+	CopyMemory(&message.content.passenger, &client, sizeof(Passenger));
 	for (unsigned int i = 0; i < size; i++) {
 		if (i == winner) {
 			message.resp = OK;
-			CopyMemory(&message.content.passenger, &client, sizeof(Passenger));
 			WriteFile(requests[i], &message, sizeof(PassMessage), &nr, NULL);
-			ZeroMemory(&message.content.passenger, sizeof(Passenger));
 		}
 		else {
 			message.resp = ERRO;
@@ -366,6 +366,27 @@ enum response_action UpdateTaxiPosition(CDThread* cd, Content content) {
 	return OK;
 }
 
+void SendMessageToPassenger(enum response_id resp, Passenger* passenger, Taxi* taxi, CDThread* cd) {
+	PassMessage message;
+	DWORD nr;
+	BOOL ret;
+
+	CopyMemory(&message.content.passenger, passenger, sizeof(Passenger));
+	message.resp = resp;
+
+	if (taxi != NULL) {
+		CopyMemory(&message.content.taxi, taxi, sizeof(Taxi));
+	}
+
+	if (!WriteFile(cd->hPassPipeTalk, &message, sizeof(PassMessage), &nr, NULL)) {
+		_tprintf(TEXT("[ERRO] Escrever no pipe! (WriteFile)\n"));
+		Sleep(2000);
+		exit(-1);
+	}
+
+	ret = ReadFile(cd->hPassPipeTalk, &message, sizeof(PassMessage), &nr, NULL);
+}
+
 enum response_action CatchPassenger(CDThread* cd, Content content) {
 	int index, x, y;
 	// change the state of the taxi's client
@@ -385,6 +406,8 @@ enum response_action CatchPassenger(CDThread* cd, Content content) {
 	index = FindTaxiIndex(cd->map[x + y * MIN_LIN].taxis, cd->nrMaxTaxis, content.taxi);
 	if (index == -1) return ERRO;
 	cd->map[x + y * MIN_LIN].taxis[index].client.state = OnDrive;
+
+	SendMessageToPassenger(PASSENGER_CAUGHT, &content.taxi.client, &content.taxi, cd);
 	return OK;
 }
 
@@ -414,10 +437,12 @@ enum response_id DeliverPassenger(CDThread* cd, Content content) {
 	ZeroMemory(&cd->map[x + y * MIN_LIN].taxis[index].client, sizeof(Passenger));
 	cd->map[x + y * MIN_LIN].taxis[index].client.location.x = -1;
 	cd->map[x + y * MIN_LIN].taxis[index].client.location.y = -1;
+	SendMessageToPassenger(PASSENGER_DELIVERED, &content.taxi.client, &content.taxi, cd);
 	return OK;
 }
 
 enum response_id AssignPassengerToTaxi(CDThread* cd, Content content) {
+	WaitForSingleObject(cd->mtx_access_control, INFINITE);
 	int index, x, y;
 	enum passanger_state status;
 	index = FindTaxiWithLicense(cd->taxis, cd->nrMaxTaxis, content.taxi.licensePlate);
@@ -433,6 +458,7 @@ enum response_id AssignPassengerToTaxi(CDThread* cd, Content content) {
 	// Update passenger info
 	index = GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, content.passenger.nome);
 	cd->passengers[index].state = Taken;
+	ReleaseMutex(cd->mtx_access_control);
 	return OK;
 }
 
