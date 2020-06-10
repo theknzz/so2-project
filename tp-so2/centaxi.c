@@ -392,6 +392,57 @@ int _tmain(int argc, TCHAR* argv[]) {
 	cdThread.hContainer = &container;
 	cdThread.dllMethods = &dllMethods;
 
+	CC_INFO info;
+	if ((info.mutex = CreateMutex(NULL, FALSE, MAPINFO_MUTEX)) == NULL) {
+		WaitAllThreads(&cdThread, threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+	}
+	dllMethods.Register(MAPINFO_MUTEX, MUTEX);
+	handles[handleCounter++] = info.mutex;
+
+	if ((info.new_info = CreateEvent(NULL, FALSE, FALSE, EVENT_NEW_INFO)) == NULL) {
+		WaitAllThreads(&cdThread, threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+	}
+	dllMethods.Register(EVENT_NEW_INFO, EVENT);
+	handles[handleCounter++] = info.new_info;
+
+	HANDLE fmMapInfo = CreateFileMapping(
+		INVALID_HANDLE_VALUE,
+		NULL,
+		PAGE_READWRITE,
+		0,
+		sizeof(SHM_MAPINFO),
+		SHM_MAP_INFO_NAME);
+	if (fmMapInfo == NULL) {
+		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+		WaitAllThreads(&cdThread, threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = fmMapInfo;
+	dllMethods.Register(SHM_MAP_INFO_NAME, FILE_MAPPING);
+
+	info.message = (SHM_MAPINFO*)MapViewOfFile(fmMapInfo,
+		FILE_MAP_ALL_ACCESS,
+		0,
+		0,
+		sizeof(SHM_MAPINFO));
+	if (info.message == NULL) {
+		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
+		WaitAllThreads(&cdThread, threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	views[viewCounter++] = info.message;
+	dllMethods.Register(SHM_MAP_INFO_NAME, VIEW);
+
+	cdThread.mapinfo = &info;
+
 	HANDLE listenThread = CreateThread(NULL, 0, ListenToLoginRequests, &cdThread, 0, NULL);
 	if (!listenThread) {
 		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());

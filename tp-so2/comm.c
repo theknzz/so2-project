@@ -43,9 +43,11 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 			_tprintf(_T("\npassenger request by %s\n"), shm_request.messageContent.taxi.licensePlate);
 			int passenger_index = GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, shm_request.messageContent.passenger.nome);
 			int taxi_index = FindTaxiWithLicense(cd->taxis, cd->nrMaxTaxis, shm_request.messageContent.taxi.licensePlate);
+			WaitForSingleObject(cd->mtx_access_control, INFINITE);
 			// Inserir o request no buffer de requests
 			if (!isInRequestBuffer(cd->passengers[passenger_index].requests, *cd->passengers[passenger_index].requestsCounter, cd->taxis[taxi_index]))
 				cd->passengers[passenger_index].requests[(*cd->passengers[passenger_index].requestsCounter)++] = cd->taxis[taxi_index].hNamedPipe;
+			ReleaseMutex(cd->mtx_access_control);
 		}
 		cd->dllMethods->Log(_T("Central sent response to %s.\n"), shm_request.messageContent.taxi.licensePlate);
 		PrintMap(cd->map);

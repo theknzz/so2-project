@@ -91,6 +91,8 @@ enum taxi_direction {
 
 #define SHM_BROADCAST_PASSENGER_ARRIVE _T("SHM_BROADCAST_PASSENGER_ARRIVE")
 
+#define SHM_MAP_INFO_NAME _T("SHM_MAPINFO")
+
 // Control mechanisms
 #define TAXI_GATEWAY _T("taxi_can_talk")
 #define CENTRAL_CAN_READ _T("central_can_read")
@@ -105,6 +107,8 @@ enum taxi_direction {
 
 #define BROADCAST_MUTEX _T("broadcast_mutex")
 
+#define MAPINFO_MUTEX _T("mapinfo_mutex")
+
 #define EVENT_GOT_RESPONSE _T("event_got_response")
 #define EVENT_READ_FROM_TAXIS _T("event_read_from_taxis")
 #define EVENT_WRITE_FROM_TAXIS _T("event_write_from_taxis")
@@ -113,6 +117,8 @@ enum taxi_direction {
 #define EVENT_REQUEST _T("event_request_%s")
 
 #define EVENT_NEW_PASSENGER _T("event_new_passenger")
+
+#define EVENT_NEW_INFO _T("event_new_info")
 
 #define SMP_CANREAD _T("smp_canread")
 #define SMP_CANWRITE _T("smp_canwrite")
