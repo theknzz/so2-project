@@ -40,9 +40,27 @@
     <Image Include="MapInfo.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="bitmap1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\bitmaps\grass.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\bitmaps\bitmap1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\bitmaps\street.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\bitmaps\taxi.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MapInfo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

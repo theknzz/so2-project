@@ -116,7 +116,7 @@ enum response_id MoveMeToOptimalPosition(CC_CDRequest* request, CC_CDResponse* r
 
 	int optimal = positions[0];
 	int nr = 0;
-	if (count == 0) {
+	if (count != 0) {
 		// select the best position (less distance)
 		for (unsigned int i = 1; i < 4; i++) {
 			if (positions[i] < optimal) {

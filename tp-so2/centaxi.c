@@ -443,6 +443,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 
 	cdThread.mapinfo = &info;
 
+	UpdateView(&cdThread);
+
 	HANDLE listenThread = CreateThread(NULL, 0, ListenToLoginRequests, &cdThread, 0, NULL);
 	if (!listenThread) {
 		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());

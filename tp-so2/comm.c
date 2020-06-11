@@ -277,6 +277,7 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 
 				// notifiquei o taxi a dizer que a mensagem foi lida
 				RespondToTaxiLogin(cd, shared.taxi.licensePlate, cd->hContainer, res);
+				UpdateView(cd);
 			}
 		}
 	}
@@ -534,17 +535,20 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 		_stprintf(log, _T("Taxi '%s' moved to {%.2d, %.2d} and has %s passenger.\n"), cd->taxis[index].licensePlate,
 			cd->taxis[index].location.x, cd->taxis[index].location.y, hasPassenger(cd->taxis[index]));
 		cd->dllMethods->Log(log);
+		UpdateView(cd);
 		break;
 	case WarnPassengerCatch:
 		response.action = CatchPassenger(cd, content);
 		index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
 		_stprintf(log, _T("Taxi '%s' caught '%s'.\n"), cd->taxis[index].licensePlate, cd->taxis[index].client.nome);
 		cd->dllMethods->Log(log);
+		UpdateView(cd);
 		break;
 	case WarnPassengerDeliever:
 		response.action = DeliverPassenger(cd, content);
 		_stprintf(log, _T("Taxi '%s' delivered '%s'.\n"), content.taxi.licensePlate, content.taxi.client.nome);
 		cd->dllMethods->Log(log);
+		UpdateView(cd);
 		break;
 	case GetCityMap:
 		CopyMemory(response.map, cd->charMap, sizeof(cd->charMap));
@@ -565,6 +569,7 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 		response.passenger.state = Waiting;
 		_stprintf(log, _T("Taxi '%s' requested '%s' as his passenger!\n"), content.taxi.licensePlate, content.taxi.client.nome);
 		cd->dllMethods->Log(log);
+		UpdateView(cd);
 		break;
 	case NotifySpeedChange:
 		index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
@@ -576,6 +581,7 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 		response.action = OK;
 		_stprintf(log, _T("Taxi '%s' speeded up to %d!\n"), content.taxi.licensePlate, content.taxi.velocity);
 		cd->dllMethods->Log(log);
+		UpdateView(cd);
 		break;
 	case NotifyNQChange:
 		index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
@@ -587,6 +593,7 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 		response.action = OK;
 		_stprintf(log, _T("Taxi '%s' slowed down to %d!\n"), content.taxi.licensePlate, content.taxi.velocity);
 		cd->dllMethods->Log(log);
+		UpdateView(cd);
 		break;
 
 	case NotifyTaxiLeaving:
@@ -606,6 +613,7 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 		response.action = OK;
 		_stprintf(log, _T("Taxi '%s' leaving the system!\n"), content.taxi.licensePlate);
 		cd->dllMethods->Log(log);
+		UpdateView(cd);
 		break;
 	case EstablishNamedPipeComm:
 		index = FindTaxiIndex(cd->taxis, cd->nrMaxTaxis, content.taxi);
@@ -660,6 +668,7 @@ DWORD WINAPI RequestWaitTimeFeature(LPVOID ptr) {
 		for (unsigned int i = 0; i < *cd->passengers[passenger_index].requestsCounter; i++)
 			ZeroMemory(&cd->passengers[passenger_index].requests[i], sizeof(Taxi));
 		*cd->passengers[passenger_index].requestsCounter = 0;
+		UpdateView(cd);
 	}
 	_tprintf(_T("i am done, bye.\n"));
 }
@@ -668,4 +677,18 @@ void BroadcastViaNamedPipeToTaxi(Taxi* taxis, int size, PassMessage message) {
 	DWORD nr;
 	for (unsigned int i = 0; i < size; i++)
 		WriteFile(taxis[i].hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
+}
+
+void UpdateView(CDThread* cd) {
+	SHM_MAPINFO shm;
+	shm.nrTaxis = NumberOfActiveTaxis(cd->taxis, cd->nrMaxTaxis);
+	CopyMemory(&shm.taxis, cd->taxis, sizeof(Taxi) * shm.nrTaxis);
+	shm.nrPassengers = NumberOfActivePassengers(cd->passengers, cd->nrMaxPassengers);
+	CopyMemory(&shm.passengers, cd->passengers, sizeof(Passenger) * shm.nrPassengers);
+	CopyMemory(&shm.map, cd->map, sizeof(Cell) * MIN_LIN * MIN_COL);
+
+	WaitForSingleObject(cd->mapinfo->mutex, INFINITE);
+	CopyMemory(cd->mapinfo->message, &shm, sizeof(SHM_MAPINFO));
+	ReleaseMutex(cd->mapinfo->mutex);
+	SetEvent(cd->mapinfo->new_info);
 }

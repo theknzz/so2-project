@@ -28,6 +28,7 @@ int FindTaxiWithLicense(Taxi* taxis, int size, TCHAR* lc);
 int FindFirstFreeTaxiIndex(Taxi* taxis, int size);
 TCHAR* ParseStateToString(enum passanger_state state);
 int NumberOfActiveTaxis(Taxi* taxis, int size);
+int NumberOfActivePassengers(Passenger* passengers, int size);
 void LoadMapa(Cell* map, char* buffer, int nrTaxis, int nrPassangers);
 char* ReadFileToCharArray(TCHAR* mapName);
 char** ConvertMapIntoCharMap(Cell* map);

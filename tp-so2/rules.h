@@ -9,6 +9,8 @@
 #define NQ 10
 #define WAIT_TIME 5
 #define CIRCULAR_BUFFER_SIZE 1
+#define TAXI_MAX_BUFFER 50
+#define PASSENGER_MAX_BUFFER 50
 
 // dll indices
 #define MUTEX 1

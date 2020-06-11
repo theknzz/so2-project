@@ -29,6 +29,7 @@ typedef struct IndividualThreadControl IndividualCD;
 typedef struct NP_MESSAGE_REGISTER_PASSENGERS PassRegisterMessage;
 typedef struct NP_MESSAGE_TALK_PASSENGERS PassMessage;
 typedef struct THREAD_ESTABLISH_NAMEDPIPE_CONNECTION_TAXI TENC;
+typedef struct MAPINFO_STRUCT MapInfo;
 
 struct _COORDS {
 	int x, y; // map positions
@@ -196,7 +197,11 @@ struct ThreadControlData {
 };
 
 struct _SHM_CENTAXI_TO_MAPINFO {
-	CDThread cd;
+	Taxi taxis[TAXI_MAX_BUFFER];
+	int nrTaxis;
+	Passenger passengers[PASSENGER_MAX_BUFFER];
+	int nrPassengers;
+	Cell map[MIN_LIN][MIN_COL];
 };
 
 struct _CC_MAPINFO {
@@ -225,5 +230,14 @@ struct THREAD_ESTABLISH_NAMEDPIPE_CONNECTION_TAXI {
 	int index;
 	CDThread* cd;
 	TCHAR target[9];
+};
+
+struct MAPINFO_STRUCT {
+	Taxi taxis[TAXI_MAX_BUFFER];
+	int nrTaxis;
+	Passenger passengers[PASSENGER_MAX_BUFFER];
+	int nrPassengers;
+	Cell map[MIN_LIN][MIN_COL];
+	HWND window;
 };
 

@@ -1,2 +1,3 @@
 ﻿  MapInfo.c
+E:\projects\so2-project\MapInfo\MapInfo.c(186,32): warning C4018: '<': signed/unsigned mismatch
   MapInfo.vcxproj -> E:\projects\so2-project\x64\Debug\MapInfo.exe

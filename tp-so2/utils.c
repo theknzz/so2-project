@@ -28,13 +28,13 @@ void ClearScreen() {
 }
 
 void PrintMap(Cell* map) {
-	/*for (int i = 0; i < MIN_LIN; i++) {
+	for (int i = 0; i < MIN_LIN; i++) {
 		for (int j = 0; j < MIN_COL; j++) {
 			Cell cell = *(map + (i * MIN_COL) + j);
 			_tprintf(_T("%c"), cell.display);
 		}
 		_tprintf(_T("\n"));
-	}*/
+	}
 	_tprintf(_T("\n"));
 }
 
@@ -320,7 +320,6 @@ BOOL SendTransportRequestResponse(HANDLE* requests, Passenger client, int size, 
 	return TRUE;
 }
 
-
 enum response_action UpdateTaxiPosition(CDThread* cd, Content content) {
 	int index, x, y;
 	// encontrar o taxi na tabela de taxis ativos
@@ -507,4 +506,13 @@ int FindTaxiWithNamedPipeHandle(Taxi* taxis, int size, HANDLE handle) {
 			return i;
 	}
 	return -1;
+}
+
+int NumberOfActivePassengers(Passenger* passengers, int size) {
+	int count = 0;
+	for (unsigned int i = 0; i < size; i++) {
+		if (passengers[i].location.x > 0)
+			count++;
+	}
+	return count;
 }

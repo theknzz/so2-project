@@ -147,11 +147,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MapInfo.c" />
+    <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MapInfo.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\bitmaps\bitmap1.bmp" />
+    <Image Include="..\bitmaps\grass.bmp" />
+    <Image Include="..\bitmaps\street.bmp" />
+    <Image Include="..\bitmaps\taxi.bmp" />
+    <Image Include="bitmap1.bmp" />
     <Image Include="MapInfo.ico" />
     <Image Include="small.ico" />
   </ItemGroup>
