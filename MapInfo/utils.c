@@ -45,37 +45,55 @@ DWORD WINAPI TalkToCentral(LPVOID ptr) {
 	return 0; 
 }
 
-BOOL CALLBACK PaintMap(HWND hWnd, MapInfo* info, HINSTANCE hInst) {
+BOOL CALLBACK PaintMap(HWND hWnd, MapInfo info, HINSTANCE hInst) {
 	PAINTSTRUCT ps;
+	HBITMAP StretBitMap, GrassBitMap, TaxiWaitingBitMap, PassengerBitMap;
+	HDC hdcStreet, hdcGrass, hdcTaxiWaiting, hdcPassenger;
 	HDC hdc = BeginPaint(hWnd, &ps);
 
-	HDC hdcBitMap = CreateCompatibleDC(hdc);
-	HBITMAP hBitMap;
+	hdcStreet = CreateCompatibleDC(hdc);
+	hdcGrass = CreateCompatibleDC(hdc);
+	hdcTaxiWaiting = CreateCompatibleDC(hdc);
+	hdcPassenger = CreateCompatibleDC(hdc);
 
-	if (info->map[0][0].cellType != Building && info->map[0][0].cellType != Street)
-	{
-		DeleteDC(hdcBitMap);
-		EndPaint(hWnd, &ps);
-		return;
-	}
+	StretBitMap = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_STREET));
+	SelectObject(hdcStreet, StretBitMap);
 
-	int x =0, y=0;
+	GrassBitMap = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GRASS));
+	SelectObject(hdcGrass, GrassBitMap);
+
+	TaxiWaitingBitMap = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_TAXI));
+	SelectObject(hdcTaxiWaiting, TaxiWaitingBitMap);
+
+	PassengerBitMap = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_PASSENGER));
+	SelectObject(hdcPassenger, PassengerBitMap);
+
+	int x = 0, y = 0;
 	for (unsigned int i = 0; i < MIN_LIN; i++) {
 		for (unsigned int j = 0; j < MIN_COL; j++) {
-			if (info->map[i][j].cellType == Building) {
-				hBitMap = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GRASS));
-				SelectObject(hdcBitMap, hBitMap);
+			if (info.map[i][j].cellType == Building) {
+				BitBlt(hdc, x, y, 20, 20, hdcGrass, 0, 0, SRCCOPY);
 			}
-			else {
-				hBitMap = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_STREET));
-				SelectObject(hdcBitMap, hBitMap);
+			else if (info.map[i][j].cellType == Street) {
+				BitBlt(hdc, x, y, 20, 20, hdcStreet, 0, 0, SRCCOPY);
 			}
-			BitBlt(hdc, x, y, 20, 20, hdcBitMap, 0, 0, SRCCOPY);
+			for (unsigned int a = 0; a < info.nrTaxis; a++)
+				if (info.taxis[a].location.x == j && info.taxis[a].location.y == i) {
+					BitBlt(hdc, x, y, 20, 20, hdcTaxiWaiting, 0, 0, SRCCOPY);
+				}
+			for (unsigned int b = 0; b < info.nrPassengers; b++) {
+				if (info.passengers[b].location.x == j && info.passengers[b].location.y == i)
+					BitBlt(hdc, x, y, 20, 20, hdcPassenger, 0, 0, SRCCOPY);
+			}
 			x += 20;
 		}
 		x = 0;
 		y += 20;
 	}
-	DeleteDC(hdcBitMap);
+
+	DeleteDC(hdcGrass);
+	DeleteDC(hdcTaxiWaiting);
+	DeleteDC(hdcStreet);
+
 	EndPaint(hWnd, &ps);
 }

@@ -1,3 +1,5 @@
-﻿  MapInfo.c
-E:\projects\so2-project\MapInfo\MapInfo.c(186,32): warning C4018: '<': signed/unsigned mismatch
+﻿  utils.c
+E:\projects\so2-project\MapInfo\utils.c(80,31): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\MapInfo\utils.c(84,31): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\MapInfo\utils.c(99): warning C4716: 'PaintMap': must return a value
   MapInfo.vcxproj -> E:\projects\so2-project\x64\Debug\MapInfo.exe

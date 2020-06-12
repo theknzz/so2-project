@@ -55,6 +55,9 @@
     <Image Include="..\bitmaps\taxi.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\bitmaps\passenger.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MapInfo.c">

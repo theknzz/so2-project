@@ -21,10 +21,10 @@ E:\projects\so2-project\tp-so2\comm.c(529,23): warning C4101: 'status': unrefere
 E:\projects\so2-project\tp-so2\comm.c(527,16): warning C4101: 'y': unreferenced local variable
 E:\projects\so2-project\tp-so2\comm.c(527,13): warning C4101: 'x': unreferenced local variable
 E:\projects\so2-project\tp-so2\comm.c(668,30): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\comm.c(678,29): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\comm.c(677,29): warning C4018: '<': signed/unsigned mismatch
 E:\projects\so2-project\tp-so2\comm.c(57): warning C4716: 'TalkToTaxi': must return a value
 E:\projects\so2-project\tp-so2\comm.c(304): warning C4172: returning address of local variable or temporary: command
 E:\projects\so2-project\tp-so2\comm.c(372): warning C4715: 'WaitTaxiConnect': not all control paths return a value
 E:\projects\so2-project\tp-so2\comm.c(497): warning C4715: 'FindFeatureAndRun': not all control paths return a value
-E:\projects\so2-project\tp-so2\comm.c(674): warning C4716: 'RequestWaitTimeFeature': must return a value
+E:\projects\so2-project\tp-so2\comm.c(673): warning C4716: 'RequestWaitTimeFeature': must return a value
   tp-so2.vcxproj -> E:\projects\so2-project\x64\Debug\CenTaxi.exe

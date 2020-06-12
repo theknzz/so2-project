@@ -572,9 +572,12 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 	while (!cdata->isTaxiKicked) {
 		PrintPersonalInformation(cdata);
 		_tprintf(_T("Command: "));
+		_tprintf(_T("waiting for taxi to insert command\n"));
 		_tscanf(_T(" %99[^\n]"), str);
+		_tprintf(_T("taxi inserted command\n"));
 		if (cdata->isTaxiKicked) break;
 		if (FindFeatureAndRun(str, cdata) == -1) break;
 	}
+	_tprintf(_T("bye text interface\n"));
 	return 0;
 }

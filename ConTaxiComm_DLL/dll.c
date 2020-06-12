@@ -258,7 +258,7 @@ DWORD WINAPI ListenToCentral(LPVOID* ptr) {
 	BOOL ret;
 	while (!cd->isTaxiKicked) {
 		ret = ReadFile(cd->hNamedPipeComm, &message, sizeof(PassMessage), &nr, NULL);
-		
+		_tprintf(_T("central talked to me\n"));
 		if (message.resp == OK) {
 			_tprintf(_T("%s was assigned to you, please catch at {%.2d;%2.d} then go to {%.2d;%.2d}\n"), message.content.passenger.nome,
 				message.content.passenger.location.x, message.content.passenger.location.y, message.content.passenger.destination.x, message.content.passenger.destination.y);
@@ -271,5 +271,6 @@ DWORD WINAPI ListenToCentral(LPVOID* ptr) {
 		else
 			_tprintf(_T("%s was assigned to other taxi.\n"));
 	}
+	_tprintf(_T("im out\n"));
 	return 0;
 }

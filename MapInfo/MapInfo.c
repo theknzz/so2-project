@@ -147,10 +147,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
 MapInfo info;
 
 LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lParam) {
+	
 	HANDLE commThread;
 	PAINTSTRUCT ps;
-	HDC hdc, hdcBitMap;
-	HBITMAP hBitMap;
+	HDC hdc, hdcStreet, hdcGrass, hdcTaxiWaiting;
+	HBITMAP StretBitMap, GrassBitMap, TaxiWaitingBitMap;
+	info.window = hWnd;
 
 	switch (messg) {
 	case WM_CREATE:
@@ -159,43 +161,7 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 		}
 		break;
 	case WM_PAINT:
-		/*PaintMap(hWnd, &info, ghInst);*/
-		hdc = BeginPaint(hWnd, &ps);
-
-		hdcBitMap = CreateCompatibleDC(hdc);
-
-		int x = 0, y = 0;
-		for (unsigned int i = 0; i < MIN_LIN; i++) {
-			for (unsigned int j = 0; j < MIN_COL; j++) {
-				if (info.map[i][j].cellType == Building) {
-					hBitMap = LoadBitmap(ghInst, MAKEINTRESOURCE(IDB_GRASS));
-					SelectObject(hdcBitMap, hBitMap);
-				}
-				else if (info.map[i][j].cellType == Street) {
-					hBitMap = LoadBitmap(ghInst, MAKEINTRESOURCE(IDB_STREET));
-					SelectObject(hdcBitMap, hBitMap);
-				}
-				else {
-					DeleteDC(hdcBitMap);
-					EndPaint(hWnd, &ps);
-					return FALSE;
-				}
-
-				BitBlt(hdc, x, y, 20, 20, hdcBitMap, 0, 0, SRCCOPY);
-
-				for (unsigned int a = 0; a < info.nrTaxis; a++)
-					if (info.taxis[a].location.x == j && info.taxis[a].location.y == i) {
-						hBitMap = LoadBitmap(ghInst, MAKEINTRESOURCE(IDB_TAXI));
-						SelectObject(hdcBitMap, hBitMap);
-						BitBlt(hdc, x, y, 20, 20, hdcBitMap, 0, 0, SRCCOPY);
-					}
-				x += 20;
-			}
-			x = 0;
-			y += 20;
-		}
-		DeleteDC(hdcBitMap);
-		EndPaint(hWnd, &ps);
+		PaintMap(hWnd, info, ghInst);
 		break;
 	case WM_DESTROY: // Destruir a janela e terminar o programa
 	// "PostQuitMessage(Exit Status)"

@@ -15,4 +15,4 @@
 #include "structs.h"
 
 DWORD WINAPI TalkToCentral(LPVOID ptr);
-BOOL CALLBACK PaintMap(HWND hWnd, MapInfo* info, HINSTANCE hInst);
+BOOL CALLBACK PaintMap(HWND hWnd, MapInfo info, HINSTANCE hInst);

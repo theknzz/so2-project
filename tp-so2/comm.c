@@ -259,7 +259,7 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 				continue;
 			}
 			// inserir taxi na sua posição atual 
-			Cell* cell = cd->map + (shared.taxi.location.x + shared.taxi.location.y * MIN_COL);
+			Cell* cell = (Cell*)(cd->map + (shared.taxi.location.x + (shared.taxi.location.y * MIN_COL)));
 			enum responde_id res;
 
 			if (cell->display == B_DISPLAY) {
@@ -670,7 +670,6 @@ DWORD WINAPI RequestWaitTimeFeature(LPVOID ptr) {
 		*cd->passengers[passenger_index].requestsCounter = 0;
 		UpdateView(cd);
 	}
-	_tprintf(_T("i am done, bye.\n"));
 }
 
 void BroadcastViaNamedPipeToTaxi(Taxi* taxis, int size, PassMessage message) {

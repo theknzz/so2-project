@@ -2,7 +2,6 @@
 
 // Wait for all the threads to stop
 void WaitAllThreads(CDThread* cd, HANDLE* threads, int nr) {
-	cd->isSystemClosing = TRUE;
 	for (int i = 0; i < nr; i++)
 		WaitForSingleObject(threads[i], INFINITE);
 	nr = 0;
@@ -511,7 +510,7 @@ int FindTaxiWithNamedPipeHandle(Taxi* taxis, int size, HANDLE handle) {
 int NumberOfActivePassengers(Passenger* passengers, int size) {
 	int count = 0;
 	for (unsigned int i = 0; i < size; i++) {
-		if (passengers[i].location.x > 0)
+		if (passengers[i].location.x >= 0)
 			count++;
 	}
 	return count;
