@@ -27,13 +27,13 @@ void ClearScreen() {
 }
 
 void PrintMap(Cell* map) {
-	for (int i = 0; i < MIN_LIN; i++) {
+	/*for (int i = 0; i < MIN_LIN; i++) {
 		for (int j = 0; j < MIN_COL; j++) {
 			Cell cell = *(map + (i * MIN_COL) + j);
 			_tprintf(_T("%c"), cell.display);
 		}
 		_tprintf(_T("\n"));
-	}
+	}*/
 	_tprintf(_T("\n"));
 }
 
@@ -302,7 +302,7 @@ int WaitAndPickWinner(CDThread* cd, Passenger passenger) {
 }
 
 BOOL SendTransportRequestResponse(HANDLE* requests, Passenger client, int size, int winner) {
-	PassMessage message;
+	PassMessage message, aux;
 	DWORD nr;
 	if (size == 0) return FALSE;
 	CopyMemory(&message.content.passenger, &client, sizeof(Passenger));
@@ -310,10 +310,14 @@ BOOL SendTransportRequestResponse(HANDLE* requests, Passenger client, int size, 
 		if (i == winner) {
 			message.resp = OK;
 			WriteFile(requests[i], &message, sizeof(PassMessage), &nr, NULL);
+			_tprintf(_T("Sent message to winner.\n"));
+			ReadFile(requests[i], &aux, sizeof(PassMessage), &nr, NULL);
 		}
 		else {
 			message.resp = ERRO;
 			WriteFile(requests[i], &message, sizeof(PassMessage), &nr, NULL);
+			_tprintf(_T("Sent message to taxi.\n"));
+			ReadFile(requests[i], &aux, sizeof(PassMessage), &nr, NULL);
 		}
 	}
 	return TRUE;

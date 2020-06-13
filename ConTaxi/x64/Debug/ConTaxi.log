@@ -14,6 +14,8 @@ E:\projects\so2-project\ConTaxi\taxi_utils.c(461,10): warning C4033: 'FindFeatur
 E:\projects\so2-project\ConTaxi\taxi_utils.c(479,10): warning C4033: 'FindFeatureAndRun' must return a value
 E:\projects\so2-project\ConTaxi\taxi_utils.c(513,38): warning C4013: 'NotifyCentralTaxiLeaving' undefined; assuming extern returning int
 E:\projects\so2-project\ConTaxi\taxi_utils.c(544,42): warning C4020: 'ReleaseMutex': too many actual parameters
+E:\projects\so2-project\ConTaxi\taxi_utils.c(606,13): warning C4477: 'wprintf' : format string '%s' requires an argument of type 'unsigned short *', but variadic argument 1 has type 'Passenger'
+E:\projects\so2-project\ConTaxi\taxi_utils.c(589,7): warning C4101: 'ret': unreferenced local variable
 E:\projects\so2-project\ConTaxi\taxi_utils.c(221): warning C4715: 'getOppositeDirection': not all control paths return a value
 E:\projects\so2-project\ConTaxi\taxi_utils.c(204): warning C4172: returning address of local variable or temporary: command
 E:\projects\so2-project\ConTaxi\taxi_utils.c(567): warning C4716: 'ReceiveBroadcastMessage': must return a value

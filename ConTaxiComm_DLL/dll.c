@@ -152,7 +152,7 @@ enum response_id RequestPassengerTransport(CC_CDRequest* request, CC_CDResponse*
 
 	RequestAction(request, response, r);
 
-	return GetPassengerFromCentral(response, request, passenger);
+	return OK/*GetPassengerFromCentral(response, request, passenger)*/;
 }
 
 enum response_id NotifyVelocityChange(CC_CDRequest* request, CC_CDResponse* response, Taxi taxi) {
@@ -236,41 +236,15 @@ enum response_id DLL_EXPORT EstablishNamedPipeComunication(CC_CDRequest* request
 		}
 		Sleep(2000);
 		//DWORD dwMode = PIPE_READMODE_MESSAGE;
-		if ((cd->hNamedPipeComm = CreateFile(NP_TAXI_NAME, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL))==NULL) {
+		if ((cd->hNamedPipeComm = CreateFile(NP_TAXI_NAME, /*GENERIC_READ*/PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL))==NULL) {
 			_tprintf(TEXT("[ERRO] Ligar ao pipe '%s'! (CreateFile)\n"), NP_PASS_REGISTER);
 			res = ERRO;
 			return res;
 		}
-		if (CreateThread(NULL, 0, ListenToCentral, cd, 0, NULL) == NULL)
-			_tprintf(_T("well rip\n"));
 		//else if (!SetNamedPipeHandleState(cd->hNamedPipeComm, &dwMode, NULL, NULL)) {
 		//	_tprintf(_T("SetNamedPipeHandleState failed! (%d)\n"), GetLastError());
 		//	res = ERRO;
 		//}
 	}
 	return res;
-}
-
-DWORD WINAPI ListenToCentral(LPVOID* ptr) {
-	CD_TAXI_Thread* cd = (CD_TAXI_Thread*)ptr;
-	PassMessage message;
-	DWORD nr;
-	BOOL ret;
-	while (!cd->isTaxiKicked) {
-		ret = ReadFile(cd->hNamedPipeComm, &message, sizeof(PassMessage), &nr, NULL);
-		_tprintf(_T("central talked to me\n"));
-		if (message.resp == OK) {
-			_tprintf(_T("%s was assigned to you, please catch at {%.2d;%2.d} then go to {%.2d;%.2d}\n"), message.content.passenger.nome,
-				message.content.passenger.location.x, message.content.passenger.location.y, message.content.passenger.destination.x, message.content.passenger.destination.y);
-			CopyMemory(&cd->taxi->client, &message.content.passenger, sizeof(Passenger));
-		}
-		else if (message.resp == CENTRAL_GOING_OFFLINE) {
-			cd->isTaxiKicked = message.isSystemClosing;
-			_tprintf(_T("CenTaxi is going offline.\n"));
-		}
-		else
-			_tprintf(_T("%s was assigned to other taxi.\n"));
-	}
-	_tprintf(_T("im out\n"));
-	return 0;
 }

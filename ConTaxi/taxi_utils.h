@@ -33,3 +33,4 @@ DWORD WINAPI TaxiAutopilot(LPVOID ptr);
 int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata);
 DWORD WINAPI ReceiveBroadcastMessage(LPVOID ptr);
 DWORD WINAPI TextInterface(LPVOID ptr);
+DWORD WINAPI ListenToCentral(LPVOID* ptr);

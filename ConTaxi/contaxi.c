@@ -344,9 +344,13 @@ int _tmain(int argc, TCHAR* argv[]) {
 	else {
 		_tprintf(_T("Established connection to the central via named pipe!\n"));
 	}
-	PassMessage message;
-	message.resp = OK;
-	WriteFile(cd.hNamedPipeComm, &message, sizeof(PassMessage), NULL, NULL);
+
+	if ((threads[threadCounter++] = CreateThread(NULL, 0, ListenToCentral, &cd, 0, NULL)) == NULL) {
+		_tprintf(_T("Error launching comm thread (%d)\n"), GetLastError());
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
 
 	if ((threads[threadCounter++] = CreateThread(NULL, 0, ReceiveBroadcastMessage, &cd, 0, NULL)) == NULL) {
 		_tprintf(_T("Error launching comm thread (%d)\n"), GetLastError());

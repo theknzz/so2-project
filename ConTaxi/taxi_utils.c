@@ -581,3 +581,32 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 	_tprintf(_T("bye text interface\n"));
 	return 0;
 }
+
+DWORD WINAPI ListenToCentral(LPVOID* ptr) {
+	CD_TAXI_Thread* cd = (CD_TAXI_Thread*)ptr;
+	PassMessage message;
+	DWORD nr;
+	BOOL ret;
+	while (!cd->isTaxiKicked) {
+		if (!ReadFile(cd->hNamedPipeComm, &message, sizeof(PassMessage), &nr, NULL)) {
+			_tprintf(_T("erro %d\n"), GetLastError());
+			WriteFile(cd->hNamedPipeComm, &message, sizeof(PassMessage), &nr, NULL);
+			continue;
+		}
+		if (message.resp == OK) {
+			_tprintf(_T("%s was assigned to you, please catch at {%.2d;%2.d} then go to {%.2d;%.2d}\n"), message.content.passenger.nome,
+				message.content.passenger.location.x, message.content.passenger.location.y, message.content.passenger.destination.x, message.content.passenger.destination.y);
+			CopyMemory(&cd->taxi->client, &message.content.passenger, sizeof(Passenger));
+		}
+		else if (message.resp == CENTRAL_GOING_OFFLINE) {
+			cd->isTaxiKicked = message.isSystemClosing;
+			_tprintf(_T("CenTaxi is going offline.\n"));
+		}
+		else
+			_tprintf(_T("%s was assigned to other taxi.\n"), message.content.passenger);
+		WriteFile(cd->hNamedPipeComm, &message, sizeof(PassMessage), &nr, NULL);
+	}
+	_tprintf(_T("im out\n"));
+	return 0;
+}
+

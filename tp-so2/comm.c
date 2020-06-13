@@ -367,7 +367,12 @@ DWORD WINAPI WaitTaxiConnect(LPVOID ptr) {
 	}
 	box->cd->taxis[box->index].hNamedPipe = box->cd->hNamedPipe;
 	PassMessage message;
-	WriteFile(box->cd->hNamedPipe, &message, sizeof(PassMessage), NULL, NULL);
+	DWORD nr;
+	WriteFile(box->cd->hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
+	_tprintf(_T("enviei mensagem de teste\n"));
+	ReadFile(box->cd->hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
+	_tprintf(_T("recebi mensagem de teste\n"));
+
 	free(box);
 }
 
@@ -623,8 +628,7 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 		}
 		box->cd = cd;
 		CopyMemory(box->target, content.taxi.licensePlate, 9 * sizeof(TCHAR));
-		cd->hNamedPipe = CreateNamedPipe(NP_TAXI_NAME, PIPE_ACCESS_OUTBOUND | PIPE_ACCESS_DUPLEX, PIPE_WAIT |
-			PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, cd->nrMaxTaxis, sizeof(PassMessage), sizeof(PassMessage), 1000, NULL);
+		cd->hNamedPipe = CreateNamedPipe(NP_TAXI_NAME, PIPE_ACCESS_DUPLEX, PIPE_WAIT | PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, cd->nrMaxTaxis, sizeof(PassMessage), sizeof(PassMessage), 1000, NULL);
 		if (cd->hNamedPipe == INVALID_HANDLE_VALUE) {
 			_tprintf(TEXT("[ERRO] Criar Named Pipe! (CreateNamedPipe) %d"), GetLastError());
 			response.action = ERRO;
