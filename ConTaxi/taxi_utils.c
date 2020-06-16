@@ -287,7 +287,7 @@ void moveTaxi(CD_TAXI_Thread* cdata) {
 			else
 				PrintError(resp, cdata);
 		}
-		else if (cdata->taxi->client.state == Waiting && !(cdata->taxi->client.location.x < 0)) {
+		else if (cdata->taxi->client.state == Taken && !(cdata->taxi->client.location.x < 0)) {
 			if ((resp = MoveMeToOptimalPosition(&cdata->comm.request, &cdata->comm.response, cdata->taxi, cdata->taxi->client.location, cdata->charMap)) == OK)
 				PrintPersonalInformation(cdata);
 			else
@@ -359,10 +359,6 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 		}
 		if ((res = RequestPassengerTransport(&cdata->comm.request, &cdata->comm.response, &cdata->taxi->client, cmd[1], cdata->taxi->licensePlate)) != OK)
 			PrintError(res, cdata);
-		else
-			/*_tprintf(_T("Got '%s' as a passenger in {%.2d,%.2d} with the destination {%.2d,%.2d}.\n"), cdata->taxi->client.nome,
-				cdata->taxi->client.location.x, cdata->taxi->client.location.y, cdata->taxi->client.destination.x, cdata->taxi->client.destination.y);*/
-			PrintPersonalInformation(cdata);
 	}
 	else if (_tcscmp(cmd[0], TXI_SPEED_UP) == 0) {
 		_tprintf(_T("speed\n"));
@@ -517,6 +513,7 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			// ## TODO tratar o close properly
 			ReleaseSemaphore(cdata->taxiGate, 1, NULL);
 			cdata->isTaxiKicked = TRUE;
+			cdata->taxi->autopilot = 0;
 			return -1;
 		}
 	}
@@ -572,9 +569,7 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 	while (!cdata->isTaxiKicked) {
 		PrintPersonalInformation(cdata);
 		_tprintf(_T("Command: "));
-		_tprintf(_T("waiting for taxi to insert command\n"));
 		_tscanf(_T(" %99[^\n]"), str);
-		_tprintf(_T("taxi inserted command\n"));
 		if (cdata->isTaxiKicked) break;
 		if (FindFeatureAndRun(str, cdata) == -1) break;
 	}

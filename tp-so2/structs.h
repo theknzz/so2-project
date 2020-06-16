@@ -239,5 +239,6 @@ struct MAPINFO_STRUCT {
 	int nrPassengers;
 	Cell map[MIN_LIN][MIN_COL];
 	HWND window;
+	HBITMAP StretBitMap, GrassBitMap, TaxiWaitingBitMap, PassengerWaitingWithoutTaxiBitMap, TaxiBusyBitMap, PassengerWaitingWithTaxiBitMap;
 };
 

@@ -114,7 +114,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\tp-so2\;</AdditionalIncludeDirectories>
     </ClCompile>
@@ -155,9 +155,11 @@
   <ItemGroup>
     <Image Include="..\bitmaps\bitmap1.bmp" />
     <Image Include="..\bitmaps\grass.bmp" />
+    <Image Include="..\bitmaps\passenge.bmp" />
     <Image Include="..\bitmaps\passenger.bmp" />
     <Image Include="..\bitmaps\street.bmp" />
     <Image Include="..\bitmaps\taxi.bmp" />
+    <Image Include="..\bitmaps\taxi1.bmp" />
     <Image Include="bitmap1.bmp" />
     <Image Include="MapInfo.ico" />
     <Image Include="small.ico" />

@@ -239,7 +239,7 @@ char** ConvertMapIntoCharMap(Cell* map) {
 void InsertPassengerIntoBuffer(ProdCons* box, Passenger passenger) {
 	WaitForSingleObject(box->canCreate, INFINITE);
 	WaitForSingleObject(box->mutex, INFINITE);
-
+	passenger.state = Waiting;
 	CopyMemory(&box->buffer[box->posW], &passenger, sizeof(Passenger));
 	box->posW = (box->posW+1) % CIRCULAR_BUFFER_SIZE;
 
@@ -305,6 +305,7 @@ BOOL SendTransportRequestResponse(HANDLE* requests, Passenger client, int size, 
 	PassMessage message, aux;
 	DWORD nr;
 	if (size == 0) return FALSE;
+	client.state = Taken;
 	CopyMemory(&message.content.passenger, &client, sizeof(Passenger));
 	for (unsigned int i = 0; i < size; i++) {
 		if (i == winner) {
@@ -351,7 +352,7 @@ enum response_action UpdateTaxiPosition(CDThread* cd, Content content) {
 	(cd->taxis + index)->autopilot = content.taxi.autopilot;
 	(cd->taxis + index)->velocity = content.taxi.velocity;
 	// update the passengers position
-	if (content.taxi.client.location.x >= 0) {
+	if (content.taxi.client.location.x >= 0 && content.taxi.client.state == OnDrive) {
 		cd->taxis[index].client.location.x = content.taxi.location.x;
 		cd->taxis[index].client.location.y = content.taxi.location.y;
 		// update the passenger position inside the map cell
@@ -432,6 +433,9 @@ enum response_id DeliverPassenger(CDThread* cd, Content content) {
 
 	// remove passenger from the list of passengers
 	ZeroMemory(&cd->passengers[index], sizeof(Passenger));
+	cd->passengers[index].location.x = -1;
+	cd->passengers[index].location.y = -1;
+
 
 	// remove passenger from the map cell and taxi ownership
 	index = FindTaxiIndex(cd->map[x + y * MIN_LIN].taxis, cd->nrMaxTaxis, content.taxi);

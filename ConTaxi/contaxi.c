@@ -14,6 +14,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	_setmode(_fileno(stdout), _O_WTEXT);
 #endif
 
+	Sleep(1000);
 	HANDLE taxiGate;
 	if ((taxiGate = OpenSemaphore(SYNCHRONIZE | SEMAPHORE_MODIFY_STATE, FALSE, TAXI_GATEWAY)) == NULL) {
 		_tprintf(_T("Error %d opening the gateway semaphore!\n"));

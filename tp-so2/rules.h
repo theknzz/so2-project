@@ -30,6 +30,15 @@
 #define B_DISPLAY '+'
 #define T_DISPLAY 't'
 
+// registry keys
+#define KEY_NAME _T("MapInfo\\Theme")
+#define FREE_TAXI _T("FREE_TAXI_Bitmap")
+#define BUSY_TAXI _T("BUSY_TAXI_Bitmap")
+#define WAITING_PASSENGER_WITHOUT_TAXI _T("WAITING_PASSENGER_WITHOUT_TAXI_Bitmap")
+#define WAITING_PASSENGER_WITH_TAXI _T("WAITING_PASSENGER_WITH_TAXI_Bitmap")
+
+#define BITMAP_SIZE 20
+
 // Type of Map Cells
 enum type { Street, Building };
 
