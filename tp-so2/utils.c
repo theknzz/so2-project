@@ -302,7 +302,7 @@ int WaitAndPickWinner(CDThread* cd, Passenger passenger) {
 	return PickRandomTransportIndex(*aux.requestsCounter);
 }
 
-BOOL SendTransportRequestResponse(HANDLE* requests, Passenger client, int size, int winner) {
+BOOL SendTransportRequestResponse(HANDLE event, HANDLE* requests, Passenger client, int size, int winner) {
 	PassMessage message, aux;
 	DWORD nr;
 	if (size == 0) return FALSE;
@@ -312,15 +312,12 @@ BOOL SendTransportRequestResponse(HANDLE* requests, Passenger client, int size, 
 		if (i == winner) {
 			message.resp = OK;
 			WriteFile(requests[i], &message, sizeof(PassMessage), &nr, NULL);
-			_tprintf(_T("Sent message to winner.\n"));
-			ReadFile(requests[i], &aux, sizeof(PassMessage), &nr, NULL);
 		}
 		else {
 			message.resp = ERRO;
 			WriteFile(requests[i], &message, sizeof(PassMessage), &nr, NULL);
-			_tprintf(_T("Sent message to taxi.\n"));
-			ReadFile(requests[i], &aux, sizeof(PassMessage), &nr, NULL);
 		}
+		SetEvent(event);
 	}
 	return TRUE;
 }

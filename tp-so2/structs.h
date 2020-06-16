@@ -151,7 +151,7 @@ struct _CC_COMMUNICATION_CONTAINER {
 };
 
 struct _CONTROL_DATA_TAXI_THREAD{
-	HANDLE hNamedPipeComm;
+	HANDLE hNamedPipeComm, eventNewCMessage;
 	CC_Comm comm;						// Communication container
 	Taxi* taxi;							// Information about the taxi himself
 	HANDLE taxiGate;					// Flag that controls the access to the system
@@ -177,6 +177,7 @@ struct ThreadControlData {
 	ProdCons* prod_cons;
 	HANDLE hNamedPipe;
 	HANDLE hPassPipeRegister, hPassPipeTalk;
+	HANDLE eventNewPMessage, eventNewCMessage;
 	BOOL* areTaxisRequestsPause;		// Flag to control if the system is paused or not 
 	int nrMaxTaxis;						// Number of taxis in the system
 	int nrMaxPassengers;				// Number of passengers in the system

@@ -241,10 +241,6 @@ enum response_id DLL_EXPORT EstablishNamedPipeComunication(CC_CDRequest* request
 			res = ERRO;
 			return res;
 		}
-		//else if (!SetNamedPipeHandleState(cd->hNamedPipeComm, &dwMode, NULL, NULL)) {
-		//	_tprintf(_T("SetNamedPipeHandleState failed! (%d)\n"), GetLastError());
-		//	res = ERRO;
-		//}
 	}
 	return res;
 }

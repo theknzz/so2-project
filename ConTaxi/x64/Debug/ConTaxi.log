@@ -1,15 +1,4 @@
-﻿  contaxi.c
-E:\projects\so2-project\ConTaxi\contaxi.c(10,15): warning C4244: 'function': conversion from 'time_t' to 'unsigned int', possible loss of data
-E:\projects\so2-project\ConTaxi\contaxi.c(19,12): warning C4473: 'wprintf' : not enough arguments passed for format string
-E:\projects\so2-project\ConTaxi\contaxi.c(19,12): message : placeholders and their parameters expect 1 variadic arguments, but 0 were provided
-E:\projects\so2-project\ConTaxi\contaxi.c(19,12): message : the missing variadic argument 1 is required by format string '%d'
-E:\projects\so2-project\ConTaxi\contaxi.c(183,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
-E:\projects\so2-project\ConTaxi\contaxi.c(183,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
-E:\projects\so2-project\ConTaxi\contaxi.c(189,43): warning C4474: 'wscanf_s' : too many arguments passed for format string
-E:\projects\so2-project\ConTaxi\contaxi.c(189,43): message : placeholders and their parameters expect 1 variadic arguments, but 2 were provided
-E:\projects\so2-project\ConTaxi\contaxi.c(329,25): warning C4047: 'function': 'char **' differs in levels of indirection from 'char [50][50]'
-E:\projects\so2-project\ConTaxi\contaxi.c(329,25): warning C4024: 'GetMap': different types for formal and actual parameter 1
-  taxi_utils.c
+﻿  taxi_utils.c
 E:\projects\so2-project\ConTaxi\taxi_utils.c(146,24): warning C4013: 'UpdateMyLocation' undefined; assuming extern returning int
 E:\projects\so2-project\ConTaxi\taxi_utils.c(204,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [4][100]'
 E:\projects\so2-project\ConTaxi\taxi_utils.c(270,36): warning C4013: 'NotifyPassengerCatch' undefined; assuming extern returning int
@@ -27,9 +16,8 @@ E:\projects\so2-project\ConTaxi\taxi_utils.c(509,38): warning C4013: 'NotifyCent
 E:\projects\so2-project\ConTaxi\taxi_utils.c(541,42): warning C4020: 'ReleaseMutex': too many actual parameters
 E:\projects\so2-project\ConTaxi\taxi_utils.c(600,13): warning C4477: 'wprintf' : format string '%s' requires an argument of type 'unsigned short *', but variadic argument 1 has type 'Passenger'
 E:\projects\so2-project\ConTaxi\taxi_utils.c(583,7): warning C4101: 'ret': unreferenced local variable
-  Generating Code...
-E:\projects\so2-project\ConTaxi\taxi_utils.c(221): warning C4715: 'getOppositeDirection': not all control paths return a value
 E:\projects\so2-project\ConTaxi\taxi_utils.c(204): warning C4172: returning address of local variable or temporary: command
+E:\projects\so2-project\ConTaxi\taxi_utils.c(221): warning C4715: 'getOppositeDirection': not all control paths return a value
 E:\projects\so2-project\ConTaxi\taxi_utils.c(564): warning C4716: 'ReceiveBroadcastMessage': must return a value
 E:\projects\so2-project\ConTaxi\taxi_utils.c(524): warning C4715: 'FindFeatureAndRun': not all control paths return a value
   ConTaxi.vcxproj -> E:\projects\so2-project\x64\Debug\ConTaxi.exe

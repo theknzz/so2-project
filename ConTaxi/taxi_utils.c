@@ -582,9 +582,9 @@ DWORD WINAPI ListenToCentral(LPVOID* ptr) {
 	DWORD nr;
 	BOOL ret;
 	while (!cd->isTaxiKicked) {
+		if (WaitForSingleObject(cd->eventNewCMessage, 2000) == WAIT_TIMEOUT) continue;
 		if (!ReadFile(cd->hNamedPipeComm, &message, sizeof(PassMessage), &nr, NULL)) {
 			_tprintf(_T("erro %d\n"), GetLastError());
-			WriteFile(cd->hNamedPipeComm, &message, sizeof(PassMessage), &nr, NULL);
 			continue;
 		}
 		if (message.resp == OK) {
@@ -598,7 +598,6 @@ DWORD WINAPI ListenToCentral(LPVOID* ptr) {
 		}
 		else
 			_tprintf(_T("%s was assigned to other taxi.\n"), message.content.passenger);
-		WriteFile(cd->hNamedPipeComm, &message, sizeof(PassMessage), &nr, NULL);
 	}
 	_tprintf(_T("im out\n"));
 	return 0;

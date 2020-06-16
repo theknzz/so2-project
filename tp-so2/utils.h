@@ -38,7 +38,7 @@ int PickRandomTransportIndex(int size);
 BOOL SendMessageToTaxiViaNamePipe(PassMessage message, Taxi* taxi);
 int timer(int waitTime);
 int WaitAndPickWinner(CDThread* cd, Passenger passenger);
-BOOL SendTransportRequestResponse(HANDLE* requests, Passenger client, int size, int winner);
+BOOL SendTransportRequestResponse(HANDLE event, HANDLE* requests, Passenger client, int size, int winner);
 void AddPassengerToCentral(CDThread* cdata, TCHAR* nome, int locX, int locY, int desX, int desY);
 enum response_action UpdateTaxiPosition(CDThread* cd, Content content);
 enum response_action CatchPassenger(CDThread* cd, Content content);

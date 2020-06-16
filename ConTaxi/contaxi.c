@@ -345,6 +345,16 @@ int _tmain(int argc, TCHAR* argv[]) {
 		_tprintf(_T("Established connection to the central via named pipe!\n"));
 	}
 
+	cd.eventNewCMessage = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_NEW_CENTRAL_MSG);
+	if (cd.eventNewCMessage == NULL) {
+		_tprintf(_T("Error opening new message event (%d)\n"), GetLastError());
+		//WaitAllThreads(threads, threadCounter);
+		//UnmapAllViews(views, viewCounter);
+		//CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = cd.eventNewCMessage;
+
 	if ((threads[threadCounter++] = CreateThread(NULL, 0, ListenToCentral, &cd, 0, NULL)) == NULL) {
 		_tprintf(_T("Error launching comm thread (%d)\n"), GetLastError());
 		UnmapAllViews(views, viewCounter);

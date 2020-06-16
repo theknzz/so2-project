@@ -53,7 +53,6 @@ DWORD WINAPI TalkToTaxi(LPVOID ptr) {
 		PrintMap(cd->map);
 	}
 	free(ind);
-	_tprintf(_T("bye talk to taxi\n"));
 }
 
 void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* container, enum response_id resp) {
@@ -218,7 +217,7 @@ void RespondToTaxiLogin(CDThread* cdThread, TCHAR* licensePlate, HContainer* con
 	}
 	SetEvent(request->new_response);
 	cdThread->dllMethods->Log(_T("Central sent registration response to %s.\n"), licensePlate);
-	_tprintf(_T("[LOG] Sent response to the '%s' registration request.\n"), licensePlate);
+	//_tprintf(_T("[LOG] Sent response to the '%s' registration request.\n"), licensePlate);
 }
 
 
@@ -281,7 +280,6 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 			}
 		}
 	}
-	_tprintf(_T("Bye listen to login requests\n"));
 	return 0;
 }
 
@@ -312,7 +310,19 @@ DWORD WINAPI GetPassengerRegistration(LPVOID ptr) {
 	SHM_BROADCAST broadcast;
 	BOOL WrongCase = FALSE;
 
+	// operação bloqueante (fica à espera da ligação de um cliente)
+	if (!ConnectNamedPipe(cd->hPassPipeRegister, NULL)) {
+		return 0;
+	}
+
+	if (!ConnectNamedPipe(cd->hPassPipeTalk, NULL)) {
+		return 0;
+	}
+
 	while (!cd->isSystemClosing) {
+		if (WaitForSingleObject(cd->eventNewPMessage, 2000) == WAIT_TIMEOUT)
+			continue;
+
 		ret = ReadFile(cd->hPassPipeRegister, &message, sizeof(PassRegisterMessage), &nr, NULL);
 
 		if (message.resp == CENTRAL_GOING_OFFLINE) continue;
@@ -351,7 +361,6 @@ DWORD WINAPI GetPassengerRegistration(LPVOID ptr) {
 		ZeroMemory(&message, sizeof(PassRegisterMessage));
 		ZeroMemory(&broadcast, sizeof(SHM_BROADCAST));
 	}
-	_tprintf(_T("bye get registration\n"));
 	return 0;
 }
 
@@ -366,13 +375,6 @@ DWORD WINAPI WaitTaxiConnect(LPVOID ptr) {
 		return -1;
 	}
 	box->cd->taxis[box->index].hNamedPipe = box->cd->hNamedPipe;
-	PassMessage message;
-	DWORD nr;
-	WriteFile(box->cd->hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
-	_tprintf(_T("enviei mensagem de teste\n"));
-	ReadFile(box->cd->hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
-	_tprintf(_T("recebi mensagem de teste\n"));
-
 	free(box);
 }
 
@@ -434,8 +436,11 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 		message.isSystemClosing = TRUE;
 		message.resp = CENTRAL_GOING_OFFLINE;
 		BroadcastViaNamedPipeToTaxi(cdata->taxis, cdata->nrMaxTaxis, message);
-		DWORD nr;
+		SetEvent(cdata->eventNewCMessage);
 
+		CreateFile(NP_PASS_REGISTER, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		CreateFile(NP_PASS_TALK, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		
 		cdata->dllMethods->Log(_T("Central sent a broadcast message!.\n"));
 		cdata->dllMethods->Log(_T("Central is shutting down.\n"));
 		return -1;
@@ -511,6 +516,7 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 		_tscanf(_T(" %[^\n]"), command);
 		if (FindFeatureAndRun(command, cdata) == -1) break;
 	} while (!cdata->isSystemClosing);
+	_tprintf(_T("bye text interface\n"));
 	return 0;
 }
 
@@ -648,7 +654,7 @@ DWORD WINAPI RequestWaitTimeFeature(LPVOID ptr) {
 	int passenger_index = GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, content.passenger.nome);
 
 	// if passenger has zero transport requests the passenger must be notified
-	if (!SendTransportRequestResponse(cd->passengers[passenger_index].requests, content.passenger, *cd->passengers[passenger_index].requestsCounter, winner)) {
+	if (!SendTransportRequestResponse(cd->eventNewCMessage, cd->passengers[passenger_index].requests, content.passenger, *cd->passengers[passenger_index].requestsCounter, winner)) {
 		SendMessageToPassenger(NO_TRANSPORT_AVAILABLE, &content.passenger, NULL, cd);
 		RemovePassengerFromCentral(content.passenger.nome, cd->passengers, cd->nrMaxPassengers);
 	}

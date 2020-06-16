@@ -73,7 +73,7 @@ DWORD WINAPI RecebeNotificacao(LPVOID ptr) {
 
 int _tmain(int argc, TCHAR* argv[]) {
 
-    HANDLE hRegister, hTalk;
+    HANDLE hRegister, hTalk, eventNewPMessage;
     BOOL centralIsActive = TRUE;
     BOOL ret;
     Passenger me;
@@ -141,6 +141,13 @@ int _tmain(int argc, TCHAR* argv[]) {
         exit(-1);
     }
 
+    eventNewPMessage = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_NEW_PASSENGER_MSG);
+    if (eventNewPMessage == NULL) {
+        _tprintf(_T("Error opening event (%d)\n"), GetLastError());
+        Sleep(2000);
+        exit(-1);
+    }
+
     TCHAR command[100];
     TCHAR cmd[6][100];
     int nrArgs;
@@ -177,6 +184,7 @@ int _tmain(int argc, TCHAR* argv[]) {
             _tprintf(TEXT("[ERRO] Escrever no pipe! (WriteFile)\n"));
             exit(-1);
         }
+        SetEvent(eventNewPMessage);
 
         ret = ReadFile(hRegister, &resgMessage, sizeof(PassRegisterMessage), &nr, NULL);
         GetOutput(resgMessage.resp, NULL, NULL);

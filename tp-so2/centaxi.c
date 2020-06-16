@@ -446,6 +446,24 @@ int _tmain(int argc, TCHAR* argv[]) {
 
 	UpdateView(&cdThread);
 
+	if ((cdThread.eventNewPMessage = CreateEvent(NULL, FALSE, FALSE, EVENT_NEW_PASSENGER_MSG)) == NULL) {
+		WaitAllThreads(&cdThread, threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+	}
+	dllMethods.Register(EVENT_NEW_PASSENGER_MSG, EVENT);
+	handles[handleCounter++] = cdThread.eventNewPMessage;
+
+	if ((cdThread.eventNewCMessage = CreateEvent(NULL, FALSE, FALSE, EVENT_NEW_CENTRAL_MSG)) == NULL) {
+		WaitAllThreads(&cdThread, threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+	}
+	else
+		_tprintf(_T("new msg event created\n"));
+	dllMethods.Register(EVENT_NEW_PASSENGER_MSG, EVENT);
+	handles[handleCounter++] = cdThread.eventNewCMessage;
+
 	HANDLE listenThread = CreateThread(NULL, 0, ListenToLoginRequests, &cdThread, 0, NULL);
 	if (!listenThread) {
 		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
@@ -485,25 +503,6 @@ int _tmain(int argc, TCHAR* argv[]) {
 		CloseMyHandles(handles, handleCounter);
 	}
 	dllMethods.Register(MTX_ACCESS_CONTROL, MUTEX);
-
-	// operação bloqueante (fica à espera da ligação de um cliente)
-	if (!ConnectNamedPipe(cdThread.hPassPipeRegister, NULL)) {
-		_tprintf(TEXT("[ERRO] Ligação ao leitor 1! (ConnectNamedPipe %d).\n"), GetLastError());
-		Sleep(2000);
-		WaitAllThreads(&cdThread, threads, threadCounter);
-		UnmapAllViews(views, viewCounter);
-		CloseMyHandles(handles, handleCounter);
-		exit(-1);
-	}
-
-	if (!ConnectNamedPipe(cdThread.hPassPipeTalk, NULL)) {
-		_tprintf(TEXT("[ERRO] Ligação ao leitor 2! (ConnectNamedPipe %d).\n"), GetLastError());
-		Sleep(2000);
-		WaitAllThreads(&cdThread, threads, threadCounter);
-		UnmapAllViews(views, viewCounter);
-		CloseMyHandles(handles, handleCounter);
-		exit(-1);
-	}
 	
 	HANDLE cthread = CreateThread(NULL, 0, GetPassengerRegistration, &cdThread, 0, NULL);
 	if (!cthread) {

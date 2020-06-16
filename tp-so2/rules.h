@@ -130,6 +130,8 @@ enum taxi_direction {
 #define EVENT_NEW_PASSENGER _T("event_new_passenger")
 
 #define EVENT_NEW_INFO _T("event_new_info")
+#define EVENT_NEW_PASSENGER_MSG _T("event_new_passenger_msg")
+#define EVENT_NEW_CENTRAL_MSG _T("event_new_central_msg")
 
 #define SMP_CANREAD _T("smp_canread")
 #define SMP_CANWRITE _T("smp_canwrite")
