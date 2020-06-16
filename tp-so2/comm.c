@@ -505,23 +505,12 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 DWORD WINAPI TextInterface(LPVOID ptr) {
 	CDThread* cdata = (CDThread*)ptr;
 	TCHAR command[100];
-	_tprintf(_T("yoo text interface\n"));
 	do {
 		PrintMap(cdata->map);
 		_tprintf(_T("Command: "));
 		_tscanf(_T(" %[^\n]"), command);
 		if (FindFeatureAndRun(command, cdata) == -1) break;
 	} while (!cdata->isSystemClosing);
-	//HANDLE hRegister = CreateFile(NP_PASS_REGISTER, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	//PassRegisterMessage m;
-	//m.resp = CENTRAL_GOING_OFFLINE;
-	//if (hRegister == NULL) {
-	//	_tprintf(TEXT("[ERRO] Ligar ao pipe '%s'! (CreateFile)\n"), NP_PASS_REGISTER);
-	//	exit(-1);
-	//}
-	//DWORD nr;
-	//WriteFile(hRegister, &m, sizeof(PassRegisterMessage), &nr, NULL);
-	_tprintf(_T("bye text interface\n"));
 	return 0;
 }
 

@@ -39,7 +39,7 @@ void GetOutput(enum response_id resp, Passenger* passenger, Taxi* taxi) {
         _tprintf(_T("%s was caught by %s.\n"), passenger->nome, taxi->licensePlate);
         break;
     case NO_TRANSPORT_AVAILABLE:
-        _tprintf(_T("Central has no taxi available at the moment.\n"));
+        _tprintf(_T("Central has no taxi available for '%s' at the moment.\n"), passenger->nome);
         break;
     case COORDINATES_FROM_OTHER_CITY:
         _tprintf(_T("You can't choose other city's coordinates.\n"));

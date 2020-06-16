@@ -121,8 +121,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	for (unsigned int i = 0; i < nrMaxPassengers; i++) {
 		int nr = 0;
-		passengers->requestsCounter = &nr;
-		passengers->requests = (HANDLE*)malloc(nrMaxTaxis * sizeof(HANDLE));
+		passengers[i].requestsCounter = &nr;
+		passengers[i].requests = (HANDLE*)malloc(nrMaxTaxis * sizeof(HANDLE));
 		ZeroMemory(passengers[i].nome, sizeof(passengers[i].nome));
 		passengers[i].location.x = -1;
 		passengers[i].location.y = -1;
@@ -180,7 +180,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 	handles[handleCounter++] = prodCons.mutex;
 	dllMethods.Register(MTX_CENTRAL_PRODCONS, MUTEX);
 
-	prodCons.posR = 0; prodCons.posW = 0;
+	int posR = 0, posW = 0;
+	prodCons.posR = &posR; prodCons.posW = &posW;
 	cdThread.prod_cons = &prodCons;
 
 	CC_Broadcast broadcast;

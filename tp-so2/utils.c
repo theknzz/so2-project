@@ -27,14 +27,14 @@ void ClearScreen() {
 }
 
 void PrintMap(Cell* map) {
-	/*for (int i = 0; i < MIN_LIN; i++) {
-		for (int j = 0; j < MIN_COL; j++) {
-			Cell cell = *(map + (i * MIN_COL) + j);
-			_tprintf(_T("%c"), cell.display);
-		}
-		_tprintf(_T("\n"));
-	}*/
-	_tprintf(_T("\n"));
+	//for (int i = 0; i < MIN_LIN; i++) {
+	//	for (int j = 0; j < MIN_COL; j++) {
+	//		Cell cell = *(map + (i * MIN_COL) + j);
+	//		_tprintf(_T("%c"), cell.display);
+	//	}
+	//	_tprintf(_T("\n"));
+	//}
+	//_tprintf(_T("\n"));
 }
 
 
@@ -240,8 +240,8 @@ void InsertPassengerIntoBuffer(ProdCons* box, Passenger passenger) {
 	WaitForSingleObject(box->canCreate, INFINITE);
 	WaitForSingleObject(box->mutex, INFINITE);
 	passenger.state = Waiting;
-	CopyMemory(&box->buffer[box->posW], &passenger, sizeof(Passenger));
-	box->posW = (box->posW+1) % CIRCULAR_BUFFER_SIZE;
+	CopyMemory(&box->buffer[*box->posW], &passenger, sizeof(Passenger));
+	*box->posW = ((*box->posW) + 1) % CIRCULAR_BUFFER_SIZE;
 
 	ReleaseMutex(box->mutex);
 	ReleaseSemaphore(box->canConsume, 1, 0);
@@ -249,10 +249,10 @@ void InsertPassengerIntoBuffer(ProdCons* box, Passenger passenger) {
 
 void GetPassengerFromBuffer(ProdCons* box, Passenger *passenger) {
 	WaitForSingleObject(box->canConsume, INFINITE);
-	WaitForSingleObject(box->mutex, 1000);
+	WaitForSingleObject(box->mutex, INFINITE);
 
-	CopyMemory(passenger, &box->buffer[box->posR], sizeof(Passenger));
-	box->posR = (box->posR + 1) % CIRCULAR_BUFFER_SIZE;
+	CopyMemory(passenger, &box->buffer[*box->posR], sizeof(Passenger));
+	*box->posR = ((*box->posR) + 1) % CIRCULAR_BUFFER_SIZE;
 
 	ReleaseMutex(box->mutex);
 	ReleaseSemaphore(box->canCreate, 1, 0);
@@ -298,7 +298,8 @@ int timer(int waitTime) {
 
 int WaitAndPickWinner(CDThread* cd, Passenger passenger) {
 	int index = GetPassengerIndex(cd->passengers, cd->nrMaxPassengers, passenger.nome);
-	return PickRandomTransportIndex(*cd->passengers[index].requestsCounter);
+	Passenger aux = cd->passengers[index];
+	return PickRandomTransportIndex(*aux.requestsCounter);
 }
 
 BOOL SendTransportRequestResponse(HANDLE* requests, Passenger client, int size, int winner) {
@@ -498,7 +499,12 @@ BOOL isInRequestBuffer(Taxi* requests, int size, Taxi taxi) {
 void RemovePassengerFromCentral(TCHAR* nome, Passenger* passengers, int size) {
 	for (unsigned int i = 0; i < size; i++) {
 		if (_tcscmp(passengers[i].nome, nome) == 0) {
-			ZeroMemory(&passengers[i], sizeof(Passenger));
+			ZeroMemory(&passengers[i].nome, _tcslen(passengers[i].nome)*sizeof(TCHAR));
+			passengers[i].state = Waiting;
+			passengers[i].location.x = -1;
+			passengers[i].location.y = -1;
+			passengers[i].destination.x = -1;
+			passengers[i].destination.y = -1;
 		}
 	}
 }

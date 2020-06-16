@@ -168,7 +168,7 @@ struct _DDL_METHODS {
 
 struct Control_Data_PRODUTOR_CONSUMIDOR {
 	HANDLE canCreate, canConsume, mutex;
-	int posW, posR;
+	int *posW, *posR;
 	Passenger* buffer;
 };
 

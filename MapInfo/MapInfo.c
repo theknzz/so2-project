@@ -175,9 +175,10 @@ LRESULT CALLBACK ChooseThemeDialog(HWND hWnd, UINT messg, WPARAM wParam, LPARAM 
 
 			_stprintf(str, _T("FreeTaxi: %d, BusyTaxi: %d, PassengerWoTaxi: %d, PassengerWTaxi: %d"),
 				idFreeTaxi, idBusyTaxi, idPassengerWoTaxi, idPassengerWTaxi);
-			MessageBox(hWnd, str, _T("Title"), MB_OK);
+			MessageBox(hWnd, str, _T("MapInfo - Theme Chooser"), MB_OK);
 			CreateRegistryForBitMaps(idFreeTaxi, idBusyTaxi, idPassengerWoTaxi, idPassengerWTaxi);
 			LoadBitMaps(ghInst, &info);
+			EndDialog(hWnd, 0);
 			break;
 		case IDCANCEL:
 			EndDialog(hWnd, 0);
@@ -242,10 +243,11 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 
 	int x, y;
 
+	// Posso deixar isto aqui, ou tenho que ter cuidado (?)
 	mouse_event.cbSize = sizeof(mouse_event);
 	mouse_event.hwndTrack = hWnd;
 	mouse_event.dwFlags = TME_HOVER | TME_LEAVE;
-	mouse_event.dwHoverTime = 250;
+	mouse_event.dwHoverTime = HOVER_DEFAULT;
 
 	switch (messg) {
 	case WM_CREATE:

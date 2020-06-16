@@ -41,13 +41,13 @@ TCHAR* DirectionToString(enum taxi_direction direction) {
 }
 
 void PrintPersonalInformation(CD_TAXI_Thread* cd) {
-	_tprintf(_T("\n\n============= TAXI INFO =============\n"));
-	_tprintf(_T("Taxi '%s' located in {%.2d;%.2d}.\n"), cd->taxi->licensePlate, cd->taxi->location.x, cd->taxi->location.y);
-	_tprintf(_T("Velocity: %.2f\n"), cd->taxi->velocity);
-	_tprintf(_T("NQ: %.2d\n"), cd->taxi->nq);
-	if (cd->taxi->client.location.x > -1)
-		_tprintf(_T("Taxi has '%s' as passenger.\n"), cd->taxi->client.nome);
-	_tprintf(_T("=======================================\n\n"));
+	//_tprintf(_T("\n\n============= TAXI INFO =============\n"));
+	//_tprintf(_T("Taxi '%s' located in {%.2d;%.2d}.\n"), cd->taxi->licensePlate, cd->taxi->location.x, cd->taxi->location.y);
+	//_tprintf(_T("Velocity: %.2f\n"), cd->taxi->velocity);
+	//_tprintf(_T("NQ: %.2d\n"), cd->taxi->nq);
+	//if (cd->taxi->client.location.x > -1)
+	//	_tprintf(_T("Taxi has '%s' as passenger.\n"), cd->taxi->client.nome);
+	//_tprintf(_T("=======================================\n\n"));
 }
 
 int CalculateDistanceTo(Coords org, Coords dest) {
@@ -573,7 +573,6 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 		if (cdata->isTaxiKicked) break;
 		if (FindFeatureAndRun(str, cdata) == -1) break;
 	}
-	_tprintf(_T("bye text interface\n"));
 	return 0;
 }
 
