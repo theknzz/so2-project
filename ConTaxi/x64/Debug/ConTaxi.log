@@ -1,23 +1,23 @@
 ﻿  taxi_utils.c
 E:\projects\so2-project\ConTaxi\taxi_utils.c(146,24): warning C4013: 'UpdateMyLocation' undefined; assuming extern returning int
 E:\projects\so2-project\ConTaxi\taxi_utils.c(204,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [4][100]'
-E:\projects\so2-project\ConTaxi\taxi_utils.c(270,36): warning C4013: 'NotifyPassengerCatch' undefined; assuming extern returning int
-E:\projects\so2-project\ConTaxi\taxi_utils.c(277,39): warning C4013: 'NotifyPassengerDeliever' undefined; assuming extern returning int
-E:\projects\so2-project\ConTaxi\taxi_utils.c(358,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\taxi_utils.c(360,39): warning C4013: 'RequestPassengerTransport' undefined; assuming extern returning int
-E:\projects\so2-project\ConTaxi\taxi_utils.c(366,34): warning C4013: 'NotifyVelocityChange' undefined; assuming extern returning int
-E:\projects\so2-project\ConTaxi\taxi_utils.c(392,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\taxi_utils.c(396,35): warning C4013: 'NotifyCentralNQChange' undefined; assuming extern returning int
-E:\projects\so2-project\ConTaxi\taxi_utils.c(421,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\taxi_utils.c(439,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\taxi_utils.c(457,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\taxi_utils.c(475,10): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\ConTaxi\taxi_utils.c(509,38): warning C4013: 'NotifyCentralTaxiLeaving' undefined; assuming extern returning int
-E:\projects\so2-project\ConTaxi\taxi_utils.c(541,42): warning C4020: 'ReleaseMutex': too many actual parameters
-E:\projects\so2-project\ConTaxi\taxi_utils.c(600,13): warning C4477: 'wprintf' : format string '%s' requires an argument of type 'unsigned short *', but variadic argument 1 has type 'Passenger'
-E:\projects\so2-project\ConTaxi\taxi_utils.c(583,7): warning C4101: 'ret': unreferenced local variable
-E:\projects\so2-project\ConTaxi\taxi_utils.c(204): warning C4172: returning address of local variable or temporary: command
+E:\projects\so2-project\ConTaxi\taxi_utils.c(290,36): warning C4013: 'NotifyPassengerCatch' undefined; assuming extern returning int
+E:\projects\so2-project\ConTaxi\taxi_utils.c(297,39): warning C4013: 'NotifyPassengerDeliever' undefined; assuming extern returning int
+E:\projects\so2-project\ConTaxi\taxi_utils.c(378,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(380,39): warning C4013: 'RequestPassengerTransport' undefined; assuming extern returning int
+E:\projects\so2-project\ConTaxi\taxi_utils.c(386,34): warning C4013: 'NotifyVelocityChange' undefined; assuming extern returning int
+E:\projects\so2-project\ConTaxi\taxi_utils.c(412,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(416,35): warning C4013: 'NotifyCentralNQChange' undefined; assuming extern returning int
+E:\projects\so2-project\ConTaxi\taxi_utils.c(441,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(459,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(477,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(495,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(529,38): warning C4013: 'NotifyCentralTaxiLeaving' undefined; assuming extern returning int
+E:\projects\so2-project\ConTaxi\taxi_utils.c(561,42): warning C4020: 'ReleaseMutex': too many actual parameters
+E:\projects\so2-project\ConTaxi\taxi_utils.c(620,13): warning C4477: 'wprintf' : format string '%s' requires an argument of type 'unsigned short *', but variadic argument 1 has type 'Passenger'
+E:\projects\so2-project\ConTaxi\taxi_utils.c(603,7): warning C4101: 'ret': unreferenced local variable
 E:\projects\so2-project\ConTaxi\taxi_utils.c(221): warning C4715: 'getOppositeDirection': not all control paths return a value
-E:\projects\so2-project\ConTaxi\taxi_utils.c(564): warning C4716: 'ReceiveBroadcastMessage': must return a value
-E:\projects\so2-project\ConTaxi\taxi_utils.c(524): warning C4715: 'FindFeatureAndRun': not all control paths return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(204): warning C4172: returning address of local variable or temporary: command
+E:\projects\so2-project\ConTaxi\taxi_utils.c(584): warning C4716: 'ReceiveBroadcastMessage': must return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(544): warning C4715: 'FindFeatureAndRun': not all control paths return a value
   ConTaxi.vcxproj -> E:\projects\so2-project\x64\Debug\ConTaxi.exe

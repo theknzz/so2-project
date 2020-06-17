@@ -93,9 +93,7 @@ BOOL CALLBACK PaintMap(HDC hdc, MapInfo *info, HINSTANCE hInst) {
 BOOL CALLBACK TrataClick(HDC hdc, MapInfo *info, HINSTANCE hInstance, int x, int y) {
 	int offset_y = 200;
 	TCHAR str[100];
-	//hdc = GetDC(hWnd);
 
-	
 	for (unsigned int i = 0; i < info->nrPassengers; i++) {
 		if ((info->passengers[i].location.x + 1) * BITMAP_SIZE >= x && info->passengers[i].location.x * BITMAP_SIZE <= x && (info->passengers[i].location.y + 1) * BITMAP_SIZE >= y && info->passengers[i].location.y * BITMAP_SIZE <= y) {
 			_stprintf(str, _T("Name:"));
@@ -116,7 +114,6 @@ BOOL CALLBACK TrataClick(HDC hdc, MapInfo *info, HINSTANCE hInstance, int x, int
 		}
 	}
 	InvalidateRect(info->window, NULL, TRUE);
-	//ReleaseDC(hWnd, hdc);
 }
 
 BOOL CALLBACK TrataHover(HDC hdc, MapInfo *info, HINSTANCE hInstance, LPARAM lParam) {

@@ -207,9 +207,9 @@ LRESULT CALLBACK ChooseThemeDialog(HWND hDlg, UINT messg, WPARAM wParam, LPARAM 
 		_stprintf(str, _T("%d"), IDB_FREE_TAXI);
 		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)str);
 		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_FREE_TAXI);
-		_stprintf(str, _T("%d"), IDB_FREE_TAXI1);
+		_stprintf(str, _T("%d"), IDB_PASSENGER_WITHOUT_TAXI);
 		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)str);
-		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_FREE_TAXI1);
+		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_PASSENGER_WITHOUT_TAXI);
 
 		// -------------
 		hwndList = GetDlgItem(hDlg, IDC_LIST_PASSENGER_WITHOUT_TAXI);
@@ -259,9 +259,7 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 		}
 		CreateRegistryForBitMaps(IDB_FREE_TAXI, IDB_BUSY_TAXI, IDB_PASSENGER_WITHOUT_TAXI, IDB_PASSENGER_WITH_TAXI);
 		LoadBitMaps(ghInst, &info);
-
 		GetClientRect(hWnd, &rc);
-
 		hdc = GetDC(hWnd);
 		hdcMem = CreateCompatibleDC(hdc);
 		bkground = CreateCompatibleBitmap(hdc, rc.right - rc.left, rc.bottom - rc.top);
@@ -292,7 +290,6 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 		y = (int)GET_Y_LPARAM(lParam);
 		TrataClick(hdcMem, &info, ghInst, x, y);
 		break;
-	
 	case WM_DESTROY: // Destruir a janela e terminar o programa
 	// "PostQuitMessage(Exit Status)"
 		PostQuitMessage(0);

@@ -246,7 +246,27 @@ enum response_id MoveAleatorio(CC_CDRequest* request, CC_CDResponse* response, T
 			taxi->direction = getTaxiDirection(org, finals[dir]);
 		}
 	}
-	else res = ERRO;
+	else if (nr == 0) {
+		int aux = 0;
+		switch (getOppositeDirection(taxi->direction)) {
+			case DOWN:
+				aux = 0;
+				break;
+			case UP:
+				aux = 2;
+				break;
+			case LEFT:
+				aux = 1;
+				break;
+			case RIGHT:
+				aux = 3;
+				break;
+		}
+		if ((res = UpdateMyLocation(request, response, taxi, positions[aux])) == OK) {
+			CopyMemory(&taxi->location, &positions[aux], sizeof(Coords));
+			taxi->direction = getTaxiDirection(org, positions[aux]);
+		}
+	}
 	return res;
 }
 
