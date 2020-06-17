@@ -20,6 +20,7 @@
 #define IDR_MENU1                       135
 #define IDB_BUSY_TAXI                   135
 #define IDB_PASSENGER_WITH_TAXI         136
+#define IDB_FREE_TAXI1                  137
 #define IDC_LIST_TAXI_WITH_PASSENGER    1000
 #define IDC_LIST_TAXI_WITHOUT_PASSENGER 1001
 #define IDC_LIST_PASSENGER_WITHOUT_TAXI 1002

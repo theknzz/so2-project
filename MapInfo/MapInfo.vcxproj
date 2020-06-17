@@ -154,6 +154,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\bitmaps\bitmap1.bmp" />
+    <Image Include="..\bitmaps\free_tax.bmp" />
     <Image Include="..\bitmaps\grass.bmp" />
     <Image Include="..\bitmaps\passenge.bmp" />
     <Image Include="..\bitmaps\passenger.bmp" />

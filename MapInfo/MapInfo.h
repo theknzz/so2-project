@@ -16,8 +16,8 @@
 #include "structs.h"
 
 DWORD WINAPI TalkToCentral(LPVOID ptr);
-BOOL CALLBACK PaintMap(HDC hdc, MapInfo info, HINSTANCE hInst);
-BOOL CALLBACK TrataClick(HDC hdc, MapInfo info, HINSTANCE hInstance, LPARAM lParam);
-BOOL CALLBACK LoadBitMaps(HINSTANCE hInst, MapInfo* info);
+BOOL CALLBACK PaintMap(HDC hdc, MapInfo *info, HINSTANCE hInst);
+BOOL CALLBACK TrataClick(HDC hdc, MapInfo *info, HINSTANCE hInstance, int x, int y);
+BOOL CALLBACK LoadBitMaps(HINSTANCE hInst, MapInfo *info);
 BOOL CALLBACK CreateRegistryForBitMaps(int freeTaxi, int busyTaxi, int passengerWoPassenger, int passengerWPassenger);
-BOOL CALLBACK TrataHover(HDC hdc, MapInfo info, HINSTANCE hInstance, LPARAM lParam);
+BOOL CALLBACK TrataHover(HDC hdc, MapInfo *info, HINSTANCE hInstance, LPARAM lParam);

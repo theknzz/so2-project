@@ -82,10 +82,10 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
 	hWnd = CreateWindow(
 		_T("MapInfo - Graphic Interface"), // Nome da janela (programa) definido acima
 		TEXT("MapInfo"),// Texto que figura na barra do título
-		WS_OVERLAPPEDWINDOW, // Estilo da janela (WS_OVERLAPPED= normal)
+		WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME, // Estilo da janela (WS_OVERLAPPED= normal)
 		CW_USEDEFAULT, // Posição x pixels (default=à direita da última)
-		0, // Posição y pixels (default=abaixo da última)
-		1600, // Largura da janela (em pixels)
+		CW_USEDEFAULT, // Posição y pixels (default=abaixo da última)
+		1200, // Largura da janela (em pixels)
 		1040, // Altura da janela (em pixels)
 		(HWND)HWND_DESKTOP, // handle da janela pai (se se criar uma a partir de
 		// outra) ou HWND_DESKTOP se a janela for a primeira,
@@ -145,7 +145,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
 
 MapInfo info;
 
-LRESULT CALLBACK ChooseThemeDialog(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK ChooseThemeDialog(HWND hDlg, UINT messg, WPARAM wParam, LPARAM lParam) {
 	HWND hwndList, hwndPicture;
 	TCHAR str[100];
 	HICON icon;
@@ -153,45 +153,47 @@ LRESULT CALLBACK ChooseThemeDialog(HWND hWnd, UINT messg, WPARAM wParam, LPARAM 
 	int idFreeTaxi, idBusyTaxi, idPassengerWoTaxi, idPassengerWTaxi, index;
 
 	switch (messg) {
-	
+
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
 		case IDOK:
-			hwndList = GetDlgItem(hWnd, IDC_LIST_TAXI_WITH_PASSENGER);
+			hwndList = GetDlgItem(hDlg, IDC_LIST_TAXI_WITH_PASSENGER);
 			index = (int)SendMessage(hwndList, LB_GETCURSEL, 0, 0);
 			idBusyTaxi = (int)SendMessage(hwndList, LB_GETITEMDATA, index, 0);
-			
-			hwndList = GetDlgItem(hWnd, IDC_LIST_TAXI_WITHOUT_PASSENGER);
+
+			hwndList = GetDlgItem(hDlg, IDC_LIST_TAXI_WITHOUT_PASSENGER);
 			index = (int)SendMessage(hwndList, LB_GETCURSEL, 0, 0);
 			idFreeTaxi = (int)SendMessage(hwndList, LB_GETITEMDATA, index, 0);
 
-			hwndList = GetDlgItem(hWnd, IDC_LIST_PASSENGER_WITH_TAXI);
+			hwndList = GetDlgItem(hDlg, IDC_LIST_PASSENGER_WITH_TAXI);
 			index = (int)SendMessage(hwndList, LB_GETCURSEL, 0, 0);
 			idPassengerWTaxi = (int)SendMessage(hwndList, LB_GETITEMDATA, index, 0);
 
-			hwndList = GetDlgItem(hWnd, IDC_LIST_PASSENGER_WITHOUT_TAXI);
+			hwndList = GetDlgItem(hDlg, IDC_LIST_PASSENGER_WITHOUT_TAXI);
 			index = (int)SendMessage(hwndList, LB_GETCURSEL, 0, 0);
 			idPassengerWoTaxi = (int)SendMessage(hwndList, LB_GETITEMDATA, index, 0);
 
 			_stprintf(str, _T("FreeTaxi: %d, BusyTaxi: %d, PassengerWoTaxi: %d, PassengerWTaxi: %d"),
 				idFreeTaxi, idBusyTaxi, idPassengerWoTaxi, idPassengerWTaxi);
-			MessageBox(hWnd, str, _T("MapInfo - Theme Chooser"), MB_OK);
-			CreateRegistryForBitMaps(idFreeTaxi, idBusyTaxi, idPassengerWoTaxi, idPassengerWTaxi);
-			LoadBitMaps(ghInst, &info);
-			EndDialog(hWnd, 0);
+			if (MessageBox(hDlg, str, _T("MapInfo - Theme Chooser"), MB_OK) == IDOK) {
+				CreateRegistryForBitMaps(idFreeTaxi, idBusyTaxi, idPassengerWoTaxi, idPassengerWTaxi);
+				LoadBitMaps(ghInst, &info);
+			}
+			EndDialog(hDlg, 0);
+			return FALSE;
 			break;
 		case IDCANCEL:
-			EndDialog(hWnd, 0);
+			EndDialog(hDlg, 0);
+			return FALSE;
 			break;
 		}
 		break;
 
 	case WM_INITDIALOG:
-
-		hwndList = GetDlgItem(hWnd, IDC_LIST_TAXI_WITH_PASSENGER);
+		hwndList = GetDlgItem(hDlg, IDC_LIST_TAXI_WITH_PASSENGER);
 		/*hwndPicture = GetDlgItem(hWnd, IDC_STATIC);*/
 		icon = LoadIcon(ghInst, (LPCTSTR)IDI_SMALL);
-		SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)icon);
+		SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)icon);
 
 		// -------------
 		_stprintf(str, _T("%d"), IDB_BUSY_TAXI);
@@ -201,32 +203,34 @@ LRESULT CALLBACK ChooseThemeDialog(HWND hWnd, UINT messg, WPARAM wParam, LPARAM 
 		/*SendMessage(hwndPicture, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)info.TaxiBusyBitMap);*/
 
 		// -------------
-		hwndList = GetDlgItem(hWnd, IDC_LIST_TAXI_WITHOUT_PASSENGER);
+		hwndList = GetDlgItem(hDlg, IDC_LIST_TAXI_WITHOUT_PASSENGER);
 		_stprintf(str, _T("%d"), IDB_FREE_TAXI);
 		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)str);
 		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_FREE_TAXI);
+		_stprintf(str, _T("%d"), IDB_FREE_TAXI1);
+		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)str);
+		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_FREE_TAXI1);
 
 		// -------------
-		hwndList = GetDlgItem(hWnd, IDC_LIST_PASSENGER_WITHOUT_TAXI);
+		hwndList = GetDlgItem(hDlg, IDC_LIST_PASSENGER_WITHOUT_TAXI);
 		_stprintf(str, _T("%d"), IDB_PASSENGER_WITHOUT_TAXI);
 		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)str);
 		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_PASSENGER_WITHOUT_TAXI);
 
 		// -------------
-		hwndList = GetDlgItem(hWnd, IDC_LIST_PASSENGER_WITH_TAXI);
+		hwndList = GetDlgItem(hDlg, IDC_LIST_PASSENGER_WITH_TAXI);
 		_stprintf(str, _T("%d"), IDB_PASSENGER_WITH_TAXI);
 		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)str);
 		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_PASSENGER_WITH_TAXI);
 		return TRUE;
 		break;
+	case WM_CLOSE:
+		EndDialog(hDlg, 0);
+		return 0;
+		break;
 	}
-	return FALSE;
+	return(0);
 }
-
-LRESULT CALLBACK AboutDialog(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lParam) {
-	return FALSE;
-}
-
 
 LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lParam) {
 	
@@ -243,7 +247,6 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 
 	int x, y;
 
-	// Posso deixar isto aqui, ou tenho que ter cuidado (?)
 	mouse_event.cbSize = sizeof(mouse_event);
 	mouse_event.hwndTrack = hWnd;
 	mouse_event.dwFlags = TME_HOVER | TME_LEAVE;
@@ -269,24 +272,27 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 		break;
 	case WM_PAINT:
 		GetClientRect(hWnd, &rc);
-		PaintMap(hdcMem, info, ghInst);
+		PaintMap(hdcMem, &info, ghInst);
 		hdc = BeginPaint(hWnd, &ps);
 		BitBlt(hdc, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, hdcMem, 0, 0, SRCCOPY);
 		EndPaint(hWnd, &ps);
 		break;
 	case WM_MOUSEHOVER:
-		TrataHover(hdcMem, info, ghInst, lParam);
+		TrataHover(hdcMem, &info, ghInst, lParam);
 		TrackMouseEvent(&mouse_event);
 		break;
 	case WM_MOUSEMOVE:
 		TrackMouseEvent(&mouse_event);
 		break;
 	case WM_ERASEBKGND:
-		return (LRESULT)1;
+		return (LRESULT)0;
 		break;
 	case WM_LBUTTONDOWN:
-		TrataClick(hdcMem, info, ghInst, lParam);
+		x = (int)GET_X_LPARAM(lParam);
+		y = (int)GET_Y_LPARAM(lParam);
+		TrataClick(hdcMem, &info, ghInst, x, y);
 		break;
+	
 	case WM_DESTROY: // Destruir a janela e terminar o programa
 	// "PostQuitMessage(Exit Status)"
 		PostQuitMessage(0);
@@ -298,12 +304,6 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
                         MAKEINTRESOURCE(IDD_DIALOG),
                         hWnd,
                         (DLGPROC)ChooseThemeDialog);
-			break;
-		case ID_ABOUT:
-			DialogBox(NULL,
-				MAKEINTRESOURCE(IDD_ABOUTBOX),
-				hWnd,
-				(DLGPROC)AboutDialog);
 			break;
 		}
 		break;
