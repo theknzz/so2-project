@@ -234,7 +234,7 @@ enum response_id DLL_EXPORT EstablishNamedPipeComunication(CC_CDRequest* request
 			res = ERRO;
 			return res;
 		}
-		Sleep(2000);
+		WaitForSingleObject(cd->connectEvent, INFINITE);
 		//DWORD dwMode = PIPE_READMODE_MESSAGE;
 		if ((cd->hNamedPipeComm = CreateFile(NP_TAXI_NAME, /*GENERIC_READ*/PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL))==NULL) {
 			_tprintf(TEXT("[ERRO] Ligar ao pipe '%s'! (CreateFile)\n"), NP_PASS_REGISTER);

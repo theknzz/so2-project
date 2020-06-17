@@ -459,10 +459,17 @@ int _tmain(int argc, TCHAR* argv[]) {
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);
 	}
-	else
-		_tprintf(_T("new msg event created\n"));
 	dllMethods.Register(EVENT_NEW_PASSENGER_MSG, EVENT);
 	handles[handleCounter++] = cdThread.eventNewCMessage;
+
+	if ((cdThread.eventNewConnection = CreateEvent(NULL, FALSE, FALSE, EVENT_NP_CONNECTION)) == NULL) {
+		_tprintf(_T("Error creating write event (%d)\n"), GetLastError());
+		WaitAllThreads(&cdThread, threads, threadCounter);
+		UnmapAllViews(views, viewCounter);
+		CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	dllMethods.Register(EVENT_NP_CONNECTION, EVENT);
 
 	HANDLE listenThread = CreateThread(NULL, 0, ListenToLoginRequests, &cdThread, 0, NULL);
 	if (!listenThread) {

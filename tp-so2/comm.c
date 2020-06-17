@@ -366,6 +366,7 @@ DWORD WINAPI GetPassengerRegistration(LPVOID ptr) {
 
 DWORD WINAPI WaitTaxiConnect(LPVOID ptr) {
 	TENC* box = (TENC*)ptr;
+	SetEvent(box->cd->eventNewConnection);
 	if (!ConnectNamedPipe(box->cd->hNamedPipe, NULL)) {
 		_tprintf(TEXT("[ERRO] Ligação ao named pipe do taxi! (ConnectNamedPipe %d).\n"), GetLastError());
 		return -1;

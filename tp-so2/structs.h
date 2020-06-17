@@ -158,6 +158,7 @@ struct _CONTROL_DATA_TAXI_THREAD{
 	char charMap[MIN_COL][MIN_LIN];		// char map to do validations on moves, ...
 	CC_Broadcast* broadcast;			// Communication broadcast container
 	BOOL isTaxiKicked;					// Flag to exit cycles
+	HANDLE connectEvent;				// Event handle
 };
 
 struct _DDL_METHODS {
@@ -177,7 +178,7 @@ struct ThreadControlData {
 	ProdCons* prod_cons;
 	HANDLE hNamedPipe;
 	HANDLE hPassPipeRegister, hPassPipeTalk;
-	HANDLE eventNewPMessage, eventNewCMessage;
+	HANDLE eventNewPMessage, eventNewCMessage, eventNewConnection;
 	BOOL* areTaxisRequestsPause;		// Flag to control if the system is paused or not 
 	int nrMaxTaxis;						// Number of taxis in the system
 	int nrMaxPassengers;				// Number of passengers in the system

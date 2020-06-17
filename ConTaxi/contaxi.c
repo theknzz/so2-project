@@ -334,6 +334,16 @@ int _tmain(int argc, TCHAR* argv[]) {
 		CloseMyHandles(handles, handleCounter);
 	}
 
+	cd.connectEvent = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_NP_CONNECTION);
+	if (cd.connectEvent == NULL) {
+		_tprintf(_T("Error opening new message event (%d)\n"), GetLastError());
+		//WaitAllThreads(threads, threadCounter);
+		//UnmapAllViews(views, viewCounter);
+		//CloseMyHandles(handles, handleCounter);
+		exit(-1);
+	}
+	handles[handleCounter++] = cd.connectEvent;
+
 	if (EstablishNamedPipeComunication(&request, &response, &me, &cd) != OK) {
 		_tprintf(_T("Couldn't establish connection to central by named pipe!\n"));
 		WaitAllThreads(threads, threadCounter);

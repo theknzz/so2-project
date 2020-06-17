@@ -128,6 +128,7 @@ enum taxi_direction {
 #define EVENT_REQUEST _T("event_request_%s")
 
 #define EVENT_NEW_PASSENGER _T("event_new_passenger")
+#define EVENT_NP_CONNECTION _T("event_np_connection")
 
 #define EVENT_NEW_INFO _T("event_new_info")
 #define EVENT_NEW_PASSENGER_MSG _T("event_new_passenger_msg")
