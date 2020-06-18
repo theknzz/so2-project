@@ -411,6 +411,10 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			_tprintf(_T("Too few arguments to use this command!\n"));
 			return;
 		}
+		if (_ttoi(cmd[1]) < 0) {
+			_tprintf(_T("Command %s can't handle %d as an argument!\n"), cmd[0], _ttoi(cmd[1]));
+			return;
+		}
 		int aux = cdata->taxi->nq;
 		cdata->taxi->nq = _ttoi(cmd[1]);
 		if ((res = NotifyCentralNQChange(&cdata->comm.request, &cdata->comm.response, *(cdata->taxi))) != OK) {
@@ -530,7 +534,6 @@ int FindFeatureAndRun(TCHAR command[100], CD_TAXI_Thread* cdata) {
 			PrintError(res, cdata);
 		}
 		else {
-			// ## TODO tratar o close properly
 			ReleaseSemaphore(cdata->taxiGate, 1, NULL);
 			cdata->isTaxiKicked = TRUE;
 			cdata->taxi->autopilot = 0;
@@ -619,7 +622,7 @@ DWORD WINAPI ListenToCentral(LPVOID* ptr) {
 		else
 			_tprintf(_T("%s was assigned to other taxi.\n"), message.content.passenger);
 	}
-	_tprintf(_T("im out\n"));
+	_tprintf(_T("Type something to exit ConTaxi...\n"));
 	return 0;
 }
 

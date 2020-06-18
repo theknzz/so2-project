@@ -252,7 +252,7 @@ DWORD WINAPI ListenToLoginRequests(LPVOID ptr) {
 			continue;
 		}
 		if (shared.action == RegisterTaxiInCentral) {
-			_tprintf(_T("Got a registration request from '%s'\n"), shared.taxi.licensePlate);
+			_tprintf(_T("\nGot a registration request from '%s'\n"), shared.taxi.licensePlate);
 			if (shared.taxi.location.x > MIN_COL || shared.taxi.location.y > MIN_LIN || shared.taxi.location.x < 0 || shared.taxi.location.y < 0) {
 				RespondToTaxiLogin(cd, shared.taxi.licensePlate, cd->hContainer, OUTOFBOUNDS_TAXI_POSITION);
 				continue;
@@ -436,8 +436,7 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 		PassMessage message;
 		message.isSystemClosing = TRUE;
 		message.resp = CENTRAL_GOING_OFFLINE;
-		BroadcastViaNamedPipeToTaxi(cdata->taxis, cdata->nrMaxTaxis, message);
-		SetEvent(cdata->eventNewCMessage);
+		BroadcastViaNamedPipeToTaxi(cdata->taxis, cdata->nrMaxTaxis, message, cdata->eventNewCMessage);
 
 		CreateFile(NP_PASS_REGISTER, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		CreateFile(NP_PASS_TALK, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -474,6 +473,10 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 		if (argc < 2)
 			_tprintf(_T("This command requires a id.\n"));
 		else {
+			if (_ttoi(cmd[1] < 0)) {
+				_tprintf(_T("Command %s can't handle %d as argument."), cmd[0], _ttoi(cmd[1]));
+				return;
+			}
 			_tprintf(_T("System changing the wait time of a taxi request to %d\n"), _ttoi(cmd[1]));
 			(*cdata->WaitTimeOnTaxiRequest) = _ttoi(cmd[1]);
 			cdata->dllMethods->Log(_T("Central is chaning the wait time interval to %d.\n"), _ttoi(cmd[1]));
@@ -517,7 +520,6 @@ DWORD WINAPI TextInterface(LPVOID ptr) {
 		_tscanf(_T(" %[^\n]"), command);
 		if (FindFeatureAndRun(command, cdata) == -1) break;
 	} while (!cdata->isSystemClosing);
-	_tprintf(_T("bye text interface\n"));
 	return 0;
 }
 
@@ -528,7 +530,6 @@ SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, C
 	int index, x, y;
 	TENC* box = (TENC*)malloc(sizeof(TENC));
 	enum passanger_state status;
-	//_tprintf(_T("Action request: %d\n"), action);
 	switch (action) {
 	case UpdateTaxiLocation:
 		response.action = UpdateTaxiPosition(cd, content);
@@ -672,10 +673,12 @@ DWORD WINAPI RequestWaitTimeFeature(LPVOID ptr) {
 	}
 }
 
-void BroadcastViaNamedPipeToTaxi(Taxi* taxis, int size, PassMessage message) {
+void BroadcastViaNamedPipeToTaxi(Taxi* taxis, int size, PassMessage message, HANDLE newMessage) {
 	DWORD nr;
-	for (unsigned int i = 0; i < size; i++)
+	for (unsigned int i = 0; i < size; i++) {
 		WriteFile(taxis[i].hNamedPipe, &message, sizeof(PassMessage), &nr, NULL);
+		SetEvent(newMessage);
+	}
 }
 
 void UpdateView(CDThread* cd) {

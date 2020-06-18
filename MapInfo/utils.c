@@ -168,6 +168,8 @@ BOOL CALLBACK LoadBitMaps(HINSTANCE hInst, MapInfo *info) {
 	RegQueryValueEx(key, WAITING_PASSENGER_WITH_TAXI, NULL, NULL, (LPBYTE)value, &size);
 	value[size / sizeof(TCHAR)] = '\0';
 	info->PassengerWaitingWithTaxiBitMap = LoadBitmap(hInst, MAKEINTRESOURCE(_ttoi(value)/*IDB_PASSENGER_WITH_TAXI*/));
+
+	InvalidateRect(info->window, NULL, TRUE);
 }
 
 BOOL CALLBACK CreateRegistryForBitMaps(int freeTaxi, int busyTaxi, int passengerWoPassenger, int passengerWPassenger) {

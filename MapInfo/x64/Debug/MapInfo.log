@@ -21,13 +21,13 @@ E:\projects\so2-project\MapInfo\utils.c(135,69): warning C4267: 'function': conv
 E:\projects\so2-project\MapInfo\utils.c(137,69): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
 E:\projects\so2-project\MapInfo\utils.c(146,8): warning C4101: 'key_name': unreferenced local variable
 E:\projects\so2-project\MapInfo\utils.c(147,16): warning C4101: 'version': unreferenced local variable
-E:\projects\so2-project\MapInfo\utils.c(185,85): warning C4267: 'function': conversion from 'size_t' to 'DWORD', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(190,85): warning C4267: 'function': conversion from 'size_t' to 'DWORD', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(195,105): warning C4267: 'function': conversion from 'size_t' to 'DWORD', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(200,102): warning C4267: 'function': conversion from 'size_t' to 'DWORD', possible loss of data
+E:\projects\so2-project\MapInfo\utils.c(187,85): warning C4267: 'function': conversion from 'size_t' to 'DWORD', possible loss of data
+E:\projects\so2-project\MapInfo\utils.c(192,85): warning C4267: 'function': conversion from 'size_t' to 'DWORD', possible loss of data
+E:\projects\so2-project\MapInfo\utils.c(197,105): warning C4267: 'function': conversion from 'size_t' to 'DWORD', possible loss of data
+E:\projects\so2-project\MapInfo\utils.c(202,102): warning C4267: 'function': conversion from 'size_t' to 'DWORD', possible loss of data
   Generating Code...
-E:\projects\so2-project\MapInfo\utils.c(142): warning C4716: 'TrataHover': must return a value
+E:\projects\so2-project\MapInfo\utils.c(203): warning C4715: 'CreateRegistryForBitMaps': not all control paths return a value
 E:\projects\so2-project\MapInfo\utils.c(117): warning C4716: 'TrataClick': must return a value
-E:\projects\so2-project\MapInfo\utils.c(201): warning C4715: 'CreateRegistryForBitMaps': not all control paths return a value
-E:\projects\so2-project\MapInfo\utils.c(171): warning C4715: 'LoadBitMaps': not all control paths return a value
+E:\projects\so2-project\MapInfo\utils.c(142): warning C4716: 'TrataHover': must return a value
+E:\projects\so2-project\MapInfo\utils.c(173): warning C4715: 'LoadBitMaps': not all control paths return a value
   MapInfo.vcxproj -> E:\projects\so2-project\x64\Debug\MapInfo.exe

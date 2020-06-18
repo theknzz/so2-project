@@ -22,5 +22,5 @@ DWORD WINAPI GetPassengerRegistration(LPVOID ptr);
 DWORD WINAPI WaitTaxiConnect(LPVOID ptr);
 SHM_CC_RESPONSE ParseAndExecuteOperation(CDThread* cd, enum message_id action, Content content);
 DWORD WINAPI RequestWaitTimeFeature(LPVOID ptr);
-void BroadcastViaNamedPipeToTaxi(Taxi* taxis, int size, PassMessage message);
+void BroadcastViaNamedPipeToTaxi(Taxi* taxis, int size, PassMessage message, HANDLE newMessage);
 void UpdateView(CDThread* cd);
