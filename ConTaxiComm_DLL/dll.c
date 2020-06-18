@@ -22,6 +22,8 @@ enum response_id RegisterInCentral(LR_Container* res, CDThread cdata, TCHAR* lic
 	CopyMemory(&taxi.licensePlate, licensePlate, sizeof(TCHAR) * 10);
 	taxi.location.x = location.x;
 	taxi.location.y = location.y;
+	taxi.velocity = 1;
+	taxi.nq = NQ;
 
 	// Preciso de um mutex para bloquear o login multiplo ??
 	WaitForSingleObject(cdRequest->login_write_m, INFINITE);

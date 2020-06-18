@@ -335,7 +335,8 @@ DWORD WINAPI GetPassengerRegistration(LPVOID ptr) {
 
 			_tprintf(_T("%s - {%.2d,%.2d} to {%.2d,%.2d}.\n"), message.passenger.nome, message.passenger.location.x, message.passenger.location.y,
 				message.passenger.destination.x, message.passenger.destination.y);
-			message.resp = OK;
+			message.resp = ESTIMATED_TIME;
+			message.estimatedWaitTime = GetEstimatedTime(cd, message.passenger.location);
 		}
 		else {
 			message.resp = COORDINATES_FROM_OTHER_CITY;

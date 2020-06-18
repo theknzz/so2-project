@@ -7,6 +7,7 @@
 #include <io.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "rules.h"
 #include "structs.h"
@@ -49,3 +50,5 @@ void RemovePassengerFromCentral(TCHAR* nome, Passenger* passengers, int size);
 BOOL isValidCoords(CDThread* cd, Coords c);
 int FindTaxiWithNamedPipeHandle(Taxi* taxis, int size, HANDLE handle);
 void SendMessageToPassenger(enum response_id resp, Passenger* passenger, Taxi* taxi, CDThread* cd);
+double GetEstimatedTime(CDThread *cd, Coords target);
+int CalculateDistanceTo(Coords org, Coords dest);

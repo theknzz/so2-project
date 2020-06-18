@@ -388,6 +388,28 @@ void SendMessageToPassenger(enum response_id resp, Passenger* passenger, Taxi* t
 	ret = ReadFile(cd->hPassPipeTalk, &message, sizeof(PassMessage), &nr, NULL);
 }
 
+int CalculateDistanceTo(Coords org, Coords dest) {
+	int y_dist, x_dist;
+
+	y_dist = dest.y - org.y;
+	x_dist = dest.x - org.x;
+
+	return (int)sqrt(pow(y_dist, 2) + pow(x_dist, 2));
+}
+
+double GetEstimatedTime(CDThread* cd, Coords target)
+{
+	double time = 0.0;
+	int nr_taxis = NumberOfActiveTaxis(cd->taxis, cd->nrMaxTaxis);
+
+	for (unsigned int i = 0; i < nr_taxis; i++) {
+		time += (double)(CalculateDistanceTo(cd->taxis[i].location, target) / cd->taxis[i].velocity);
+	}
+	time = (double) time / nr_taxis;
+
+	return time;
+}
+
 enum response_action CatchPassenger(CDThread* cd, Content content) {
 	int index, x, y;
 	// change the state of the taxi's client

@@ -220,6 +220,7 @@ struct IndividualThreadControl {
 struct NP_MESSAGE_REGISTER_PASSENGERS{
 	enum response_id resp;
 	Passenger passenger;
+	double estimatedWaitTime;
 };
 
 struct NP_MESSAGE_TALK_PASSENGERS {
