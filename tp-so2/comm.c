@@ -337,6 +337,7 @@ DWORD WINAPI GetPassengerRegistration(LPVOID ptr) {
 				message.passenger.destination.x, message.passenger.destination.y);
 			message.resp = ESTIMATED_TIME;
 			message.estimatedWaitTime = GetEstimatedTime(cd, message.passenger.location);
+			UpdateView(cd);
 		}
 		else {
 			message.resp = COORDINATES_FROM_OTHER_CITY;
@@ -438,7 +439,7 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 		message.isSystemClosing = TRUE;
 		message.resp = CENTRAL_GOING_OFFLINE;
 		BroadcastViaNamedPipeToTaxi(cdata->taxis, cdata->nrMaxTaxis, message, cdata->eventNewCMessage);
-
+		UpdateView(cdata);
 		CreateFile(NP_PASS_REGISTER, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		CreateFile(NP_PASS_TALK, /*GENERIC_READ*/ PIPE_ACCESS_DUPLEX, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		
@@ -670,8 +671,8 @@ DWORD WINAPI RequestWaitTimeFeature(LPVOID ptr) {
 		for (unsigned int i = 0; i < *cd->passengers[passenger_index].requestsCounter; i++)
 			ZeroMemory(&cd->passengers[passenger_index].requests[i], sizeof(Taxi));
 		*cd->passengers[passenger_index].requestsCounter = 0;
-		UpdateView(cd);
 	}
+	UpdateView(cd);
 }
 
 void BroadcastViaNamedPipeToTaxi(Taxi* taxis, int size, PassMessage message, HANDLE newMessage) {
@@ -689,7 +690,7 @@ void UpdateView(CDThread* cd) {
 	shm.nrPassengers = NumberOfActivePassengers(cd->passengers, cd->nrMaxPassengers);
 	CopyMemory(&shm.passengers, cd->passengers, sizeof(Passenger) * shm.nrPassengers);
 	CopyMemory(&shm.map, cd->map, sizeof(Cell) * MIN_LIN * MIN_COL);
-
+	shm.isSystemClosing = cd->isSystemClosing;
 	WaitForSingleObject(cd->mapinfo->mutex, INFINITE);
 	CopyMemory(cd->mapinfo->message, &shm, sizeof(SHM_MAPINFO));
 	ReleaseMutex(cd->mapinfo->mutex);

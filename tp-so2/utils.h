@@ -52,3 +52,4 @@ int FindTaxiWithNamedPipeHandle(Taxi* taxis, int size, HANDLE handle);
 void SendMessageToPassenger(enum response_id resp, Passenger* passenger, Taxi* taxi, CDThread* cd);
 double GetEstimatedTime(CDThread *cd, Coords target);
 int CalculateDistanceTo(Coords org, Coords dest);
+BOOL CreateRegistryForBitMaps();

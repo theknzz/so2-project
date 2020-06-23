@@ -9,37 +9,44 @@ DWORD WINAPI TalkToCentral(LPVOID ptr) {
 	SHM_MAPINFO* message;
 
 	if ((mutex = OpenMutex(SYNCHRONIZE, FALSE, MAPINFO_MUTEX))==NULL) {
+		MessageBox(info->window, _T("CenTaxi isn't running..."), _T("MapInfo - Warning"), MB_OK);
 		return 0;
 	}
 
 	if ((new_info = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_NEW_INFO)) == NULL) {
+		MessageBox(info->window, _T("CenTaxi isn't running..."), _T("MapInfo - Warning"), MB_OK);
 		return 0;
 	}
 
 	HANDLE fm = CreateFileMapping(INVALID_HANDLE_VALUE,NULL,PAGE_READWRITE,0,sizeof(SHM_MAPINFO),SHM_MAP_INFO_NAME);
 	if (fm == NULL) {
-		_tprintf(TEXT("Error mapping the shared memory (%d).\n"), GetLastError());
+		MessageBox(info->window, _T("CenTaxi isn't running..."), _T("MapInfo - Warning"), MB_OK);
 		return 0;
 	}
 
 	if ((message = (SHM_MAPINFO*)MapViewOfFile(fm, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(SHM_MAPINFO))) == NULL) {
-		_tprintf(TEXT("Error mapping a view to the shared memory (%d).\n"), GetLastError());
+		MessageBox(info->window, _T("CenTaxi isn't running..."), _T("MapInfo - Warning"), MB_OK);
 		return 0;
 	}
-
-	while (1) {
+	do {
 		WaitForSingleObject(new_info, INFINITE);
 		WaitForSingleObject(mutex, INFINITE);
 
 		CopyMemory(&shm, message, sizeof(SHM_MAPINFO));
 
 		ReleaseMutex(mutex);
+		ResetEvent(new_info);
 
 		info->nrTaxis = shm.nrTaxis;
 		info->nrPassengers = shm.nrPassengers;
+		info->SystemIsClosing = shm.isSystemClosing;
 		CopyMemory(info->taxis, shm.taxis, sizeof(Taxi) * info->nrTaxis);
 		CopyMemory(info->passengers, shm.passengers, sizeof(Passenger) * info->nrPassengers);
 		CopyMemory(info->map, shm.map, sizeof(Cell) * MIN_COL * MIN_LIN);
+		InvalidateRect(info->window, NULL, FALSE);
+	} while (!info->SystemIsClosing);
+	if (MessageBox(info->window, _T("CenTaxi was closed!\nTry to access the system later."), _T("MapInfo - Warning"), MB_OK) == IDOK) {
+		ZeroMemory(info, sizeof(MapInfo));
 		InvalidateRect(info->window, NULL, FALSE);
 	}
 	return 0; 
@@ -146,7 +153,7 @@ BOOL CALLBACK LoadBitMaps(HINSTANCE hInst, MapInfo *info) {
 	TCHAR key_name[100], value[100];
 	DWORD result, version, size;
 
-	if (RegCreateKeyEx(HKEY_CURRENT_USER, KEY_NAME, 0, NULL, REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &key, &result) != ERROR_SUCCESS) {
+	if (RegCreateKeyEx(HKEY_CURRENT_USER, KEY_NAME, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &key, &result) != ERROR_SUCCESS) {
 		return FALSE;
 	}
 
@@ -172,32 +179,33 @@ BOOL CALLBACK LoadBitMaps(HINSTANCE hInst, MapInfo *info) {
 	InvalidateRect(info->window, NULL, TRUE);
 }
 
-BOOL CALLBACK CreateRegistryForBitMaps(int freeTaxi, int busyTaxi, int passengerWoPassenger, int passengerWPassenger) {
+BOOL CALLBACK CreateRegistryForBitMaps(int freeTaxi, int busyTaxi, int passengerWoPassenger, int passengerWPassenger, BOOL isOverwrite) {
 	HKEY key;
 	DWORD result;
 	TCHAR str[100];
 
-	if (RegCreateKeyEx(HKEY_CURRENT_USER, KEY_NAME, 0, NULL, REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &key, &result) != ERROR_SUCCESS) {
+	if (RegCreateKeyEx(HKEY_CURRENT_USER, KEY_NAME, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &key, &result) != ERROR_SUCCESS) {
 		return FALSE;
 	}
+	else if (isOverwrite) {
+		if (freeTaxi == -1)
+			freeTaxi = IDB_FREE_TAXI;
+		_stprintf(str, _T("%d"), freeTaxi);
+		RegSetValueEx(key, FREE_TAXI, 0, REG_SZ, (LPBYTE)str, _tcslen(str) * sizeof(TCHAR));
 
-	if (freeTaxi == -1)
-		freeTaxi = IDB_FREE_TAXI;
-	_stprintf(str, _T("%d"), freeTaxi);
-	RegSetValueEx(key, FREE_TAXI, 0, REG_SZ, (LPBYTE) str, _tcslen(str) * sizeof(TCHAR));
+		if (busyTaxi == -1)
+			busyTaxi = IDB_BUSY_TAXI;
+		_stprintf(str, _T("%d"), busyTaxi);
+		RegSetValueEx(key, BUSY_TAXI, 0, REG_SZ, (LPBYTE)str, _tcslen(str) * sizeof(TCHAR));
 
-	if (busyTaxi == -1)
-		busyTaxi = IDB_BUSY_TAXI;
-	_stprintf(str, _T("%d"), busyTaxi);
-	RegSetValueEx(key, BUSY_TAXI, 0, REG_SZ, (LPBYTE) str, _tcslen(str) * sizeof(TCHAR));
+		if (passengerWoPassenger == -1)
+			passengerWoPassenger = IDB_PASSENGER_WITHOUT_TAXI;
+		_stprintf(str, _T("%d"), passengerWoPassenger);
+		RegSetValueEx(key, WAITING_PASSENGER_WITHOUT_TAXI, 0, REG_SZ, (LPBYTE)str, _tcslen(str) * sizeof(TCHAR));
 
-	if (passengerWoPassenger == -1)
-		passengerWoPassenger = IDB_PASSENGER_WITHOUT_TAXI;
-	_stprintf(str, _T("%d"), passengerWoPassenger);
-	RegSetValueEx(key, WAITING_PASSENGER_WITHOUT_TAXI, 0, REG_SZ, (LPBYTE)str, _tcslen(str) * sizeof(TCHAR));
-
-	if (passengerWPassenger == -1)
-		passengerWPassenger = IDB_PASSENGER_WITH_TAXI;
-	_stprintf(str, _T("%d"), passengerWPassenger);
-	RegSetValueEx(key, WAITING_PASSENGER_WITH_TAXI, 0, REG_SZ, (LPBYTE)str, _tcslen(str) * sizeof(TCHAR));
+		if (passengerWPassenger == -1)
+			passengerWPassenger = IDB_PASSENGER_WITH_TAXI;
+		_stprintf(str, _T("%d"), passengerWPassenger);
+		RegSetValueEx(key, WAITING_PASSENGER_WITH_TAXI, 0, REG_SZ, (LPBYTE)str, _tcslen(str) * sizeof(TCHAR));
+	}
 }

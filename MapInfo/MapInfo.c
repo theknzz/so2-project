@@ -101,6 +101,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
    // "CreateWindow"; "nCmdShow"= modo de exibição (p.e.
    // normal/modal); é passado como parâmetro de WinMain()
 	UpdateWindow(hWnd); // Refrescar a janela (Windows envia à janela uma
+
    // mensagem para pintar, mostrar dados, (refrescar)…
    // ============================================================================
    // 5. Loop de Mensagens
@@ -173,10 +174,10 @@ LRESULT CALLBACK ChooseThemeDialog(HWND hDlg, UINT messg, WPARAM wParam, LPARAM 
 			index = (int)SendMessage(hwndList, LB_GETCURSEL, 0, 0);
 			idPassengerWoTaxi = (int)SendMessage(hwndList, LB_GETITEMDATA, index, 0);
 
-			_stprintf(str, _T("FreeTaxi: %d, BusyTaxi: %d, PassengerWoTaxi: %d, PassengerWTaxi: %d"),
-				idFreeTaxi, idBusyTaxi, idPassengerWoTaxi, idPassengerWTaxi);
-			if (MessageBox(hDlg, str, _T("MapInfo - Theme Chooser"), MB_OK) == IDOK) {
-				CreateRegistryForBitMaps(idFreeTaxi, idBusyTaxi, idPassengerWoTaxi, idPassengerWTaxi);
+			//_stprintf(str, _T("FreeTaxi: %d, BusyTaxi: %d, PassengerWoTaxi: %d, PassengerWTaxi: %d"),
+			//	idFreeTaxi, idBusyTaxi, idPassengerWoTaxi, idPassengerWTaxi);
+			if (MessageBox(hDlg, _T("The bitmaps have been updated."), _T("MapInfo - Theme Chooser"), MB_OK) == IDOK) {
+				CreateRegistryForBitMaps(idFreeTaxi, idBusyTaxi, idPassengerWoTaxi, idPassengerWTaxi, TRUE);
 				LoadBitMaps(ghInst, &info);
 			}
 			EndDialog(hDlg, 0);
@@ -257,7 +258,7 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 		if ((commThread = CreateThread(NULL, 0, TalkToCentral, &info, 0, NULL)) == NULL) {
 			// Tratar erro
 		}
-		CreateRegistryForBitMaps(IDB_FREE_TAXI, IDB_BUSY_TAXI, IDB_PASSENGER_WITHOUT_TAXI, IDB_PASSENGER_WITH_TAXI);
+		CreateRegistryForBitMaps(IDB_FREE_TAXI, IDB_BUSY_TAXI, IDB_PASSENGER_WITHOUT_TAXI, IDB_PASSENGER_WITH_TAXI, FALSE);
 		LoadBitMaps(ghInst, &info);
 		GetClientRect(hWnd, &rc);
 		hdc = GetDC(hWnd);
@@ -292,6 +293,8 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 		break;
 	case WM_DESTROY: // Destruir a janela e terminar o programa
 	// "PostQuitMessage(Exit Status)"
+		// change the theme of the bitmaps to the default one
+		CreateRegistryForBitMaps(IDB_FREE_TAXI, IDB_BUSY_TAXI, IDB_PASSENGER_WITHOUT_TAXI, IDB_PASSENGER_WITH_TAXI, TRUE);
 		PostQuitMessage(0);
 		break;
 	case WM_COMMAND:

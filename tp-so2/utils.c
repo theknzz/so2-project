@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "resource.h"
 
 // Wait for all the threads to stop
 void WaitAllThreads(CDThread* cd, HANDLE* threads, int nr) {
@@ -547,4 +548,27 @@ int NumberOfActivePassengers(Passenger* passengers, int size) {
 			count++;
 	}
 	return count;
+}
+
+BOOL CreateRegistryForBitMaps() {
+	HKEY key;
+	DWORD result;
+	TCHAR str[100];
+
+	if (RegCreateKeyEx(HKEY_CURRENT_USER, KEY_NAME, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &key, &result) != ERROR_SUCCESS) {
+		return FALSE;
+	}
+
+	_stprintf(str, _T("%d"), IDB_FREE_TAXI);
+	RegSetValueEx(key, FREE_TAXI, 0, REG_SZ, (LPBYTE)str, _tcslen(str) * sizeof(TCHAR));
+
+	_stprintf(str, _T("%d"), IDB_BUSY_TAXI);
+	RegSetValueEx(key, BUSY_TAXI, 0, REG_SZ, (LPBYTE)str, _tcslen(str) * sizeof(TCHAR));
+
+	_stprintf(str, _T("%d"), IDB_PASSENGER_WITHOUT_TAXI);
+	RegSetValueEx(key, WAITING_PASSENGER_WITHOUT_TAXI, 0, REG_SZ, (LPBYTE)str, _tcslen(str) * sizeof(TCHAR));
+
+	_stprintf(str, _T("%d"), IDB_PASSENGER_WITH_TAXI);
+	RegSetValueEx(key, WAITING_PASSENGER_WITH_TAXI, 0, REG_SZ, (LPBYTE)str, _tcslen(str) * sizeof(TCHAR));
+
 }

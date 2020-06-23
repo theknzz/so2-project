@@ -204,6 +204,7 @@ struct _SHM_CENTAXI_TO_MAPINFO {
 	Passenger passengers[PASSENGER_MAX_BUFFER];
 	int nrPassengers;
 	Cell map[MIN_LIN][MIN_COL];
+	BOOL isSystemClosing;
 };
 
 struct _CC_MAPINFO {
@@ -243,5 +244,6 @@ struct MAPINFO_STRUCT {
 	Cell map[MIN_LIN][MIN_COL];
 	HWND window;
 	HBITMAP StretBitMap, GrassBitMap, TaxiWaitingBitMap, PassengerWaitingWithoutTaxiBitMap, TaxiBusyBitMap, PassengerWaitingWithTaxiBitMap;
+	BOOL SystemIsClosing;
 };
 

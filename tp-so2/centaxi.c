@@ -14,7 +14,7 @@
 
 int _tmain(int argc, TCHAR* argv[]) {
 	Cell map[MIN_LIN * MIN_COL];
-	int nrMaxTaxis = MAX_TAXIS; // colocar variavel dentro de uma dll (?)
+	int nrMaxTaxis = MAX_TAXIS;
 	int nrMaxPassengers = MAX_PASSENGERS;
 
 	HANDLE views[50];
@@ -253,6 +253,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 	//int requestsCounter = 0;
 	//cdThread.requestsCounter = &requestsCounter;
 
+	CreateRegistryForBitMaps();
+
 	HANDLE consoleThread = CreateThread(NULL, 0, TextInterface, &cdThread, 0, NULL);
 	if (!consoleThread) {
 		_tprintf(_T("Error launching console thread (%d)\n"), GetLastError());
@@ -402,7 +404,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	dllMethods.Register(MAPINFO_MUTEX, MUTEX);
 	handles[handleCounter++] = info.mutex;
 
-	if ((info.new_info = CreateEvent(NULL, FALSE, FALSE, EVENT_NEW_INFO)) == NULL) {
+	if ((info.new_info = CreateEvent(NULL, TRUE, FALSE, EVENT_NEW_INFO)) == NULL) {
 		WaitAllThreads(&cdThread, threads, threadCounter);
 		UnmapAllViews(views, viewCounter);
 		CloseMyHandles(handles, handleCounter);

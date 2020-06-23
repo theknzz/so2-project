@@ -1,33 +1,5 @@
 ﻿  MapInfo.c
-E:\projects\so2-project\MapInfo\MapInfo.c(149,17): warning C4101: 'hwndPicture': unreferenced local variable
-E:\projects\so2-project\MapInfo\MapInfo.c(152,10): warning C4101: 'hbitmap': unreferenced local variable
-E:\projects\so2-project\MapInfo\MapInfo.c(244,8): warning C4101: 'str': unreferenced local variable
-  utils.c
-E:\projects\so2-project\MapInfo\utils.c(63,31): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\MapInfo\utils.c(72,31): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\MapInfo\utils.c(88,42): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(97,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\MapInfo\utils.c(100,68): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(101,110): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(103,68): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(105,68): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(106,31): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\MapInfo\utils.c(109,70): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(111,70): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(126,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\MapInfo\utils.c(130,68): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(132,68): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(135,69): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(137,69): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(146,8): warning C4101: 'key_name': unreferenced local variable
-E:\projects\so2-project\MapInfo\utils.c(147,16): warning C4101: 'version': unreferenced local variable
-E:\projects\so2-project\MapInfo\utils.c(187,85): warning C4267: 'function': conversion from 'size_t' to 'DWORD', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(192,85): warning C4267: 'function': conversion from 'size_t' to 'DWORD', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(197,105): warning C4267: 'function': conversion from 'size_t' to 'DWORD', possible loss of data
-E:\projects\so2-project\MapInfo\utils.c(202,102): warning C4267: 'function': conversion from 'size_t' to 'DWORD', possible loss of data
-  Generating Code...
-E:\projects\so2-project\MapInfo\utils.c(142): warning C4716: 'TrataHover': must return a value
-E:\projects\so2-project\MapInfo\utils.c(117): warning C4716: 'TrataClick': must return a value
-E:\projects\so2-project\MapInfo\utils.c(203): warning C4715: 'CreateRegistryForBitMaps': not all control paths return a value
-E:\projects\so2-project\MapInfo\utils.c(173): warning C4715: 'LoadBitMaps': not all control paths return a value
+E:\projects\so2-project\MapInfo\MapInfo.c(150,17): warning C4101: 'hwndPicture': unreferenced local variable
+E:\projects\so2-project\MapInfo\MapInfo.c(153,10): warning C4101: 'hbitmap': unreferenced local variable
+E:\projects\so2-project\MapInfo\MapInfo.c(245,8): warning C4101: 'str': unreferenced local variable
   MapInfo.vcxproj -> E:\projects\so2-project\x64\Debug\MapInfo.exe
