@@ -1,5 +1,1 @@
-﻿  MapInfo.c
-E:\projects\so2-project\MapInfo\MapInfo.c(150,17): warning C4101: 'hwndPicture': unreferenced local variable
-E:\projects\so2-project\MapInfo\MapInfo.c(153,10): warning C4101: 'hbitmap': unreferenced local variable
-E:\projects\so2-project\MapInfo\MapInfo.c(250,8): warning C4101: 'str': unreferenced local variable
-  MapInfo.vcxproj -> E:\projects\so2-project\x64\Debug\MapInfo.exe
+﻿  MapInfo.vcxproj -> E:\projects\so2-project\x64\Debug\MapInfo.exe

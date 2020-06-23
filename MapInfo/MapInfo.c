@@ -197,37 +197,45 @@ LRESULT CALLBACK ChooseThemeDialog(HWND hDlg, UINT messg, WPARAM wParam, LPARAM 
 
 	case WM_INITDIALOG:
 		hwndList = GetDlgItem(hDlg, IDC_LIST_TAXI_WITH_PASSENGER);
-		/*hwndPicture = GetDlgItem(hWnd, IDC_STATIC);*/
 		icon = LoadIcon(ghInst, (LPCTSTR)IDI_SMALL);
 		SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)icon);
 
 		// -------------
 		_stprintf(str, _T("%d"), IDB_BUSY_TAXI);
-		int pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)str);
+		int pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)_T("Black Taxi"));
 		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_BUSY_TAXI);
+		_stprintf(str, _T("%d"), IDB_BUSY_TAXI1);
+		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)_T("Red Taxi"));
+		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_BUSY_TAXI1);
 
-		/*SendMessage(hwndPicture, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)info.TaxiBusyBitMap);*/
 
 		// -------------
 		hwndList = GetDlgItem(hDlg, IDC_LIST_TAXI_WITHOUT_PASSENGER);
 		_stprintf(str, _T("%d"), IDB_FREE_TAXI);
-		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)str);
+		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)_T("Green Taxi"));
 		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_FREE_TAXI);
-		_stprintf(str, _T("%d"), IDB_PASSENGER_WITHOUT_TAXI);
-		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)str);
-		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_PASSENGER_WITHOUT_TAXI);
+		_stprintf(str, _T("%d"), IDB_FREE_TAXI1);
+		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)_T("Yellow Taxi"));
+		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_FREE_TAXI1);
 
 		// -------------
 		hwndList = GetDlgItem(hDlg, IDC_LIST_PASSENGER_WITHOUT_TAXI);
 		_stprintf(str, _T("%d"), IDB_PASSENGER_WITHOUT_TAXI);
-		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)str);
+		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)_T("Black Passenger"));
 		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_PASSENGER_WITHOUT_TAXI);
+		_stprintf(str, _T("%d"), IDB_PASSENGER_WITHOUT_TAXI1);
+		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)_T("White Passenger"));
+		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_PASSENGER_WITHOUT_TAXI1);
 
 		// -------------
 		hwndList = GetDlgItem(hDlg, IDC_LIST_PASSENGER_WITH_TAXI);
 		_stprintf(str, _T("%d"), IDB_PASSENGER_WITH_TAXI);
-		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)str);
+		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)_T("Black Passenger"));
 		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_PASSENGER_WITH_TAXI);
+		_stprintf(str, _T("%d"), IDB_PASSENGER_WITH_TAXI1);
+		pos = (int)SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)_T("White Passenger"));
+		SendMessage(hwndList, LB_SETITEMDATA, pos, (LPARAM)IDB_PASSENGER_WITH_TAXI1);
+
 		return TRUE;
 		break;
 	case WM_CLOSE:

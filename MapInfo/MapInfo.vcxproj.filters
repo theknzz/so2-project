@@ -67,6 +67,30 @@
     <Image Include="..\bitmaps\free_tax.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\bitmaps\taxi_com_passageiro_2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\bitmaps\taxi_sem_passageiro_1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\bitmaps\taxi_sem_passageiro_2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\bitmaps\passageiro_sem_taxi_1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\bitmaps\passageiro_sem_taxi_2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\bitmaps\taxi_com_passageiro_1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\bitmaps\passageiro_com_taxi_1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\bitmaps\passageiro_com_taxi_2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MapInfo.c">

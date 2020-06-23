@@ -15,12 +15,16 @@
 #define IDB_GRASS                       109
 #define IDR_MAINFRAME                   128
 #define IDB_STREET                      132
-#define IDB_FREE_TAXI                   133
-#define IDB_PASSENGER_WITHOUT_TAXI      134
 #define IDR_MENU1                       135
-#define IDB_BUSY_TAXI                   135
-#define IDB_PASSENGER_WITH_TAXI         136
-#define IDB_FREE_TAXI1                  137
+#define IDB_BUSY_TAXI                   141
+#define IDB_BUSY_TAXI1                  142
+#define IDB_FREE_TAXI                   143
+#define IDB_FREE_TAXI1                  144
+#define IDB_PASSENGER_WITH_TAXI         145
+#define IDB_PASSENGER_WITH_TAXI1        146
+#define IDB_PASSENGER_WITHOUT_TAXI      147
+#define IDB_BITMAP2                     148
+#define IDB_PASSENGER_WITHOUT_TAXI1     148
 #define IDC_LIST_TAXI_WITH_PASSENGER    1000
 #define IDC_LIST_TAXI_WITHOUT_PASSENGER 1001
 #define IDC_LIST_PASSENGER_WITHOUT_TAXI 1002
@@ -34,7 +38,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        137
+#define _APS_NEXT_RESOURCE_VALUE        149
 #define _APS_NEXT_COMMAND_VALUE         32773
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           110
