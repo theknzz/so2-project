@@ -28,6 +28,15 @@ DWORD WINAPI TalkToCentral(LPVOID ptr) {
 		MessageBox(info->window, _T("CenTaxi isn't running..."), _T("MapInfo - Warning"), MB_OK);
 		return 0;
 	}
+
+	info->nrTaxis = message->nrTaxis;
+	info->nrPassengers = message->nrPassengers;
+	info->SystemIsClosing = message->isSystemClosing;
+	CopyMemory(info->taxis, message->taxis, sizeof(Taxi) * info->nrTaxis);
+	CopyMemory(info->passengers, message->passengers, sizeof(Passenger) * info->nrPassengers);
+	CopyMemory(info->map, message->map, sizeof(Cell) * MIN_COL * MIN_LIN);
+	InvalidateRect(info->window, NULL, FALSE);
+
 	do {
 		WaitForSingleObject(new_info, INFINITE);
 		WaitForSingleObject(mutex, INFINITE);

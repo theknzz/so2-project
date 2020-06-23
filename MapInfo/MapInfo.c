@@ -176,11 +176,16 @@ LRESULT CALLBACK ChooseThemeDialog(HWND hDlg, UINT messg, WPARAM wParam, LPARAM 
 
 			//_stprintf(str, _T("FreeTaxi: %d, BusyTaxi: %d, PassengerWoTaxi: %d, PassengerWTaxi: %d"),
 			//	idFreeTaxi, idBusyTaxi, idPassengerWoTaxi, idPassengerWTaxi);
-			if (MessageBox(hDlg, _T("The bitmaps have been updated."), _T("MapInfo - Theme Chooser"), MB_OK) == IDOK) {
+			if (idBusyTaxi != -1 && idFreeTaxi != -1 && idPassengerWTaxi != -1 && idPassengerWoTaxi != -1) {
 				CreateRegistryForBitMaps(idFreeTaxi, idBusyTaxi, idPassengerWoTaxi, idPassengerWTaxi, TRUE);
 				LoadBitMaps(ghInst, &info);
+				if (MessageBox(hDlg, _T("The bitmaps have been updated."), _T("MapInfo - Theme Chooser"), MB_OK | MB_ICONINFORMATION) == IDOK) {
+					EndDialog(hDlg, 0);
+				}
 			}
-			EndDialog(hDlg, 0);
+			else {
+				MessageBox(hDlg, _T("You need to insert a bitmap theme for all the assets."), _T("MapInfo - Theme Chooser"), MB_OK | MB_ICONWARNING);
+			}
 			return FALSE;
 			break;
 		case IDCANCEL:
@@ -258,7 +263,7 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 		if ((commThread = CreateThread(NULL, 0, TalkToCentral, &info, 0, NULL)) == NULL) {
 			// Tratar erro
 		}
-		CreateRegistryForBitMaps(IDB_FREE_TAXI, IDB_BUSY_TAXI, IDB_PASSENGER_WITHOUT_TAXI, IDB_PASSENGER_WITH_TAXI, FALSE);
+		//CreateRegistryForBitMaps(IDB_FREE_TAXI, IDB_BUSY_TAXI, IDB_PASSENGER_WITHOUT_TAXI, IDB_PASSENGER_WITH_TAXI, FALSE);
 		LoadBitMaps(ghInst, &info);
 		GetClientRect(hWnd, &rc);
 		hdc = GetDC(hWnd);
@@ -271,6 +276,7 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 		break;
 	case WM_PAINT:
 		GetClientRect(hWnd, &rc);
+		LoadBitMaps(ghInst, &info);
 		PaintMap(hdcMem, &info, ghInst);
 		hdc = BeginPaint(hWnd, &ps);
 		BitBlt(hdc, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, hdcMem, 0, 0, SRCCOPY);
