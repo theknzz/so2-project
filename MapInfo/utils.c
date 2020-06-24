@@ -10,23 +10,23 @@ DWORD WINAPI TalkToCentral(LPVOID ptr) {
 
 	if ((mutex = OpenMutex(SYNCHRONIZE, FALSE, MAPINFO_MUTEX))==NULL) {
 		MessageBox(info->window, _T("CenTaxi isn't running..."), _T("MapInfo - Warning"), MB_OK);
-		return 0;
+		exit(0);
 	}
 
 	if ((new_info = OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE, TRUE, EVENT_NEW_INFO)) == NULL) {
 		MessageBox(info->window, _T("CenTaxi isn't running..."), _T("MapInfo - Warning"), MB_OK);
-		return 0;
+		exit(0);
 	}
 
 	HANDLE fm = CreateFileMapping(INVALID_HANDLE_VALUE,NULL,PAGE_READWRITE,0,sizeof(SHM_MAPINFO),SHM_MAP_INFO_NAME);
 	if (fm == NULL) {
 		MessageBox(info->window, _T("CenTaxi isn't running..."), _T("MapInfo - Warning"), MB_OK);
-		return 0;
+		exit(0);
 	}
 
 	if ((message = (SHM_MAPINFO*)MapViewOfFile(fm, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(SHM_MAPINFO))) == NULL) {
 		MessageBox(info->window, _T("CenTaxi isn't running..."), _T("MapInfo - Warning"), MB_OK);
-		return 0;
+		exit(0);
 	}
 
 	info->nrTaxis = message->nrTaxis;
@@ -57,6 +57,7 @@ DWORD WINAPI TalkToCentral(LPVOID ptr) {
 	if (MessageBox(info->window, _T("CenTaxi was closed!\nTry to access the system later."), _T("MapInfo - Warning"), MB_OK) == IDOK) {
 		ZeroMemory(info, sizeof(MapInfo));
 		InvalidateRect(info->window, NULL, TRUE);
+		exit(0);
 	}
 	return 0; 
 }
