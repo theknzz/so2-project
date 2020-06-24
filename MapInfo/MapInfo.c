@@ -85,8 +85,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
 		WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME, // Estilo da janela (WS_OVERLAPPED= normal)
 		CW_USEDEFAULT, // Posição x pixels (default=à direita da última)
 		CW_USEDEFAULT, // Posição y pixels (default=abaixo da última)
-		1200, // Largura da janela (em pixels)
-		1040, // Altura da janela (em pixels)
+		1600, // Largura da janela (em pixels)
+		1060, // Altura da janela (em pixels)
 		(HWND)HWND_DESKTOP, // handle da janela pai (se se criar uma a partir de
 		// outra) ou HWND_DESKTOP se a janela for a primeira,
 		// criada a partir do "desktop"
@@ -291,6 +291,7 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 		EndPaint(hWnd, &ps);
 		break;
 	case WM_MOUSEHOVER:
+		PatBlt(hdcMem, CONTAXI_X-40, 20, 200, 1000, WHITENESS);
 		TrataHover(hdcMem, &info, ghInst, lParam);
 		TrackMouseEvent(&mouse_event);
 		break;
@@ -303,6 +304,7 @@ LRESULT CALLBACK TrataEventos(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lPara
 	case WM_LBUTTONDOWN:
 		x = (int)GET_X_LPARAM(lParam);
 		y = (int)GET_Y_LPARAM(lParam);
+		PatBlt(hdcMem, CONPASS_X - 40, 20, 200, 1000, WHITENESS);
 		TrataClick(hdcMem, &info, ghInst, x, y);
 		break;
 	case WM_DESTROY: // Destruir a janela e terminar o programa

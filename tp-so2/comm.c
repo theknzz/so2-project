@@ -335,8 +335,11 @@ DWORD WINAPI GetPassengerRegistration(LPVOID ptr) {
 
 			_tprintf(_T("%s - {%.2d,%.2d} to {%.2d,%.2d}.\n"), message.passenger.nome, message.passenger.location.x, message.passenger.location.y,
 				message.passenger.destination.x, message.passenger.destination.y);
-			message.resp = ESTIMATED_TIME;
 			message.estimatedWaitTime = GetEstimatedTime(cd, message.passenger.location);
+			if (message.estimatedWaitTime == -1)
+				message.resp = NO_ESTIMATED_TIME;
+			else
+				message.resp = ESTIMATED_TIME;
 			UpdateView(cd);
 		}
 		else {
@@ -475,7 +478,7 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 		if (argc < 2)
 			_tprintf(_T("This command requires a id.\n"));
 		else {
-			if (_ttoi(cmd[1] < 0)) {
+			if (_ttoi(cmd[1]) < 0) {
 				_tprintf(_T("Command %s can't handle %d as argument."), cmd[0], _ttoi(cmd[1]));
 				return;
 			}

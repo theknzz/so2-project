@@ -406,7 +406,10 @@ double GetEstimatedTime(CDThread* cd, Coords target)
 	for (unsigned int i = 0; i < nr_taxis; i++) {
 		time += (double)(CalculateDistanceTo(cd->taxis[i].location, target) / cd->taxis[i].velocity);
 	}
-	time = (double) time / nr_taxis;
+	if (nr_taxis != 0)
+		time = (double)time / nr_taxis;
+	else
+		time = -1;
 
 	return time;
 }

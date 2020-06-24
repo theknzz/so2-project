@@ -50,6 +50,9 @@ void GetOutput(enum response_id resp, Passenger* passenger, Taxi* taxi, double w
     case ESTIMATED_TIME:
         _tprintf(_T("Taxis are approximately %.2f seconds away!\n"), waitTime);
         break;
+    case NO_ESTIMATED_TIME:
+        _tprintf(_T("No taxis available to estimate wait time!\n"));
+        break;
     }
 }
 
@@ -60,15 +63,15 @@ DWORD WINAPI RecebeNotificacao(LPVOID ptr) {
     BOOL ret;
 
     while (1) {
-        ret = ReadFile(hPipe, &message, sizeof(PassMessage), &nr, NULL);
+        if (ReadFile(hPipe, &message, sizeof(PassMessage), &nr, NULL) == FALSE) {
+            _tprintf(_T("Central is closing...\n"));
+            exit(0);
+        }
 
         GetOutput(message.resp, &message.content.passenger, &message.content.taxi, 0);
 
         message.resp = OK;
-        if (!WriteFile(hPipe, &message, sizeof(PassMessage), &nr, NULL)) {
-            _tprintf(TEXT("[ERRO] Escrever no pipe! (WriteFile)\n"));
-            exit(-1);
-        }
+        WriteFile(hPipe, &message, sizeof(PassMessage), &nr, NULL);
         ZeroMemory(&message, sizeof(PassMessage));
     }
     return 0;
@@ -173,15 +176,23 @@ int _tmain(int argc, TCHAR* argv[]) {
 
         CopyMemory(&resgMessage.passenger, &me, sizeof(Passenger));
         if (!WriteFile(hRegister, &resgMessage, sizeof(PassRegisterMessage), &nr, NULL)) {
-            _tprintf(TEXT("[ERRO] Escrever no pipe! (WriteFile)\n"));
-            exit(-1);
+            _tprintf(TEXT("Central is closing...\n"));
+            centralIsActive = FALSE;
+            continue;
         }
         SetEvent(eventNewPMessage);
 
-        ret = ReadFile(hRegister, &resgMessage, sizeof(PassRegisterMessage), &nr, NULL);
+        if (ReadFile(hRegister, &resgMessage, sizeof(PassRegisterMessage), &nr, NULL) == FALSE) {
+            _tprintf(TEXT("Central is closing...\n"));
+            centralIsActive = FALSE;
+            continue;
+        }
         GetOutput(resgMessage.resp, NULL, NULL, resgMessage.estimatedWaitTime);
     }
+
+    WaitForSingleObject(cthread, INFINITE);
     CloseHandle(hRegister);
     CloseHandle(hTalk);
     CloseHandle(cthread);
+    _tprintf(_T("bye!\n"));
 }

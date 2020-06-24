@@ -35,7 +35,7 @@ DWORD WINAPI TalkToCentral(LPVOID ptr) {
 	CopyMemory(info->taxis, message->taxis, sizeof(Taxi) * info->nrTaxis);
 	CopyMemory(info->passengers, message->passengers, sizeof(Passenger) * info->nrPassengers);
 	CopyMemory(info->map, message->map, sizeof(Cell) * MIN_COL * MIN_LIN);
-	InvalidateRect(info->window, NULL, FALSE);
+	InvalidateRect(info->window, NULL, TRUE);
 
 	do {
 		WaitForSingleObject(new_info, INFINITE);
@@ -52,18 +52,21 @@ DWORD WINAPI TalkToCentral(LPVOID ptr) {
 		CopyMemory(info->taxis, shm.taxis, sizeof(Taxi) * info->nrTaxis);
 		CopyMemory(info->passengers, shm.passengers, sizeof(Passenger) * info->nrPassengers);
 		CopyMemory(info->map, shm.map, sizeof(Cell) * MIN_COL * MIN_LIN);
-		InvalidateRect(info->window, NULL, FALSE);
+		InvalidateRect(info->window, NULL, TRUE);
 	} while (!info->SystemIsClosing);
 	if (MessageBox(info->window, _T("CenTaxi was closed!\nTry to access the system later."), _T("MapInfo - Warning"), MB_OK) == IDOK) {
 		ZeroMemory(info, sizeof(MapInfo));
-		InvalidateRect(info->window, NULL, FALSE);
+		InvalidateRect(info->window, NULL, TRUE);
 	}
 	return 0; 
 }
 
 BOOL CALLBACK PaintMap(HDC hdc, MapInfo *info, HINSTANCE hInst) {
 	HDC hdcAux;
-	TCHAR *str = _T("MAP_INFO");
+	TCHAR *str = _T("ConTaxi");
+	TextOut(hdc, 1080, 10, str, _tcslen(str));
+	str = _T("ConPass");
+	TextOut(hdc, 1300, 10, str, _tcslen(str));
 
 	hdcAux = CreateCompatibleDC(hdc);
 	int x = 0, y = 0;
@@ -101,30 +104,35 @@ BOOL CALLBACK PaintMap(HDC hdc, MapInfo *info, HINSTANCE hInst) {
 		y += BITMAP_SIZE;
 	}
 	
-	TextOut(hdc, 1060, 10, str, _tcslen(str));
 	DeleteDC(hdcAux);
 	return TRUE;
 }
 
 BOOL CALLBACK TrataClick(HDC hdc, MapInfo *info, HINSTANCE hInstance, int x, int y) {
-	int offset_y = 200;
+	int offset_y = 30;
 	TCHAR str[100];
 
 	for (unsigned int i = 0; i < info->nrPassengers; i++) {
 		if ((info->passengers[i].location.x + 1) * BITMAP_SIZE >= x && info->passengers[i].location.x * BITMAP_SIZE <= x && (info->passengers[i].location.y + 1) * BITMAP_SIZE >= y && info->passengers[i].location.y * BITMAP_SIZE <= y) {
-			_stprintf(str, _T("Name:"));
-			TextOut(hdc, 1060, offset_y + BITMAP_SIZE * 1, str, _tcslen(str));
-			TextOut(hdc, 1060, offset_y + BITMAP_SIZE * 2, info->passengers[i].nome, _tcslen(info->passengers[i].nome));
+			_stprintf(str, _T("Passenger %.2d: %s"), i, info->passengers[i].nome);
+			offset_y += BITMAP_SIZE;
+			TextOut(hdc, CONPASS_X - 20, offset_y, str, _tcslen(str));
+			//offset_y += BITMAP_SIZE;
+			//TextOut(hdc, CONPASS_X, offset_y, info->passengers[i].nome, _tcslen(info->passengers[i].nome));
 			_stprintf(str, _T("Destination:"));
-			TextOut(hdc, 1060, offset_y + BITMAP_SIZE * 3, str, _tcslen(str));
+			offset_y += BITMAP_SIZE;
+			TextOut(hdc, CONPASS_X, offset_y, str, _tcslen(str));
 			_stprintf(str, _T("{%.2d;%.2d}"), info->passengers[i].destination.x, info->passengers[i].destination.y);
-			TextOut(hdc, 1060, offset_y + BITMAP_SIZE * 4, str, _tcslen(str));
+			offset_y += BITMAP_SIZE;
+			TextOut(hdc, CONPASS_X, offset_y, str, _tcslen(str));
 			for (unsigned int j = 0; j < info->nrTaxis; j++) {
 				if (info->taxis[j].client.location.x == info->passengers[i].location.x && info->taxis[j].client.location.y == info->passengers[i].location.y) {
 					_stprintf(str, _T("Taxi:"));
-					TextOut(hdc, 1060, offset_y + BITMAP_SIZE * 5, str, _tcslen(str));
+					offset_y += BITMAP_SIZE;
+					TextOut(hdc, CONPASS_X, offset_y, str, _tcslen(str));
 					_stprintf(str, _T("%s"), info->taxis[j].licensePlate);
-					TextOut(hdc, 1060, offset_y + BITMAP_SIZE * 6, str, _tcslen(str));
+					offset_y += BITMAP_SIZE;
+					TextOut(hdc, CONPASS_X, offset_y, str, _tcslen(str));
 				}
 			}
 		}
@@ -133,7 +141,7 @@ BOOL CALLBACK TrataClick(HDC hdc, MapInfo *info, HINSTANCE hInstance, int x, int
 }
 
 BOOL CALLBACK TrataHover(HDC hdc, MapInfo *info, HINSTANCE hInstance, LPARAM lParam) {
-	int x, y, offset_y = 500;
+	int x, y, offset_y = 30;
 	TCHAR str[100];
 
 	x = (int)GET_X_LPARAM(lParam);
@@ -142,15 +150,22 @@ BOOL CALLBACK TrataHover(HDC hdc, MapInfo *info, HINSTANCE hInstance, LPARAM lPa
 	for (unsigned int i = 0; i < info->nrTaxis; i++) {
 		if ((info->taxis[i].location.x + 1) * BITMAP_SIZE >= x && info->taxis[i].location.x * BITMAP_SIZE <= x 
 			&& (info->taxis[i].location.y + 1) * BITMAP_SIZE >= y && info->taxis[i].location.y * BITMAP_SIZE <= y) {
-			_stprintf(str, _T("License Plate:"));
-			TextOut(hdc, 1060, offset_y + BITMAP_SIZE * 2, str, _tcslen(str));
-			_stprintf(str, _T("%s"), info->taxis[i].licensePlate);
-			TextOut(hdc, 1060, offset_y + BITMAP_SIZE * 3, str, _tcslen(str));
+			_stprintf(str, _T("Taxi %.2d : %s\0"), i, info->taxis[i].licensePlate);
+			offset_y += BITMAP_SIZE;
+			TextOut(hdc, CONTAXI_X - 20, offset_y, str, _tcslen(str));
+			//_stprintf(str, _T("%s"), info->taxis[i].licensePlate);
+			//offset_y += BITMAP_SIZE;
+			//TextOut(hdc, CONTAXI_X, offset_y, str, _tcslen(str));
 			if (info->taxis[i].client.location.x > -1 && info->taxis[i].client.location.y > -1) {
 				_stprintf(str, _T("Destination:"));
-				TextOut(hdc, 1060, offset_y + BITMAP_SIZE * 4, str, _tcslen(str));
+				offset_y += BITMAP_SIZE;
+				TextOut(hdc, CONTAXI_X, offset_y, str, _tcslen(str));
+				if (info->taxis[i].client.state != OnDrive)
+					_stprintf(str, _T("{%.2d;%.2d}"), info->taxis[i].client.location.x, info->taxis[i].client.location.y);
+				else
 				_stprintf(str, _T("{%.2d;%.2d}"), info->taxis[i].client.destination.x, info->taxis[i].client.destination.y);
-				TextOut(hdc, 1060, offset_y + BITMAP_SIZE * 5, str, _tcslen(str));
+				offset_y += BITMAP_SIZE;
+				TextOut(hdc, CONTAXI_X, offset_y, str, _tcslen(str));
 			}
 		}
 	}

@@ -38,7 +38,8 @@
 #define WAITING_PASSENGER_WITH_TAXI _T("WAITING_PASSENGER_WITH_TAXI_Bitmap")
 
 #define BITMAP_SIZE 20
-
+#define CONTAXI_X 1040
+#define CONPASS_X 1280
 // Type of Map Cells
 enum type { Street, Building };
 
@@ -75,7 +76,8 @@ enum response_id {
 	COORDINATES_FROM_OTHER_CITY,
 	PASSENGER_DELIVERED,
 	CENTRAL_GOING_OFFLINE,
-	ESTIMATED_TIME
+	ESTIMATED_TIME,
+	NO_ESTIMATED_TIME
 };
 
 enum passanger_state {

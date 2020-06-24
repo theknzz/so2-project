@@ -1,5 +1,7 @@
 ﻿  conpass.c
 E:\projects\so2-project\ConPass\conpass.c(30,19): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [6][100]'
-E:\projects\so2-project\ConPass\conpass.c(84,17): warning C4101: 'message': unreferenced local variable
+E:\projects\so2-project\ConPass\conpass.c(63,10): warning C4101: 'ret': unreferenced local variable
+E:\projects\so2-project\ConPass\conpass.c(87,17): warning C4101: 'message': unreferenced local variable
+E:\projects\so2-project\ConPass\conpass.c(84,10): warning C4101: 'ret': unreferenced local variable
 E:\projects\so2-project\ConPass\conpass.c(30): warning C4172: returning address of local variable or temporary: command
   ConPass.vcxproj -> E:\projects\so2-project\x64\Debug\ConPass.exe
