@@ -16,7 +16,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
 	HANDLE taxiGate;
 	if ((taxiGate = OpenSemaphore(SYNCHRONIZE | SEMAPHORE_MODIFY_STATE, FALSE, TAXI_GATEWAY)) == NULL) {
-		_tprintf(_T("Error %d opening the gateway semaphore!\n"));
+		_tprintf(_T("Central isn't running! Try again later...\n"));
 		Sleep(1000 * 2);
 		exit(-1);
 	}

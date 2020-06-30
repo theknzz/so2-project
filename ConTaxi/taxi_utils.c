@@ -329,13 +329,14 @@ DWORD WINAPI TaxiAutopilot(LPVOID ptr) {
 	FILETIME ft, ftUTC;
 	LARGE_INTEGER DueTime;
 	SYSTEMTIME systime;
-	LONG interval = (LONG)(1 / cdata->taxi->velocity) * 1000;
+
+	srand(time(0));
 
 	SystemTimeToFileTime(&systime, &ft);
 	LocalFileTimeToFileTime(&ft, &ftUTC);
 	DueTime.HighPart = ftUTC.dwHighDateTime;
 	DueTime.LowPart = ftUTC.dwLowDateTime;
-	DueTime.QuadPart = -(LONGLONG)interval * 1000 * 10;
+	DueTime.QuadPart = -1 * (LONGLONG) (10000000LL / cdata->taxi->velocity);
 
 	if ((hTimer = CreateWaitableTimer(NULL, TRUE, NULL)) == NULL) {
 		_tprintf(_T("Error (%d) creating the waitable timer.\n"), GetLastError());
@@ -347,6 +348,8 @@ DWORD WINAPI TaxiAutopilot(LPVOID ptr) {
 		}
 		moveTaxi(cdata);
 		WaitForSingleObject(hTimer, INFINITE);
+		// updates the taxi's velocity
+		DueTime.QuadPart = -(LONGLONG)(10000000LL / cdata->taxi->velocity);
 	}
 	return 0;
 }

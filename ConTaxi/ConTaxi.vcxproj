@@ -25,6 +25,7 @@
   <ItemGroup>
     <ClInclude Include="..\tp-so2\rules.h" />
     <ClInclude Include="..\tp-so2\structs.h" />
+    <ClInclude Include="LibraryImport.h" />
     <ClInclude Include="taxi_utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

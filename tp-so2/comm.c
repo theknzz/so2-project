@@ -492,7 +492,8 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 		for (int i = 0; i < 7; i++)
 			_tprintf(_T("%s"), commands[i]);
 	}
-	/*else if (_tcscmp(cmd[0], DBG_ADD_PASSENGER) == 0) {
+	else if (_tcscmp(cmd[0], DBG_ADD_PASSENGER) == 0) {
+		/*
 		if (argc < 6)
 			_tprintf(_T("To few arguments!\n"));
 		else {
@@ -508,8 +509,9 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 			SendBroadCastMessage(cdata->broadcast, &b, NumberOfActiveTaxis(cdata->taxis, cdata->nrMaxTaxis));
 			cdata->dllMethods->Log(_T("New passenger added to the system: %s at {%.2d,%.2d} with {%.2d,%.2d} as destination!\n"), cmd[1], x, y, dest_x, dest_y);
 			cdata->dllMethods->Log(_T("Central sent a broadcast message!.\n"));
-		}
-	}*/
+		}*/
+		_tprintf(_T("This command is deprecated!\n"));
+	}
 	else {
 		_tprintf(_T("System doesn't recognize the command, type 'help' to view all the commands.\n"));
 	}

@@ -94,7 +94,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     // esperar que o pipe seja criado
     if (!WaitNamedPipe(NP_PASS_REGISTER, NMPWAIT_WAIT_FOREVER)) {
-        _tprintf(TEXT("[ERRO] Ligar ao pipe '%s'! (WaitNamedPipe)\n"), NP_PASS_REGISTER);
+        _tprintf(TEXT("Central needs to be running! Try again later...\n"));
         exit(-1);
     }
     else {
@@ -170,7 +170,11 @@ int _tmain(int argc, TCHAR* argv[]) {
                 }
                 break;
             }
-            _tprintf(_T("System doesn't recognize '%s' as a command. You may use %s name locX locY desX desY\n"), cmd[0], PASS_REGISTER);
+            else if (!_tcscmp(_T("help"), cmd[0])) {
+                _tprintf(_T("register name locX locY desX desY\n"));
+                continue;
+            }
+            _tprintf(_T("System doesn't recognize '%s' as a command. You may 'help' to see the list of available commands\n"), cmd[0], PASS_REGISTER);
             ZeroMemory(cmd, sizeof(TCHAR)*6*100);
         }
 
