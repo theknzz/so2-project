@@ -10,21 +10,23 @@ E:\projects\so2-project\tp-so2\comm.c(216,92): warning C4020: 'function through 
 E:\projects\so2-project\tp-so2\comm.c(219,91): warning C4020: 'function through pointer': too many actual parameters
 E:\projects\so2-project\tp-so2\comm.c(302,16): warning C4047: 'return': 'TCHAR **' differs in levels of indirection from 'TCHAR [6][100]'
 E:\projects\so2-project\tp-so2\comm.c(424,11): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\tp-so2\comm.c(454,30): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\comm.c(460,30): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\comm.c(469,38): warning C4047: '=': 'BOOL *' differs in levels of indirection from 'int'
-E:\projects\so2-project\tp-so2\comm.c(483,11): warning C4033: 'FindFeatureAndRun' must return a value
-E:\projects\so2-project\tp-so2\comm.c(487,98): warning C4020: 'function through pointer': too many actual parameters
-E:\projects\so2-project\tp-so2\comm.c(591,18): warning C4477: '_swprintf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'double'
-E:\projects\so2-project\tp-so2\comm.c(603,18): warning C4477: '_swprintf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'double'
-E:\projects\so2-project\tp-so2\comm.c(539,23): warning C4101: 'status': unreferenced local variable
-E:\projects\so2-project\tp-so2\comm.c(537,16): warning C4101: 'y': unreferenced local variable
-E:\projects\so2-project\tp-so2\comm.c(537,13): warning C4101: 'x': unreferenced local variable
-E:\projects\so2-project\tp-so2\comm.c(676,30): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\comm.c(685,29): warning C4018: '<': signed/unsigned mismatch
-E:\projects\so2-project\tp-so2\comm.c(56): warning C4716: 'TalkToTaxi': must return a value
+E:\projects\so2-project\tp-so2\comm.c(460,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\tp-so2\comm.c(462,30): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\comm.c(471,10): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\tp-so2\comm.c(473,30): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\comm.c(482,38): warning C4047: '=': 'BOOL *' differs in levels of indirection from 'int'
+E:\projects\so2-project\tp-so2\comm.c(496,11): warning C4033: 'FindFeatureAndRun' must return a value
+E:\projects\so2-project\tp-so2\comm.c(500,98): warning C4020: 'function through pointer': too many actual parameters
+E:\projects\so2-project\tp-so2\comm.c(604,18): warning C4477: '_swprintf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'double'
+E:\projects\so2-project\tp-so2\comm.c(616,18): warning C4477: '_swprintf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'double'
+E:\projects\so2-project\tp-so2\comm.c(552,23): warning C4101: 'status': unreferenced local variable
+E:\projects\so2-project\tp-so2\comm.c(550,16): warning C4101: 'y': unreferenced local variable
+E:\projects\so2-project\tp-so2\comm.c(550,13): warning C4101: 'x': unreferenced local variable
+E:\projects\so2-project\tp-so2\comm.c(689,30): warning C4018: '<': signed/unsigned mismatch
+E:\projects\so2-project\tp-so2\comm.c(698,29): warning C4018: '<': signed/unsigned mismatch
 E:\projects\so2-project\tp-so2\comm.c(302): warning C4172: returning address of local variable or temporary: command
+E:\projects\so2-project\tp-so2\comm.c(56): warning C4716: 'TalkToTaxi': must return a value
 E:\projects\so2-project\tp-so2\comm.c(385): warning C4715: 'WaitTaxiConnect': not all control paths return a value
-E:\projects\so2-project\tp-so2\comm.c(681): warning C4716: 'RequestWaitTimeFeature': must return a value
-E:\projects\so2-project\tp-so2\comm.c(518): warning C4715: 'FindFeatureAndRun': not all control paths return a value
+E:\projects\so2-project\tp-so2\comm.c(694): warning C4716: 'RequestWaitTimeFeature': must return a value
+E:\projects\so2-project\tp-so2\comm.c(531): warning C4715: 'FindFeatureAndRun': not all control paths return a value
   tp-so2.vcxproj -> E:\projects\so2-project\x64\Debug\CenTaxi.exe

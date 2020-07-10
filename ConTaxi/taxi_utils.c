@@ -614,7 +614,7 @@ DWORD WINAPI ListenToCentral(LPVOID* ptr) {
 			continue;
 		}
 		if (message.resp == OK) {
-			_tprintf(_T("%s was assigned to you, please catch at {%.2d;%2.d} then go to {%.2d;%.2d}\n"), message.content.passenger.nome,
+			_tprintf(_T("%s was assigned to you, please catch at {%d;%d} then go to {%d;%d}\n"), message.content.passenger.nome,
 				message.content.passenger.location.x, message.content.passenger.location.y, message.content.passenger.destination.x, message.content.passenger.destination.y);
 			CopyMemory(&cd->taxi->client, &message.content.passenger, sizeof(Passenger));
 		}

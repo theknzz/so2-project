@@ -18,8 +18,8 @@ E:\projects\so2-project\ConTaxi\taxi_utils.c(536,38): warning C4013: 'NotifyCent
 E:\projects\so2-project\ConTaxi\taxi_utils.c(567,42): warning C4020: 'ReleaseMutex': too many actual parameters
 E:\projects\so2-project\ConTaxi\taxi_utils.c(626,13): warning C4477: 'wprintf' : format string '%s' requires an argument of type 'unsigned short *', but variadic argument 1 has type 'Passenger'
 E:\projects\so2-project\ConTaxi\taxi_utils.c(609,7): warning C4101: 'ret': unreferenced local variable
-E:\projects\so2-project\ConTaxi\taxi_utils.c(204): warning C4172: returning address of local variable or temporary: command
 E:\projects\so2-project\ConTaxi\taxi_utils.c(221): warning C4715: 'getOppositeDirection': not all control paths return a value
+E:\projects\so2-project\ConTaxi\taxi_utils.c(204): warning C4172: returning address of local variable or temporary: command
 E:\projects\so2-project\ConTaxi\taxi_utils.c(590): warning C4716: 'ReceiveBroadcastMessage': must return a value
 E:\projects\so2-project\ConTaxi\taxi_utils.c(550): warning C4715: 'FindFeatureAndRun': not all control paths return a value
   ConTaxi.vcxproj -> E:\projects\so2-project\x64\Debug\ConTaxi.exe

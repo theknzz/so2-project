@@ -536,6 +536,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 	}
 	free(taxis);
 	free(passengers);
+	FreeLibrary(hDll);
 	return 0;
 }
 

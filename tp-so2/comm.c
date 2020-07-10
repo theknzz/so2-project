@@ -423,13 +423,16 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 				_tprintf(_T("Specified taxi license doesn't exist in the system.\n"));
 				return;
 			}
-			RemoveTaxiFromMapCell(&cdata->map[cdata->taxis[index].location.x + cdata->taxis[index].location.y * MIN_COL], cmd[1], cdata->nrMaxTaxis);
-			ZeroMemory(&cdata->taxis[index], sizeof(Taxi));
-			cdata->taxis[index].location.x = -1;
-			cdata->taxis[index].location.y = -1;
-			_tprintf(_T("Taxi with '%s' as license has been kicked from the server.\n"), cmd[1]);
-			_stprintf(log, _T("Taxi with '%s' as license has been kicked from the server.\n"), cmd[1]);
-			cdata->dllMethods->Log(log);
+			if (cdata->taxis[index].client.state != Waiting) {
+				RemoveTaxiFromMapCell(&cdata->map[cdata->taxis[index].location.x + cdata->taxis[index].location.y * MIN_COL], cmd[1], cdata->nrMaxTaxis);
+				ZeroMemory(&cdata->taxis[index], sizeof(Taxi));
+				cdata->taxis[index].location.x = -1;
+				cdata->taxis[index].location.y = -1;
+				_tprintf(_T("Taxi with '%s' as license has been kicked from the server.\n"), cmd[1]);
+				_stprintf(log, _T("Taxi with '%s' as license has been kicked from the server.\n"), cmd[1]);
+				cdata->dllMethods->Log(log);
+			} else
+				_tprintf(_T("You cannot kick a working taxi.\n"));
 		}
 	}
 	else if (_tcscmp(cmd[0], ADM_CLOSE) == 0) {
@@ -451,13 +454,23 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 		return -1;
 	}
 	else if (_tcscmp(cmd[0], ADM_LIST_TAXIS) == 0) {
-		for (unsigned int i = 0; i < cdata->nrMaxTaxis; i++) {
+		int nr = NumberOfActiveTaxis(cdata->taxis, cdata->nrMaxTaxis);
+		if (nr == 0) {
+			_tprintf(_T("Central has no working taxis at the moment.\n"));
+			return;
+		}
+		for (unsigned int i = 0; i < nr; i++) {
 			if (cdata->taxis[i].location.x > -1)
 				_tprintf(_T("%.2d - %9s at {%.2d;%.2d}\n"), i, cdata->taxis[i].licensePlate, cdata->taxis[i].location.x, cdata->taxis[i].location.y);
 		}
 	}
 	else if (_tcscmp(cmd[0], ADM_LIST_PASSENGERS) == 0) {
-		for (unsigned int i = 0; i < cdata->nrMaxPassengers; i++) {
+		int nr = NumberOfActivePassengers(cdata->passengers, cdata->nrMaxPassengers);
+		if (nr == 0) {
+			_tprintf(_T("Central has no passengers at the moment.\n"));
+			return;
+		}
+		for (unsigned int i = 0; i < nr; i++) {
 			if (cdata->taxis[i].location.x > -1)
 				_tprintf(_T("%.2d - %s at {%.2d;%.2d} with {%.2d;%.2d} as destination is %s!\n"),
 					i, cdata->passengers[i].nome, cdata->passengers[i].location.x, cdata->passengers[i].location.y,
@@ -465,12 +478,12 @@ int FindFeatureAndRun(TCHAR* command, CDThread* cdata) {
 		}
 	}
 	else if (_tcscmp(cmd[0], ADM_PAUSE) == 0) {
-		_tprintf(_T("System pause\n"));
+		_tprintf(_T("System paused taxi acceptance.\n"));
 		cdata->areTaxisRequestsPause = TRUE;
 		cdata->dllMethods->Log(_T("Central is pausing taxi registration requests.\n"));
 	}
 	else if (_tcscmp(cmd[0], ADM_RESUME) == 0) {
-		_tprintf(_T("System resume\n"));
+		_tprintf(_T("System resumed taxi acceptance.\n"));
 		cdata->areTaxisRequestsPause = FALSE;
 		cdata->dllMethods->Log(_T("Central is resuming taxi registration requests.\n"));
 	}

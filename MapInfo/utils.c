@@ -104,7 +104,6 @@ BOOL CALLBACK PaintMap(HDC hdc, MapInfo *info, HINSTANCE hInst) {
 		x = 0;
 		y += BITMAP_SIZE;
 	}
-	
 	DeleteDC(hdcAux);
 	return TRUE;
 }
